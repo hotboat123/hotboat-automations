@@ -1,0 +1,25 @@
+# Core
+python-dotenv==1.0.1
+pydantic==2.5.0
+pydantic-settings==2.1.0
+
+# Database
+psycopg[binary]==3.2.2
+psycopg-pool==3.2.2
+
+# Notifications
+python-telegram-bot==21.0.1
+sendgrid==6.11.0
+
+# HTTP
+httpx==0.26.0
+requests==2.31.0
+
+# Utilities
+pyyaml==6.0.1
+schedule==1.2.1
+pytz==2024.1
+
+# Logging
+colorlog==6.8.2
+
