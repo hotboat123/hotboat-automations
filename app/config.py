@@ -1,10 +1,96 @@
 """
 Configuration management
 """
+from copy import deepcopy
 from pathlib import Path
 from typing import List, Optional
 from pydantic_settings import BaseSettings, SettingsConfigDict
 import yaml
+
+
+DEFAULT_CONFIG = {
+    "monitors": {
+        "appointments": {
+            "enabled": True,
+            "name": "Monitor de Reservas",
+            "check_interval": 60,
+            "notifications": {
+                "new_appointment": True,
+                "cancelled_appointment": True,
+                "modified_appointment": True,
+                "upcoming_reminder": True,
+                "reminder_hours_before": 24,
+            },
+        },
+        "stock": {
+            "enabled": True,
+            "name": "Monitor de Stock",
+            "check_interval": 300,
+            "thresholds": {
+                "low_stock": 5,
+                "critical_stock": 2,
+                "out_of_stock": 0,
+            },
+            "notifications": {
+                "low_stock": True,
+                "critical_stock": True,
+                "out_of_stock": True,
+                "stock_restored": True,
+            },
+        },
+    },
+    "notifications": {
+        "telegram": {
+            "enabled": False,
+            "priority_levels": {
+                "critical": True,
+                "high": True,
+                "medium": True,
+                "low": False,
+            },
+        },
+        "email": {
+            "enabled": True,
+            "send_summary": True,
+            "summary_interval": "daily",
+            "summary_time": "08:00",
+            "priority_levels": {
+                "critical": True,
+                "high": True,
+                "medium": False,
+                "low": False,
+            },
+        },
+        "whatsapp": {
+            "enabled": True,
+            "priority_levels": {
+                "critical": True,
+                "high": True,
+                "medium": True,
+                "low": False,
+            },
+        },
+    },
+    "database": {
+        "pool_size": 5,
+        "max_overflow": 10,
+        "pool_timeout": 30,
+        "echo": False,
+    },
+    "logging": {
+        "level": "INFO",
+        "format": "colored",
+        "rotation": "daily",
+        "retention_days": 30,
+        "max_file_size": "10MB",
+    },
+    "general": {
+        "timezone": "America/Santiago",
+        "startup_notification": True,
+        "error_notification": True,
+        "health_check_interval": 3600,
+    },
+}
 
 
 class Settings(BaseSettings):
@@ -87,11 +173,27 @@ def get_settings() -> Settings:
 
 def load_yaml_config(config_file: str = "config.yaml") -> dict:
     """Load YAML configuration file"""
+    config = deepcopy(DEFAULT_CONFIG)
     config_path = Path(config_file)
     
     if not config_path.exists():
-        return {}
+        return config
     
     with open(config_path, "r", encoding="utf-8") as f:
-        return yaml.safe_load(f) or {}
+        file_config = yaml.safe_load(f) or {}
+        if isinstance(file_config, dict):
+            config = _deep_merge(config, file_config)
+    
+    return config
+
+
+def _deep_merge(base: dict, overrides: dict) -> dict:
+    """Deep merge dictionaries without mutating inputs"""
+    result = deepcopy(base)
+    for key, value in overrides.items():
+        if isinstance(value, dict) and isinstance(result.get(key), dict):
+            result[key] = _deep_merge(result.get(key, {}), value)
+        else:
+            result[key] = value
+    return result
 
