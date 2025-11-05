@@ -13,6 +13,8 @@ class StockMonitor(BaseMonitor):
         super().__init__(settings, config, notification_manager)
         # Override con variables de entorno si existen
         self.check_interval = settings.check_interval_stock or self.check_interval
+        self.table_name = config.get("table_name", "inventory")
+        self.custom_query = config.get("query")
         
         # Umbrales desde variables de entorno o config
         thresholds = config.get("thresholds", {})
@@ -26,7 +28,7 @@ class StockMonitor(BaseMonitor):
         """
         # Query para obtener información de inventario
         # Nota: Ajusta esta query según tu esquema de base de datos
-        query = """
+        query = self.custom_query or f"""
             SELECT 
                 id,
                 product_name,
@@ -36,7 +38,7 @@ class StockMonitor(BaseMonitor):
                 unit,
                 min_stock,
                 last_updated
-            FROM inventory
+            FROM {self.table_name}
             ORDER BY product_name
         """
         

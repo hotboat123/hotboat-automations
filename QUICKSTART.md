@@ -85,6 +85,12 @@ ENVIRONMENT=production
 
 > 💡 **Ventaja de Railway**: Puedes cambiar cualquiera de estas variables sin modificar el código. Railway reiniciará automáticamente la aplicación con los nuevos valores.
 
+> 🗄️ **¿Tus tablas tienen otros nombres?**
+> - Ajusta `monitors.appointments.table_name` en `config.yaml` (por ejemplo `booknetic_appointments`).
+> - O define `monitors.appointments.query` con la consulta exacta y alias a los campos esperados.
+> - Haz lo mismo para `monitors.stock.table_name` o `monitors.stock.query`.
+> - Revisa `CONFIGURATION.md` para ejemplos completos.
+
 ### 2.4 Desplegar
 
 Railway desplegará automáticamente. Verás:

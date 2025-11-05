@@ -16,6 +16,8 @@ class AppointmentsMonitor(BaseMonitor):
         super().__init__(settings, config, notification_manager)
         # Override con variable de entorno si existe
         self.check_interval = settings.check_interval_appointments or self.check_interval
+        self.table_name = config.get("table_name", "appointments")
+        self.custom_query = config.get("query")
     
     async def check(self) -> Dict[str, Any]:
         """
@@ -23,7 +25,7 @@ class AppointmentsMonitor(BaseMonitor):
         Retorna un diccionario con información de las reservas
         """
         # Obtener todas las reservas activas (próximas y recientes)
-        query = """
+        query = self.custom_query or f"""
             SELECT 
                 id,
                 customer_name,
@@ -38,7 +40,7 @@ class AppointmentsMonitor(BaseMonitor):
                 created_at,
                 updated_at,
                 notes
-            FROM appointments
+            FROM {self.table_name}
             WHERE appointment_date >= CURRENT_DATE - INTERVAL '1 day'
             ORDER BY appointment_date, start_time
         """

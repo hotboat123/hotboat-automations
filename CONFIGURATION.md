@@ -76,6 +76,23 @@ monitors:
     enabled: true
     name: "Monitor de Reservas"
     check_interval: 60              # Sobreescrito por CHECK_INTERVAL_APPOINTMENTS
+    table_name: "appointments"      # Cambia si tu tabla tiene otro nombre (ej: booknetic_appointments)
+    # query: |                      # Opcional: query personalizada con ALIAS a los campos esperados
+    #   SELECT
+    #     id,
+    #     full_name AS customer_name,
+    #     phone AS phone_number,
+    #     start_date::date AS appointment_date,
+    #     start_date::time AS start_time,
+    #     duration AS duration_hours,
+    #     service AS boat_type,
+    #     guests AS num_people,
+    #     amount AS total_price,
+    #     status,
+    #     created_at,
+    #     updated_at,
+    #     notes
+    #   FROM booknetic_appointments
     notifications:
       new_appointment: true
       cancelled_appointment: true
@@ -85,6 +102,18 @@ monitors:
     enabled: true
     name: "Monitor de Stock"
     check_interval: 300             # Sobreescrito por CHECK_INTERVAL_STOCK
+    table_name: "inventory"
+    # query: |                     # Opcional: query personalizada con ALIAS a los campos esperados
+    #   SELECT
+    #     id,
+    #     product_name,
+    #     sku,
+    #     category,
+    #     quantity,
+    #     'unidades' AS unit,
+    #     min_stock,
+    #     updated_at AS last_updated
+    #   FROM otro_inventario
     thresholds:
       low_stock: 5                  # Sobreescrito por LOW_STOCK_THRESHOLD
       critical_stock: 2             # Sobreescrito por CRITICAL_STOCK_THRESHOLD

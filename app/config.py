@@ -14,6 +14,8 @@ DEFAULT_CONFIG = {
             "enabled": True,
             "name": "Monitor de Reservas",
             "check_interval": 60,
+            "table_name": "appointments",
+            "query": None,
             "notifications": {
                 "new_appointment": True,
                 "cancelled_appointment": True,
@@ -26,6 +28,8 @@ DEFAULT_CONFIG = {
             "enabled": True,
             "name": "Monitor de Stock",
             "check_interval": 300,
+            "table_name": "inventory",
+            "query": None,
             "thresholds": {
                 "low_stock": 5,
                 "critical_stock": 2,
