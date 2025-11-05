@@ -12,6 +12,11 @@ from app.logger import logger
 class AppointmentsMonitor(BaseMonitor):
     """Monitorea cambios en las reservas"""
     
+    def __init__(self, settings, config, notification_manager):
+        super().__init__(settings, config, notification_manager)
+        # Override con variable de entorno si existe
+        self.check_interval = settings.check_interval_appointments or self.check_interval
+    
     async def check(self) -> Dict[str, Any]:
         """
         Obtiene el estado actual de las reservas

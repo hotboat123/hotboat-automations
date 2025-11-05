@@ -9,6 +9,17 @@ from app.logger import logger
 class StockMonitor(BaseMonitor):
     """Monitorea niveles de stock/inventario"""
     
+    def __init__(self, settings, config, notification_manager):
+        super().__init__(settings, config, notification_manager)
+        # Override con variables de entorno si existen
+        self.check_interval = settings.check_interval_stock or self.check_interval
+        
+        # Umbrales desde variables de entorno o config
+        thresholds = config.get("thresholds", {})
+        self.low_stock_threshold = settings.low_stock_threshold or thresholds.get("low_stock", 5)
+        self.critical_stock_threshold = settings.critical_stock_threshold or thresholds.get("critical_stock", 2)
+        self.out_of_stock_threshold = thresholds.get("out_of_stock", 0)
+    
     async def check(self) -> Dict[str, Any]:
         """
         Obtiene el estado actual del inventario
@@ -73,10 +84,6 @@ class StockMonitor(BaseMonitor):
         """
         Verifica los niveles actuales de stock (primera ejecución)
         """
-        thresholds = self.config.get('thresholds', {})
-        low_stock_threshold = thresholds.get('low_stock', 5)
-        critical_stock_threshold = thresholds.get('critical_stock', 2)
-        
         low_stock_items = []
         critical_stock_items = []
         out_of_stock_items = []
@@ -84,13 +91,13 @@ class StockMonitor(BaseMonitor):
         for item in inventory.values():
             quantity = item.get('quantity', 0)
             product_name = item.get('product_name', 'N/A')
-            min_stock = item.get('min_stock', low_stock_threshold)
+            min_stock = item.get('min_stock', self.low_stock_threshold)
             
             if quantity == 0:
                 out_of_stock_items.append(product_name)
-            elif quantity <= critical_stock_threshold or quantity <= min_stock / 2:
+            elif quantity <= self.critical_stock_threshold or quantity <= min_stock / 2:
                 critical_stock_items.append(f"{product_name} (quedan {quantity})")
-            elif quantity <= low_stock_threshold or quantity <= min_stock:
+            elif quantity <= self.low_stock_threshold or quantity <= min_stock:
                 low_stock_items.append(f"{product_name} (quedan {quantity})")
         
         # Enviar notificación de resumen inicial si hay items con stock bajo
@@ -130,10 +137,7 @@ class StockMonitor(BaseMonitor):
         if last_qty == current_qty:
             return  # No hay cambio
         
-        thresholds = self.config.get('thresholds', {})
-        low_stock_threshold = thresholds.get('low_stock', 5)
-        critical_stock_threshold = thresholds.get('critical_stock', 2)
-        min_stock = current_item.get('min_stock', low_stock_threshold)
+        min_stock = current_item.get('min_stock', self.low_stock_threshold)
         
         # Detectar transiciones importantes
         
@@ -143,12 +147,12 @@ class StockMonitor(BaseMonitor):
                 await self._notify_out_of_stock(current_item, last_qty)
         
         # Stock llegó a nivel crítico
-        elif current_qty <= critical_stock_threshold and last_qty > critical_stock_threshold:
+        elif current_qty <= self.critical_stock_threshold and last_qty > self.critical_stock_threshold:
             if self.config.get('notifications', {}).get('critical_stock', True):
                 await self._notify_critical_stock(current_item)
         
         # Stock llegó a nivel bajo
-        elif current_qty <= low_stock_threshold and last_qty > low_stock_threshold:
+        elif current_qty <= self.low_stock_threshold and last_qty > self.low_stock_threshold:
             if self.config.get('notifications', {}).get('low_stock', True):
                 await self._notify_low_stock(current_item)
         

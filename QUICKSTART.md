@@ -72,16 +72,18 @@ WHATSAPP_BUSINESS_ACCOUNT_ID=987654321
 WHATSAPP_VERIFY_TOKEN=cualquier_string_secreto
 WHATSAPP_RECIPIENTS=+56912345678
 
-# Configuración de Monitores
-CHECK_INTERVAL_APPOINTMENTS=60
-CHECK_INTERVAL_STOCK=300
-LOW_STOCK_THRESHOLD=5
-CRITICAL_STOCK_THRESHOLD=2
+# Configuración de Monitores (¡TODO configurable desde aquí!)
+CHECK_INTERVAL_APPOINTMENTS=60    # Segundos entre cada revisión de reservas
+CHECK_INTERVAL_STOCK=300          # Segundos entre cada revisión de stock (5 min)
+LOW_STOCK_THRESHOLD=5             # Alertar cuando quedan N unidades
+CRITICAL_STOCK_THRESHOLD=2        # Alerta crítica cuando quedan N unidades
 
 # Logging
 LOG_LEVEL=INFO
 ENVIRONMENT=production
 ```
+
+> 💡 **Ventaja de Railway**: Puedes cambiar cualquiera de estas variables sin modificar el código. Railway reiniciará automáticamente la aplicación con los nuevos valores.
 
 ### 2.4 Desplegar
 
@@ -217,23 +219,27 @@ INSERT INTO appointments (
 
 ## ⚙️ Configuración Avanzada (Railway)
 
-### Ajustar Frecuencia de Monitoreo
+### Ajustar Cualquier Variable
 
-En Railway → **Variables**, agrega o modifica:
+En Railway → **Variables**, puedes modificar en tiempo real:
+
+#### Frecuencia de Monitoreo
 
 ```bash
 CHECK_INTERVAL_APPOINTMENTS=30  # Revisar cada 30 segundos
-CHECK_INTERVAL_STOCK=600        # Revisar cada 10 minutos
+CHECK_INTERVAL_STOCK=600        # Revisar cada 10 minutos (más espaciado)
 ```
 
-Railway reiniciará automáticamente con los nuevos valores.
-
-### Ajustar Umbrales de Stock
+#### Umbrales de Stock
 
 ```bash
 LOW_STOCK_THRESHOLD=10      # Alertar cuando quedan 10 unidades
 CRITICAL_STOCK_THRESHOLD=3  # Crítico en 3 unidades
 ```
+
+Railway reiniciará automáticamente la app con los nuevos valores (tarda ~30 segundos).
+
+> 🎯 **Prioridad de configuración**: Variables de entorno (Railway) > `config.yaml` > valores por defecto
 
 ### Ajustar Niveles de Prioridad
 

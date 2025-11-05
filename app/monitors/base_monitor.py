@@ -20,6 +20,9 @@ class BaseMonitor(ABC):
         self.db: Optional[DatabaseManager] = None
         self.running = False
         self.last_state: Optional[Any] = None
+        
+        # Prioridad: variables de entorno > config.yaml > default
+        # Esto permite configurar desde Railway sin modificar archivos
         self.check_interval = config.get("check_interval", 60)
         self.name = config.get("name", self.__class__.__name__)
     
