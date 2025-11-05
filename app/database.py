@@ -14,8 +14,9 @@ from app.logger import logger
 class DatabaseManager:
     """Gestiona las conexiones a la base de datos"""
     
-    def __init__(self, database_url: str):
+    def __init__(self, database_url: str, auto_setup: bool = False):
         self.database_url = database_url
+        self.auto_setup = auto_setup
         self.pool: Optional[AsyncConnectionPool] = None
         self.schema_initialized: bool = False
     
@@ -37,6 +38,10 @@ class DatabaseManager:
     async def ensure_schema(self):
         """Garantiza que las tablas requeridas existan"""
         if self.schema_initialized:
+            return
+        if not self.auto_setup:
+            logger.info("ℹ️ Auto-setup de base de datos deshabilitado (DATABASE_AUTO_SETUP=false)")
+            self.schema_initialized = True
             return
         script_path = Path("setup_database.sql")
         if not script_path.exists():
@@ -109,7 +114,10 @@ def get_db_manager() -> DatabaseManager:
     global _db_manager
     if _db_manager is None:
         settings = get_settings()
-        _db_manager = DatabaseManager(settings.database_url)
+        _db_manager = DatabaseManager(
+            database_url=settings.database_url,
+            auto_setup=settings.database_auto_setup
+        )
     return _db_manager
 
 

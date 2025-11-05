@@ -80,6 +80,7 @@ DEFAULT_CONFIG = {
         "max_overflow": 10,
         "pool_timeout": 30,
         "echo": False,
+        "auto_setup": False,
     },
     "logging": {
         "level": "INFO",
@@ -102,6 +103,7 @@ class Settings(BaseSettings):
     
     # Database
     database_url: str
+    database_auto_setup: bool = False
     
     # Telegram
     telegram_bot_token: Optional[str] = None

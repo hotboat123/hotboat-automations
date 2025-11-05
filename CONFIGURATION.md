@@ -32,6 +32,7 @@ WHATSAPP_RECIPIENTS=+56912345678,+56987654321
 
 ```bash
 DATABASE_URL=postgresql://user:pass@host:5432/dbname
+DATABASE_AUTO_SETUP=false         # Manténlo en false en producción; usa true solo para entornos de prueba
 ```
 
 > 💡 Railway genera `DATABASE_URL` automáticamente cuando agregas PostgreSQL
@@ -238,6 +239,7 @@ Railway reiniciará con la nueva configuración.
 | Variable | Tipo | Default | Descripción |
 |----------|------|---------|-------------|
 | `DATABASE_URL` | string | - | URL de conexión PostgreSQL |
+| `DATABASE_AUTO_SETUP` | boolean | false | Ejecutar `setup_database.sql` al iniciar (solo entornos de prueba) |
 | `WHATSAPP_ENABLED` | boolean | false | Habilitar WhatsApp |
 | `WHATSAPP_API_TOKEN` | string | - | Token de Meta API |
 | `WHATSAPP_PHONE_NUMBER_ID` | string | - | ID del número de WhatsApp |

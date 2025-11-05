@@ -81,6 +81,9 @@ CRITICAL_STOCK_THRESHOLD=2        # Alerta crítica cuando quedan N unidades
 # Logging
 LOG_LEVEL=INFO
 ENVIRONMENT=production
+
+# Base de datos
+DATABASE_AUTO_SETUP=false         # Déjalo en false si ya tienes tablas propias (Booknetic)
 ```
 
 > 💡 **Ventaja de Railway**: Puedes cambiar cualquiera de estas variables sin modificar el código. Railway reiniciará automáticamente la aplicación con los nuevos valores.
