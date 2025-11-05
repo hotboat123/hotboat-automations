@@ -1,6 +1,7 @@
 """
 Database connection and utilities
 """
+from pathlib import Path
 import psycopg
 from psycopg_pool import AsyncConnectionPool
 from typing import Optional, List, Dict, Any
@@ -16,6 +17,7 @@ class DatabaseManager:
     def __init__(self, database_url: str):
         self.database_url = database_url
         self.pool: Optional[AsyncConnectionPool] = None
+        self.schema_initialized: bool = False
     
     async def initialize(self):
         """Inicializa el pool de conexiones"""
@@ -27,8 +29,30 @@ class DatabaseManager:
                 timeout=30.0
             )
             logger.info("✅ Pool de conexiones de BD inicializado")
+            await self.ensure_schema()
         except Exception as e:
             logger.error(f"❌ Error al conectar a la BD: {e}")
+            raise
+
+    async def ensure_schema(self):
+        """Garantiza que las tablas requeridas existan"""
+        if self.schema_initialized:
+            return
+        script_path = Path("setup_database.sql")
+        if not script_path.exists():
+            logger.warning("⚠️ Script setup_database.sql no encontrado, omitiendo creación de esquema")
+            self.schema_initialized = True
+            return
+        try:
+            sql_script = script_path.read_text(encoding="utf-8")
+            async with self.get_connection() as conn:
+                async with conn.cursor() as cur:
+                    await cur.execute(sql_script)
+                await conn.commit()
+            logger.info("🛠️ Esquema de base de datos verificado")
+            self.schema_initialized = True
+        except Exception as e:
+            logger.error(f"❌ Error al asegurar el esquema de BD: {e}")
             raise
     
     async def close(self):
