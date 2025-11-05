@@ -6,29 +6,54 @@ Sistema de monitoreo y notificaciones automáticas para Hot Boat Chile.
 
 - **Monitor de Appointments**: Detecta nuevas reservas y cambios en tiempo real
 - **Monitor de Stock**: Alerta cuando el inventario está bajo
-- **Notificaciones Múltiples**: Telegram, Email, WhatsApp
+- **Notificaciones WhatsApp**: Mensajes instantáneos a tu teléfono personal
 - **Configuración Flexible**: Ajusta umbrales y frecuencias de monitoreo
 - **Logs Detallados**: Registro de todas las actividades
+- **Desplegado en Railway**: Corre 24/7 en la nube
 
 ## 📋 Requisitos
 
 - Python 3.8+
-- PostgreSQL (base de datos de HotBoat)
-- Cuenta de Telegram Bot (para notificaciones)
-- SMTP o SendGrid (para emails)
+- PostgreSQL (Railway lo proporciona)
+- WhatsApp Business API (Meta for Developers)
+- Cuenta en Railway (para despliegue)
 
 ## 🔧 Instalación
 
+### Opción A: Despliegue en Railway (Recomendado) 🚂
+
+1. **Fork o clona este repositorio**
+
+2. **Crea un proyecto en [Railway](https://railway.app)**
+   - New Project → Deploy from GitHub
+   - Selecciona: `hotboat123/hotboat-automations`
+
+3. **Agrega PostgreSQL**
+   - Click en "New" → Database → Add PostgreSQL
+   - Railway creará automáticamente `DATABASE_URL`
+
+4. **Configura las variables de entorno** (ver `RAILWAY_SETUP.md`)
+   - `WHATSAPP_API_TOKEN`
+   - `WHATSAPP_PHONE_NUMBER_ID`
+   - `WHATSAPP_BUSINESS_ACCOUNT_ID`
+   - `WHATSAPP_RECIPIENTS`
+
+5. **¡Listo!** Railway desplegará automáticamente
+
+👉 **Guía completa**: Ver `RAILWAY_SETUP.md`
+
+### Opción B: Desarrollo Local 💻
+
 1. Clona el repositorio:
 ```bash
-git clone https://github.com/tuusuario/hotboat-automations.git
+git clone https://github.com/hotboat123/hotboat-automations.git
 cd hotboat-automations
 ```
 
 2. Crea un entorno virtual:
 ```bash
 python -m venv venv
-source venv/bin/activate  # En Windows: venv\Scripts\activate
+source venv/bin/activate  # Windows: venv\Scripts\activate
 ```
 
 3. Instala las dependencias:
@@ -38,7 +63,7 @@ pip install -r requirements.txt
 
 4. Configura las variables de entorno:
 ```bash
-cp .env.example .env
+cp env.example .env
 # Edita .env con tus credenciales
 ```
 

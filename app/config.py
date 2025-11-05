@@ -34,6 +34,8 @@ class Settings(BaseSettings):
     whatsapp_enabled: bool = False
     whatsapp_api_token: Optional[str] = None
     whatsapp_phone_number_id: Optional[str] = None
+    whatsapp_business_account_id: Optional[str] = None
+    whatsapp_verify_token: Optional[str] = None
     whatsapp_recipients: str = ""  # Comma-separated
     
     # Monitor Configuration
@@ -48,6 +50,7 @@ class Settings(BaseSettings):
     
     # Environment
     environment: str = "development"
+    port: int = 8080  # Puerto para Railway
     
     model_config = SettingsConfigDict(
         env_file=".env",

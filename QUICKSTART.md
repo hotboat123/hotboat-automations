@@ -1,87 +1,176 @@
-# 🚀 Guía de Inicio Rápido
+# 🚀 Guía de Inicio Rápido - Railway
 
-## 1. Instalación Rápida (5 minutos)
+Esta guía te ayudará a desplegar HotBoat Automations en Railway en menos de 10 minutos.
 
-### Paso 1: Clonar y preparar
+## 🎯 Lo que necesitas
+
+- ✅ Cuenta en [Railway](https://railway.app) (gratis)
+- ✅ Cuenta en [Meta for Developers](https://developers.facebook.com) (gratis)
+- ✅ Tu número de WhatsApp personal
+
+---
+
+## 📱 Paso 1: Configurar WhatsApp Business API (5 min)
+
+### 1.1 Crear App en Meta for Developers
+
+1. Ve a [developers.facebook.com](https://developers.facebook.com)
+2. Click en **"My Apps"** → **"Create App"**
+3. Selecciona **"Business"**
+4. Nombre: `HotBoat Notifications`
+
+### 1.2 Agregar WhatsApp
+
+1. En el dashboard, busca **"WhatsApp"**
+2. Click en **"Set Up"**
+3. Selecciona o crea un Business Portfolio
+
+### 1.3 Obtener Credenciales
+
+Ve a **WhatsApp** → **API Setup** y copia:
+
+```
+✅ Phone number ID: 123456789012345
+✅ Temporary access token: EAAxxxxxx...
+✅ WhatsApp Business Account ID: 987654321
+```
+
+### 1.4 Agregar Tu Número Personal
+
+1. En la sección **"To"**, agrega tu número: `+56912345678`
+2. WhatsApp te enviará un código de verificación
+3. Ingresa el código ✅
+
+📚 **Guía detallada**: Ver `WHATSAPP_SETUP.md`
+
+---
+
+## 🚂 Paso 2: Desplegar en Railway (3 min)
+
+### 2.1 Crear Proyecto
+
+1. Ve a [railway.app](https://railway.app)
+2. Click **"New Project"**
+3. Selecciona **"Deploy from GitHub repo"**
+4. Busca: `hotboat123/hotboat-automations`
+
+### 2.2 Agregar Base de Datos
+
+1. Click en **"New"** → **"Database"** → **"Add PostgreSQL"**
+2. Railway creará automáticamente `DATABASE_URL` ✅
+
+### 2.3 Configurar Variables de Entorno
+
+En tu proyecto Railway, ve a **Variables** y agrega:
+
 ```bash
-cd C:\Users\cuent\Desktop
-cd hotboat-automations
-python -m venv venv
-venv\Scripts\activate
-pip install -r requirements.txt
+# WhatsApp (pega tus credenciales del Paso 1)
+WHATSAPP_ENABLED=true
+WHATSAPP_API_TOKEN=EAAxxxxxx...
+WHATSAPP_PHONE_NUMBER_ID=123456789012345
+WHATSAPP_BUSINESS_ACCOUNT_ID=987654321
+WHATSAPP_VERIFY_TOKEN=cualquier_string_secreto
+WHATSAPP_RECIPIENTS=+56912345678
+
+# Configuración de Monitores
+CHECK_INTERVAL_APPOINTMENTS=60
+CHECK_INTERVAL_STOCK=300
+LOW_STOCK_THRESHOLD=5
+CRITICAL_STOCK_THRESHOLD=2
+
+# Logging
+LOG_LEVEL=INFO
+ENVIRONMENT=production
 ```
 
-### Paso 2: Configurar Base de Datos
-1. Abre tu cliente PostgreSQL (pgAdmin, DBeaver, etc.)
-2. Ejecuta el archivo `setup_database.sql`
-3. Esto creará la tabla `inventory` con datos de ejemplo
+### 2.4 Desplegar
 
-### Paso 3: Crear Bot de Telegram
-
-1. Abre Telegram y busca **@BotFather**
-2. Envía el comando `/newbot`
-3. Sigue las instrucciones:
-   - Nombre: `HotBoat Automations`
-   - Username: `hotboat_automations_bot` (o el que prefieras)
-4. **Guarda el token que te da** (ejemplo: `123456789:ABCdefGHIjklMNOpqrsTUVwxyz`)
-
-5. Para obtener tu CHAT_ID:
-   - Busca **@userinfobot** en Telegram
-   - Envía `/start`
-   - Te dará tu chat ID (ejemplo: `987654321`)
-
-### Paso 4: Configurar Variables de Entorno
-
-Copia el archivo de ejemplo:
-```bash
-copy env.example .env
+Railway desplegará automáticamente. Verás:
+```
+✅ Building...
+✅ Deploying...
+✅ Success!
 ```
 
-Edita `.env` con tus datos:
-```env
-# Base de datos (copia del proyecto hotboat-whatsapp)
-DATABASE_URL=postgresql://user:password@localhost:5432/hotboat
+---
 
-# Telegram (datos del paso anterior)
-TELEGRAM_BOT_TOKEN=123456789:ABCdefGHIjklMNOpqrsTUVwxyz
-TELEGRAM_CHAT_IDS=987654321
+## 📊 Paso 3: Inicializar Base de Datos (2 min)
 
-# Email (opcional - Gmail)
-EMAIL_ENABLED=false
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=587
-SMTP_USERNAME=tu_email@gmail.com
-SMTP_PASSWORD=tu_app_password
-EMAIL_FROM=notificaciones@hotboat.cl
-EMAIL_TO=admin@hotboat.cl
-
-# WhatsApp (opcional - usa tus credenciales existentes)
-WHATSAPP_ENABLED=false
-```
-
-### Paso 5: ¡Ejecutar!
+### 3.1 Conectar a PostgreSQL de Railway
 
 ```bash
-python main.py
+# Instala Railway CLI
+npm i -g @railway/cli
+
+# Login
+railway login
+
+# Link a tu proyecto
+railway link
 ```
 
-Deberías ver:
-```
-🚀 Iniciando HotBoat Automations...
-✅ Pool de conexiones de BD inicializado
-📱 Notificador de Telegram activado
-📅 Monitor de Appointments activado
-📦 Monitor de Stock activado
-✅ Sistema inicializado con 2 monitores activos
+### 3.2 Ejecutar Script SQL
+
+Opción A - Desde Railway CLI:
+```bash
+railway run python -c "
+from app.database import init_db
+import asyncio
+asyncio.run(init_db())
+"
 ```
 
-Y recibirás un mensaje en Telegram: ✅ Sistema de automatizaciones iniciado correctamente
+Opción B - Desde Railway Dashboard:
+1. Ve a tu PostgreSQL → **Data** → **Query**
+2. Pega el contenido de `setup_database.sql`
+3. Click **Run**
 
-## 2. Probar el Sistema
+---
+
+## 🎉 ¡Listo! Verifica el Despliegue
+
+### Ver Logs en Tiempo Real
+
+Desde Railway CLI:
+```bash
+railway logs --tail
+```
+
+O desde el Dashboard:
+- Tu servicio → **Deployments** → Click en el deployment → **View Logs**
+
+### Logs que deberías ver:
+
+```
+🚀 HotBoat Automations v1.0.0
+📍 Entorno: production
+🗄️  Base de datos conectada
+💬 WhatsApp configurado para 1 destinatarios
+✅ Monitor de Reservas iniciado (intervalo: 60s)
+✅ Monitor de Stock iniciado (intervalo: 300s)
+```
+
+### 📱 Mensaje de Inicio
+
+Recibirás un mensaje en WhatsApp:
+```
+🚀 Sistema de automatizaciones iniciado correctamente
+```
+
+---
+
+## 🧪 Probar el Sistema
 
 ### Probar Monitor de Stock
 
-Abre tu cliente PostgreSQL y ejecuta:
+Conéctate a la base de datos de Railway:
+
+```bash
+railway connect postgres
+```
+
+Luego ejecuta:
+
 ```sql
 -- Reducir stock a nivel bajo
 UPDATE inventory 
@@ -89,7 +178,7 @@ SET quantity = 3
 WHERE product_name = 'Aceite Motor 2T';
 ```
 
-**Resultado:** Recibirás una notificación en Telegram sobre stock bajo
+**Resultado:** ⚠️ Recibirás WhatsApp sobre stock bajo
 
 ```sql
 -- Stock crítico
@@ -98,7 +187,7 @@ SET quantity = 1
 WHERE product_name = 'Botiquín Primeros Auxilios';
 ```
 
-**Resultado:** Notificación de stock crítico
+**Resultado:** 🚨 WhatsApp de stock crítico
 
 ```sql
 -- Sin stock
@@ -107,7 +196,7 @@ SET quantity = 0
 WHERE product_name = 'Botellas de Agua';
 ```
 
-**Resultado:** Alerta crítica de producto sin stock
+**Resultado:** 🚨 Alerta crítica por WhatsApp
 
 ### Probar Monitor de Appointments
 
@@ -122,139 +211,179 @@ INSERT INTO appointments (
 );
 ```
 
-**Resultado:** Notificación de nueva reserva en Telegram
+**Resultado:** 📅 Notificación de nueva reserva en WhatsApp
 
-## 3. Configuración Avanzada
+---
+
+## ⚙️ Configuración Avanzada (Railway)
 
 ### Ajustar Frecuencia de Monitoreo
 
-Edita `config.yaml`:
-```yaml
-monitors:
-  appointments:
-    check_interval: 30  # Revisar cada 30 segundos
-  
-  stock:
-    check_interval: 600  # Revisar cada 10 minutos
+En Railway → **Variables**, agrega o modifica:
+
+```bash
+CHECK_INTERVAL_APPOINTMENTS=30  # Revisar cada 30 segundos
+CHECK_INTERVAL_STOCK=600        # Revisar cada 10 minutos
 ```
+
+Railway reiniciará automáticamente con los nuevos valores.
 
 ### Ajustar Umbrales de Stock
 
-```yaml
-monitors:
-  stock:
-    thresholds:
-      low_stock: 10      # Cambiar umbral a 10 unidades
-      critical_stock: 3   # Crítico en 3
-      out_of_stock: 0
+```bash
+LOW_STOCK_THRESHOLD=10      # Alertar cuando quedan 10 unidades
+CRITICAL_STOCK_THRESHOLD=3  # Crítico en 3 unidades
 ```
 
-### Habilitar Notificaciones por Email
+### Ajustar Niveles de Prioridad
 
-En `.env`:
-```env
-EMAIL_ENABLED=true
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=587
-SMTP_USERNAME=tu_correo@gmail.com
-SMTP_PASSWORD=tu_app_password_de_gmail
-EMAIL_TO=admin@hotboat.cl,gerente@hotboat.cl
-```
+Edita `config.yaml` y haz commit:
 
-**Nota:** Para Gmail, necesitas crear una "Contraseña de Aplicación":
-1. Ve a https://myaccount.google.com/security
-2. Activa la verificación en 2 pasos
-3. Ve a "Contraseñas de aplicaciones"
-4. Genera una contraseña para "Correo"
-5. Usa esa contraseña en `SMTP_PASSWORD`
-
-En `config.yaml`:
 ```yaml
 notifications:
-  email:
+  whatsapp:
     enabled: true
     priority_levels:
-      critical: true
-      high: true
+      critical: true  # Stock crítico, errores del sistema
+      high: true      # Nuevas reservas, stock bajo
+      medium: true    # Cambios en reservas
+      low: false      # Info general (deshabilitado)
 ```
 
-## 4. Ejecutar como Servicio (Producción)
+Railway desplegará automáticamente al hacer push.
 
-### Windows - Tarea Programada
+---
 
-1. Crea un archivo `start_automations.bat`:
-```batch
-@echo off
-cd C:\Users\cuent\Desktop\hotboat-automations
-call venv\Scripts\activate
-python main.py
-```
+## 🔄 Actualizar el Código
 
-2. Abre "Programador de tareas" de Windows
-3. Crear Tarea Básica > Nombre: "HotBoat Automations"
-4. Desencadenador: "Al iniciar el sistema"
-5. Acción: Ejecutar `start_automations.bat`
-
-### Linux - systemd
-
-Crea `/etc/systemd/system/hotboat-automations.service`:
-```ini
-[Unit]
-Description=HotBoat Automations
-After=network.target postgresql.service
-
-[Service]
-Type=simple
-User=hotboat
-WorkingDirectory=/home/hotboat/hotboat-automations
-ExecStart=/home/hotboat/hotboat-automations/venv/bin/python main.py
-Restart=always
-RestartSec=10
-
-[Install]
-WantedBy=multi-user.target
-```
+Cuando hagas cambios en el código:
 
 ```bash
-sudo systemctl daemon-reload
-sudo systemctl enable hotboat-automations
-sudo systemctl start hotboat-automations
-sudo systemctl status hotboat-automations
+git add .
+git commit -m "Descripción de cambios"
+git push origin main
 ```
 
-## 5. Solución de Problemas
+Railway desplegará automáticamente en ~2 minutos.
 
-### Error: "no se puede conectar a la base de datos"
-- Verifica que PostgreSQL esté corriendo
-- Verifica el `DATABASE_URL` en `.env`
-- Prueba la conexión con: `psql "postgresql://user:password@localhost:5432/hotboat"`
+---
 
-### Error: "TELEGRAM_BOT_TOKEN no configurado"
-- Verifica que creaste el archivo `.env`
-- Verifica que el token no tenga espacios extras
-- El token debe ser algo como: `123456789:ABCdefGHI...`
+## 🆘 Solución de Problemas
 
-### No recibo notificaciones en Telegram
-1. Verifica que iniciaste conversación con el bot (búscalo y dale `/start`)
-2. Verifica que el `CHAT_ID` sea correcto
-3. Revisa los logs en `logs/automation.log`
+### Error: "Database connection failed"
 
-### Ver logs en tiempo real
 ```bash
-# Windows PowerShell
-Get-Content logs/automation.log -Wait -Tail 50
+# Verifica que DATABASE_URL esté configurada
+railway variables
 
-# Linux/Mac
-tail -f logs/automation.log
+# Debe mostrar: DATABASE_URL=postgresql://...
 ```
 
-## 6. Próximos Pasos
+### Error: "WhatsApp token invalid"
 
-- ✅ Personaliza los mensajes en los monitores
+1. Ve a [developers.facebook.com](https://developers.facebook.com)
+2. Tu app → WhatsApp → API Setup
+3. Genera un nuevo token (si el temporal expiró)
+4. Actualiza en Railway:
+
+```bash
+railway variables set WHATSAPP_API_TOKEN=nuevo_token
+```
+
+### No recibo mensajes en WhatsApp
+
+**Verifica que tu número esté registrado:**
+1. Ve a Meta for Developers → Tu app → WhatsApp → API Setup
+2. En la sección **"To"**, debe aparecer tu número verificado ✅
+3. Si no aparece, agrégalo y completa el código de verificación
+
+**Verifica los logs:**
+```bash
+railway logs --tail
+```
+
+Busca líneas como:
+```
+❌ Error al enviar WhatsApp: 401 - Invalid token
+💬 Mensaje WhatsApp enviado a +56912345678 ✅
+```
+
+### El servicio se crashea
+
+Ver logs detallados:
+```bash
+railway logs --tail
+```
+
+Reiniciar manualmente:
+```bash
+railway restart
+```
+
+### Token de WhatsApp expiró (después de 24h)
+
+El token temporal dura 24 horas. Para token permanente:
+
+1. Ve a Meta Business Suite → Settings → System Users
+2. Crea un System User
+3. Genera token con permisos permanentes
+4. Actualiza en Railway
+
+Ver guía completa en `WHATSAPP_SETUP.md`
+
+---
+
+## 📊 Monitorear el Sistema
+
+### Ver métricas en Railway
+
+- **CPU Usage**: Railway → Tu servicio → **Metrics**
+- **Memory**: Revisa el gráfico de RAM
+- **Crashes**: Sección **Deployments** muestra fallos
+
+### Health Check
+
+Railway monitorea automáticamente tu app. Si falla:
+- ❌ Estado cambia a "Crashed"
+- 🔄 Railway intentará reiniciar (hasta 10 intentos)
+- 📧 Recibirás email de notificación
+
+---
+
+## 💰 Costos
+
+### Railway
+- **Hobby Plan**: $5 USD/mes
+  - 500 horas de ejecución
+  - PostgreSQL incluido
+  - $0.000231/min adicionales
+
+### WhatsApp Business API
+- **Primeras 1,000 conversaciones**: Gratis
+- **Conversaciones adicionales**: ~$0.01 USD c/u
+- Una "conversación" = 24 horas desde el primer mensaje
+
+**Costo estimado mensual**: ~$5-10 USD (Railway + WhatsApp)
+
+---
+
+## 🚀 Próximos Pasos
+
 - ✅ Agrega más monitores personalizados
-- ✅ Configura resúmenes diarios por email
-- ✅ Integra con tu sistema de WhatsApp existente
-- ✅ Agrega dashboard web para visualización
+- ✅ Configura webhooks de WhatsApp para recibir respuestas
+- ✅ Agrega resúmenes diarios automáticos
+- ✅ Integra con más sistemas (CRM, inventario, etc.)
+- ✅ Crea dashboard web para visualización en tiempo real
 
-¡Disfruta de tus automatizaciones! 🚤
+---
+
+## 📚 Documentación Adicional
+
+- **Configuración de WhatsApp**: Ver `WHATSAPP_SETUP.md`
+- **Despliegue completo en Railway**: Ver `RAILWAY_SETUP.md`
+- **Ejemplos avanzados**: Ver `EXAMPLES.md`
+
+---
+
+¡Disfruta de tus automatizaciones 24/7! 🚤💬
 
