@@ -199,8 +199,14 @@ BEGIN
                 SELECT key, value
                 FROM jsonb_each(v_raw)
             LOOP
-                -- Filtrar solo campos de extras con cantidad > 0
-                IF lower(rec.key) LIKE 'extras%%' THEN
+                -- Filtrar campos de consumo (extras, cervezas, tablas, bebidas_y_jugos, otros_alcoholes, cha)
+                IF lower(rec.key) LIKE 'extras%%' 
+                   OR lower(rec.key) LIKE 'cervezas%%'
+                   OR lower(rec.key) LIKE 'tablas%%'
+                   OR lower(rec.key) LIKE 'bebidas_y_jugos%%'
+                   OR lower(rec.key) LIKE 'otros_alcoholes%%'
+                   OR lower(rec.key) LIKE 'cha%%'
+                THEN
                     -- valor puede venir como texto o número
                     IF jsonb_typeof(rec.value) = 'string' THEN
                         v_qty_text := rec.value::text;      -- con comillas
