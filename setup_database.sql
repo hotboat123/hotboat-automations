@@ -185,6 +185,7 @@ BEGIN
             v_qty_int INTEGER;
             v_alias TEXT;
             v_name TEXT;
+            v_sku VARCHAR(100);
         BEGIN
             -- Intentar parsear raw como JSONB
             BEGIN
@@ -238,6 +239,52 @@ BEGIN
                         END IF;
                         -- Transformar alias a nombre legible: 'cerveza_royal' -> 'Cerveza Royal'
                         v_name := initcap(replace(v_alias, '_', ' '));
+                        
+                        -- Mapear alias a SKU
+                        v_sku := CASE lower(v_alias)
+                            -- Cervezas
+                            WHEN 'cerveza_austral_calafate' THEN 'CRV-AUCAL'
+                            WHEN 'cerveza_austral_lager' THEN 'CRV-AULAG'
+                            WHEN 'cerveza_kunstman_valdivia' THEN 'CRV-KUVAL'
+                            WHEN 'cerveza_kunstman_torobayo' THEN 'CRV-KUTOR'
+                            WHEN 'cerveza_artesanal_ambar' THEN 'CRV-ARTAMB'
+                            WHEN 'cerveza_artesanal_negra' THEN 'CRV-ARTNEG'
+                            WHEN 'cerveza_royal' THEN 'CRV-ROYAL'
+                            -- Champaña
+                            WHEN 'champaña_riccadonna_ruby' THEN 'CHP-RICRUBY'
+                            WHEN 'champaña_riccadonna_moscato_rose' THEN 'CHP-RICMROS'
+                            WHEN 'champaña_riccadonna_asti' THEN 'CHP-RICASTI'
+                            WHEN 'champaña_para_ramazotti' THEN 'CHP-RAMAZ'
+                            -- Licores
+                            WHEN 'ramazotti' THEN 'LIC-RAMAZ'
+                            WHEN 'lemon_stone' THEN 'LIC-LEMON'
+                            WHEN 'lemon_stone_normal' THEN 'LIC-LEMON'
+                            WHEN 'maracuya_stone' THEN 'LIC-MARAC'
+                            WHEN 'maracuya_stone_' THEN 'LIC-MARAC'
+                            -- Vinos
+                            WHEN 'vino_carmenere' THEN 'VIN-CARMEN'
+                            WHEN 'vino_cabernet_sauvignon' THEN 'VIN-CABSAU'
+                            WHEN 'vino_merlot' THEN 'VIN-MERLOT'
+                            -- Bebidas y Jugos
+                            WHEN 'coca-cola' THEN 'BEB-COCA'
+                            WHEN 'coca_cola' THEN 'BEB-COCA'
+                            WHEN 'fanta' THEN 'BEB-FANTA'
+                            WHEN 'jugo_mango_naranja' THEN 'JUG-MANNAR'
+                            WHEN 'jugo_naranja' THEN 'JUG-NARANJA'
+                            WHEN 'jugo_berries' THEN 'JUG-BERRIES'
+                            WHEN 'jugo_1_l' THEN 'JUG-1L'
+                            -- Tablas
+                            WHEN 'tabla_2_personas' THEN 'TBL-2P'
+                            WHEN 'tabla_4_personas' THEN 'TBL-4P'
+                            -- Extras
+                            WHEN 'chalas' THEN 'EXT-CHALAS'
+                            WHEN 'toalla' THEN 'EXT-TOALLA'
+                            WHEN 'toalla_poncho' THEN 'EXT-TPONCHO'
+                            WHEN 'modo_romantico' THEN 'EXT-ROMAN'
+                            WHEN 'video_15_segundos' THEN 'EXT-VID15'
+                            WHEN 'video_60_segundos' THEN 'EXT-VID60'
+                            ELSE NULL
+                        END;
 
                         -- Insertar el consumo "pending"
                         INSERT INTO reservation_consumption (
@@ -250,8 +297,8 @@ BEGIN
                             created_at
                         )
                         VALUES (
-                            NULL,                -- si necesitas enlazar, adapta a la columna id entera
-                            NULL,                -- no tenemos SKU en el raw
+                            NEW.id,              -- ID de la fila en "Informacion Reservas"
+                            v_sku,               -- SKU mapeado desde el alias
                             v_name,
                             v_qty_int,
                             'unidades',
