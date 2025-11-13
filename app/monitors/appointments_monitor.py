@@ -1,7 +1,9 @@
 """
 Monitor de Appointments (Reservas)
 """
-from typing import Dict, List, Any, Set
+import json
+import re
+from typing import Dict, List, Any, Set, Optional
 from datetime import datetime, timedelta
 import pytz
 
@@ -18,6 +20,13 @@ class AppointmentsMonitor(BaseMonitor):
         self.check_interval = settings.check_interval_appointments or self.check_interval
         self.table_name = config.get("table_name", "appointments")
         self.custom_query = config.get("query")
+
+        timezone_name = config.get("timezone", "America/Santiago")
+        try:
+            self.timezone = pytz.timezone(timezone_name)
+        except pytz.UnknownTimeZoneError:
+            logger.warning(f"⚠️ Zona horaria desconocida '{timezone_name}', usando America/Santiago")
+            self.timezone = pytz.timezone("America/Santiago")
     
     async def check(self) -> Dict[str, Any]:
         """
@@ -47,10 +56,14 @@ class AppointmentsMonitor(BaseMonitor):
         
         appointments = await self.db.execute_query(query)
         
-        # Crear un diccionario indexado por ID para fácil comparación
-        appointments_dict = {
-            str(appt['id']): appt for appt in appointments
-        }
+        # Normalizar datos y crear un diccionario indexado por ID
+        appointments_dict: Dict[str, Dict[str, Any]] = {}
+        for appt in appointments:
+            normalized = self._normalize_appointment(appt)
+            appointment_id = normalized.get("id")
+            if not appointment_id:
+                continue
+            appointments_dict[str(appointment_id)] = normalized
         
         logger.debug(f"📅 {len(appointments)} reservas activas encontradas")
         
@@ -109,31 +122,205 @@ class AppointmentsMonitor(BaseMonitor):
         if not self.config.get("notifications", {}).get("new_appointment", True):
             return
         
-        date_str = appointment['appointment_date'].strftime('%d/%m/%Y')
-        time_str = str(appointment.get('start_time', 'N/A'))
-        
-        message = f"""
-🎉 **Nueva Reserva Creada**
-
-👤 Cliente: {appointment.get('customer_name', 'N/A')}
-📱 Teléfono: {appointment.get('phone_number', 'N/A')}
-📅 Fecha: {date_str}
-⏰ Hora: {time_str}
-⛵ Embarcación: {appointment.get('boat_type', 'N/A')}
-👥 Personas: {appointment.get('num_people', 'N/A')}
-💰 Total: ${appointment.get('total_price', 0):,.0f}
-📝 Estado: {appointment.get('status', 'N/A')}
-
-{f"Notas: {appointment.get('notes')}" if appointment.get('notes') else ""}
-        """.strip()
+        message = self._build_new_appointment_message(appointment)
         
         await self.send_notification(
             message=message,
             priority="high",
-            channel="telegram"
+            channel="whatsapp"
         )
         
-        logger.info(f"🎉 Nueva reserva: {appointment.get('customer_name')} - {date_str}")
+        logger.info(
+            "🎉 Nueva reserva: %s - %s",
+            appointment.get('customer_name'),
+            appointment.get('starts_at_local'),
+        )
+
+    def _normalize_appointment(self, appointment: Dict[str, Any]) -> Dict[str, Any]:
+        """Normaliza campos para unificar datos sin importar la consulta"""
+        normalized = dict(appointment)
+
+        raw_data = normalized.get('raw')
+        if isinstance(raw_data, str):
+            try:
+                raw_data = json.loads(raw_data)
+            except json.JSONDecodeError:
+                raw_data = {}
+        if raw_data is None:
+            raw_data = {}
+        normalized['raw'] = raw_data
+
+        normalized.setdefault('customer_name', raw_data.get('customer'))
+        normalized.setdefault('customer_email', raw_data.get('customer_email'))
+
+        phone = normalized.get('phone_number') or raw_data.get('customer_phone_number')
+        normalized['phone_number'] = self._format_phone(phone)
+
+        service_label = normalized.get('service_label') or raw_data.get('service')
+        normalized['service_label'] = service_label
+        normalized['boat_type'] = normalized.get('boat_type') or normalized.get('service_name') or service_label
+
+        normalized['staff_member'] = normalized.get('staff_member') or raw_data.get('staff')
+        normalized['duration'] = normalized.get('duration') or raw_data.get('duration')
+        normalized['payment'] = normalized.get('payment') or raw_data.get('payment')
+
+        num_people = normalized.get('num_people')
+        if isinstance(num_people, str) and num_people.isdigit():
+            num_people = int(num_people)
+        if num_people is None:
+            num_people = self._extract_people_count(service_label)
+        normalized['num_people'] = num_people
+
+        normalized['extras_formatted'] = self._format_extras(raw_data, normalized.get('extras'))
+
+        starts_at_local = None
+        if raw_data.get('start_date'):
+            try:
+                starts_at_local = datetime.strptime(raw_data['start_date'], '%d/%m/%Y %H:%M')
+                starts_at_local = self.timezone.localize(starts_at_local)
+            except ValueError:
+                starts_at_local = None
+
+        if starts_at_local is None:
+            starts_at_local = self._to_local_datetime(normalized.get('starts_at'))
+
+        normalized['starts_at_local'] = starts_at_local
+
+        if starts_at_local:
+            normalized.setdefault('appointment_date', starts_at_local.date())
+            normalized.setdefault('start_time', starts_at_local.time())
+
+        normalized['created_at_local'] = self._to_local_datetime(normalized.get('created_at'))
+
+        return normalized
+
+    def _to_local_datetime(self, value: Optional[datetime]) -> Optional[datetime]:
+        if not value:
+            return None
+        if value.tzinfo is None:
+            return self.timezone.localize(value)
+        return value.astimezone(self.timezone)
+
+    def _extract_people_count(self, service_label: Optional[str]) -> Optional[int]:
+        if not service_label:
+            return None
+
+        match = re.search(r'(\d+)\s*(?:personas|people)', service_label, re.IGNORECASE)
+        if match:
+            return int(match.group(1))
+
+        match = re.search(r'^(\d+)$', service_label.strip()) if isinstance(service_label, str) else None
+        if match:
+            return int(match.group(1))
+
+        return None
+
+    def _format_phone(self, phone: Optional[str]) -> str:
+        if not phone:
+            return "N/A"
+
+        digits = ''.join(ch for ch in str(phone) if ch.isdigit() or ch == '+')
+        if digits.startswith('+'):
+            return digits
+
+        digits = digits.lstrip('0')
+        if digits.startswith('56'):
+            return f"+{digits}"
+
+        if not digits:
+            return "N/A"
+
+        if not digits.startswith('56'):
+            digits = f"56{digits}"
+
+        return f"+{digits}"
+
+    def _format_extras(self, raw_data: Dict[str, Any], explicit_extras: Optional[Any]) -> str:
+        if explicit_extras:
+            if isinstance(explicit_extras, (list, tuple, set)):
+                extras = [str(item).strip() for item in explicit_extras if str(item).strip()]
+                if extras:
+                    return ', '.join(extras)
+            elif isinstance(explicit_extras, str) and explicit_extras.strip():
+                return explicit_extras.strip()
+
+        extras_candidates: List[str] = []
+        for key, value in raw_data.items():
+            if not value:
+                continue
+            key_lower = key.lower()
+            if 'extra' in key_lower:
+                pretty_key = key.replace('_', ' ').replace('&amp;', '&').strip().title()
+                extras_candidates.append(f"{pretty_key}: {value}")
+
+        return ', '.join(extras_candidates) if extras_candidates else 'Sin extras registradas'
+
+    def _build_new_appointment_message(self, appointment: Dict[str, Any]) -> str:
+        starts_at_local: Optional[datetime] = appointment.get('starts_at_local')
+        if starts_at_local:
+            date_str = starts_at_local.strftime('%d/%m/%Y')
+            time_str = starts_at_local.strftime('%H:%M')
+        else:
+            appointment_date = appointment.get('appointment_date')
+            start_time = appointment.get('start_time')
+            date_str = appointment_date.strftime('%d/%m/%Y') if hasattr(appointment_date, 'strftime') else str(appointment_date or 'N/A')
+            time_str = start_time.strftime('%H:%M') if hasattr(start_time, 'strftime') else str(start_time or 'N/A')
+
+        created_at_local: Optional[datetime] = appointment.get('created_at_local')
+        created_at_str = created_at_local.strftime('%d/%m/%Y %H:%M') if created_at_local else None
+
+        num_people = appointment.get('num_people')
+        num_people_text = str(num_people) if num_people is not None else 'N/A'
+
+        extras_text = appointment.get('extras_formatted') or 'Sin extras registradas'
+        service_label = appointment.get('service_label') or appointment.get('service_name') or 'Servicio no especificado'
+        status = appointment.get('status') or 'Sin estado'
+        duration = appointment.get('duration') or appointment.get('duration_hours')
+        if isinstance(duration, (int, float)):
+            duration_text = f"{duration}h"
+        else:
+            duration_text = duration or 'N/A'
+
+        payment = appointment.get('payment') or appointment.get('total_price')
+        if isinstance(payment, (int, float)):
+            payment_text = f"${payment:,.0f}"
+        else:
+            payment_text = payment or 'Pendiente'
+
+        phone_number = appointment.get('phone_number', 'N/A')
+        email = appointment.get('customer_email')
+        staff = appointment.get('staff_member') or 'Sin asignar'
+        notes = appointment.get('notes') or ''
+
+        lines = [
+            "🎉 *Nueva Reserva HotBoat*",
+            "",
+            f"👤 Cliente: {appointment.get('customer_name', 'N/A')}",
+        ]
+
+        contact_line = f"📞 Contacto: {phone_number}"
+        if email:
+            contact_line += f" | {email}"
+        lines.append(contact_line)
+
+        lines.append(f"📅 Fecha: {date_str} a las {time_str}")
+        lines.append(f"🛥️ Servicio: {service_label}")
+        lines.append(f"👥 Personas: {num_people_text}")
+        lines.append(f"➕ Extras: {extras_text}")
+        lines.append(f"⏱️ Duración: {duration_text}")
+        lines.append(f"💳 Pago: {payment_text}")
+        lines.append(f"👨‍✈️ Staff: {staff}")
+        lines.append(f"📌 Estado: {status}")
+        lines.append(f"🆔 ID Reserva: {appointment.get('id')}")
+
+        if created_at_str:
+            lines.append(f"🕒 Creada: {created_at_str}")
+
+        if notes:
+            lines.append("")
+            lines.append(f"📝 Notas: {notes}")
+
+        return '\n'.join(lines)
     
     async def _notify_cancelled_appointment(self, appointment: Dict):
         """Notifica sobre una reserva cancelada"""

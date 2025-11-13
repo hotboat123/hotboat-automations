@@ -15,6 +15,8 @@ class StockMonitor(BaseMonitor):
         self.check_interval = settings.check_interval_stock or self.check_interval
         self.table_name = config.get("table_name", "inventory")
         self.custom_query = config.get("query")
+        channel_preference = config.get("notification_channel", "telegram")
+        self.notification_channel = None if channel_preference in (None, "all") else channel_preference
         
         # Umbrales desde variables de entorno o config
         thresholds = config.get("thresholds", {})
@@ -125,7 +127,7 @@ class StockMonitor(BaseMonitor):
             await self.send_notification(
                 message=message.strip(),
                 priority=priority,
-                channel="telegram"
+                channel=self.notification_channel
             )
     
     async def _check_stock_change(self, last_item: Dict, current_item: Dict):
@@ -186,7 +188,7 @@ class StockMonitor(BaseMonitor):
         await self.send_notification(
             message=message,
             priority="critical",
-            channel="telegram"
+            channel=self.notification_channel
         )
         
         logger.warning(f"🔴 SIN STOCK: {item.get('product_name')}")
@@ -205,7 +207,7 @@ class StockMonitor(BaseMonitor):
         await self.send_notification(
             message=message,
             priority="high",
-            channel="telegram"
+            channel=self.notification_channel
         )
         
         logger.warning(f"🟠 STOCK CRÍTICO: {item.get('product_name')} ({item.get('quantity')})")
@@ -224,7 +226,7 @@ class StockMonitor(BaseMonitor):
         await self.send_notification(
             message=message,
             priority="medium",
-            channel="telegram"
+            channel=self.notification_channel
         )
         
         logger.info(f"🟡 STOCK BAJO: {item.get('product_name')} ({item.get('quantity')})")
@@ -242,7 +244,7 @@ class StockMonitor(BaseMonitor):
         await self.send_notification(
             message=message,
             priority="low",
-            channel="telegram"
+            channel=self.notification_channel
         )
         
         logger.info(f"✅ STOCK RESTAURADO: {item.get('product_name')} ({current_qty})")

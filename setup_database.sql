@@ -165,3 +165,110 @@ CREATE INDEX IF NOT EXISTS idx_reservation_consumption_processed ON reservation_
 CREATE INDEX IF NOT EXISTS idx_reservation_consumption_sku ON reservation_consumption(item_sku);
 CREATE INDEX IF NOT EXISTS idx_reservation_consumption_name ON reservation_consumption(LOWER(item_name));
 
+
+-- Crear trigger: al insertar en "Informacion Reservas", registrar consumos en reservation_consumption
+DO $$
+BEGIN
+    IF EXISTS (
+        SELECT 1
+        FROM information_schema.tables
+        WHERE table_schema = 'public'
+          AND table_name = 'Informacion Reservas'
+    ) THEN
+        -- Función que transforma claves de extras en consumos
+        CREATE OR REPLACE FUNCTION fn_info_reservas_to_consumption()
+        RETURNS trigger AS $fn$
+        DECLARE
+            v_raw jsonb;
+            rec RECORD;
+            v_qty_text TEXT;
+            v_qty_int INTEGER;
+            v_alias TEXT;
+            v_name TEXT;
+        BEGIN
+            -- Intentar parsear raw como JSONB
+            BEGIN
+                v_raw := NEW.raw::jsonb;
+            EXCEPTION WHEN others THEN
+                -- Si falla el parseo, no hacemos nada
+                RETURN NEW;
+            END;
+
+            -- Iterar sobre cada clave/valor del JSON
+            FOR rec IN
+                SELECT key, value
+                FROM jsonb_each(v_raw)
+            LOOP
+                -- Filtrar solo campos de extras con cantidad > 0
+                IF lower(rec.key) LIKE 'extras%%' THEN
+                    -- valor puede venir como texto o número
+                    IF jsonb_typeof(rec.value) = 'string' THEN
+                        v_qty_text := rec.value::text;      -- con comillas
+                        v_qty_text := trim(both '"' from v_qty_text); -- quitar comillas
+                    ELSIF jsonb_typeof(rec.value) IN ('number', 'integer') THEN
+                        v_qty_text := rec.value::text;
+                    ELSE
+                        v_qty_text := NULL;
+                    END IF;
+
+                    -- Normalizar cantidad a entero
+                    IF v_qty_text IS NOT NULL AND length(trim(v_qty_text)) > 0 THEN
+                        v_qty_text := regexp_replace(v_qty_text, '[^0-9.-]', '', 'g');
+                        IF v_qty_text IS NOT NULL AND length(trim(v_qty_text)) > 0 THEN
+                            BEGIN
+                                v_qty_int := v_qty_text::int;
+                            EXCEPTION WHEN others THEN
+                                v_qty_int := 0;
+                            END;
+                        END IF;
+                    END IF;
+
+                    IF COALESCE(v_qty_int, 0) > 0 THEN
+                        -- Extraer alias dentro de corchetes: extras_tipo_x_[alias]
+                        v_alias := substring(rec.key from '\\[(.+)\\]');
+                        IF v_alias IS NULL OR length(v_alias) = 0 THEN
+                            -- Si no hay corchetes, usar la clave completa como alias
+                            v_alias := rec.key;
+                        END IF;
+                        -- Transformar alias a nombre legible: 'cerveza_royal' -> 'Cerveza Royal'
+                        v_name := initcap(replace(v_alias, '_', ' '));
+
+                        -- Insertar el consumo "pending"
+                        INSERT INTO reservation_consumption (
+                            reservation_id,
+                            item_sku,
+                            item_name,
+                            quantity,
+                            unit,
+                            status,
+                            created_at
+                        )
+                        VALUES (
+                            NULL,                -- si necesitas enlazar, adapta a la columna id entera
+                            NULL,                -- no tenemos SKU en el raw
+                            v_name,
+                            v_qty_int,
+                            'unidades',
+                            'pending',
+                            NOW()
+                        );
+                    END IF;
+                END IF;
+            END LOOP;
+
+            RETURN NEW;
+        END;
+        $fn$ LANGUAGE plpgsql;
+
+        -- Trigger AFTER INSERT sobre la tabla con espacio en el nombre
+        DROP TRIGGER IF EXISTS trg_info_reservas_after_insert ON "Informacion Reservas";
+        CREATE TRIGGER trg_info_reservas_after_insert
+        AFTER INSERT ON "Informacion Reservas"
+        FOR EACH ROW
+        EXECUTE FUNCTION fn_info_reservas_to_consumption();
+    ELSE
+        RAISE NOTICE 'Tabla "Informacion Reservas" no encontrada; no se crea trigger de consumos.';
+    END IF;
+END;
+$$;
+

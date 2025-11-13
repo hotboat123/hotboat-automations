@@ -26,7 +26,9 @@ class WhatsAppNotifier(BaseNotifier):
         if not self.recipients:
             raise ValueError("WHATSAPP_RECIPIENTS no configurado")
         
-        self.api_url = f"https://graph.facebook.com/v18.0/{self.settings.whatsapp_phone_number_id}/messages"
+        base_url = "https://graph.facebook.com"
+        api_version = self.config.get("api_version", "v18.0")
+        self.api_url = f"{base_url}/{api_version}/{self.settings.whatsapp_phone_number_id}/messages"
         self.headers = {
             "Authorization": f"Bearer {self.settings.whatsapp_api_token}",
             "Content-Type": "application/json"

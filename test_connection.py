@@ -4,7 +4,7 @@ Ejecutar en Railway: railway run python test_connection.py
 """
 import asyncio
 import sys
-from app.config import get_settings
+from app.config import get_settings, load_yaml_config
 from app.database import init_database
 from app.notifications.whatsapp_notifier import WhatsAppNotifier
 from app.logger import logger
@@ -42,6 +42,15 @@ async def test_whatsapp(message: str):
     print("="*60)
     
     settings = get_settings()
+    config = load_yaml_config()
+    whatsapp_config = config.get("notifications", {}).get("whatsapp", {
+        "priority_levels": {
+            "critical": True,
+            "high": True,
+            "medium": True,
+            "low": False,
+        }
+    })
     
     # Verificar configuración
     print(f"WHATSAPP_ENABLED: {settings.whatsapp_enabled}")
@@ -58,7 +67,7 @@ async def test_whatsapp(message: str):
         return False
     
     try:
-        notifier = WhatsAppNotifier(settings)
+        notifier = WhatsAppNotifier(settings, whatsapp_config)
         await notifier.initialize()
         print("✅ WhatsApp inicializado correctamente")
         
