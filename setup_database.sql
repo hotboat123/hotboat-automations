@@ -19,6 +19,92 @@ CREATE INDEX IF NOT EXISTS idx_inventory_quantity ON inventory(quantity);
 CREATE INDEX IF NOT EXISTS idx_inventory_category ON inventory(category);
 CREATE INDEX IF NOT EXISTS idx_inventory_last_updated ON inventory(last_updated);
 
+-- Evitar duplicados por nombre cuando SKU es nulo
+CREATE UNIQUE INDEX IF NOT EXISTS uq_inventory_name_when_no_sku
+ON inventory (LOWER(product_name))
+WHERE sku IS NULL;
+
+-- Sincronizar datos desde la tabla "Stock" (hoja de cálculo)
+DO $$
+BEGIN
+    IF EXISTS (
+        SELECT 1
+        FROM information_schema.tables
+        WHERE table_schema = 'public'
+          AND table_name = 'Stock'
+    ) THEN
+        -- Eliminar datos de ejemplo iniciales, si existen
+        DELETE FROM inventory
+        WHERE sku IN ('SAFE-001', 'FUEL-001', 'OIL-001', 'BEV-001', 'SAFE-002', 'SAFE-003', 'ACC-001');
+
+        INSERT INTO inventory (
+            product_name,
+            sku,
+            category,
+            quantity,
+            unit,
+            min_stock,
+            last_updated,
+            created_at,
+            notes
+        )
+        SELECT
+            NULLIF(TRIM(raw->>'Producto'), '') AS product_name,
+            raw->>'id' AS sku,
+            NULLIF(TRIM(raw->>'Categoría'), '') AS category,
+            COALESCE(
+                ROUND(
+                    COALESCE(
+                        NULLIF(
+                            REPLACE(
+                                REGEXP_REPLACE(TRIM(raw->>'Stock'), '[^0-9,.-]', '', 'g'),
+                                ',',
+                                '.'
+                            ),
+                            ''
+                        )::NUMERIC,
+                        0
+                    )
+                )::INTEGER,
+                0
+            ) AS quantity,
+            'unidades' AS unit,
+            COALESCE(
+                ROUND(
+                    COALESCE(
+                        NULLIF(
+                            REPLACE(
+                                REGEXP_REPLACE(TRIM(raw->>'min_stock'), '[^0-9,.-]', '', 'g'),
+                                ',',
+                                '.'
+                            ),
+                            ''
+                        )::NUMERIC,
+                        5
+                    )
+                )::INTEGER,
+                5
+            ) AS min_stock,
+            COALESCE(updated_at, CURRENT_TIMESTAMP) AS last_updated,
+            COALESCE(created_at, CURRENT_TIMESTAMP) AS created_at,
+            CONCAT('Fuente: ', source) AS notes
+        FROM "Stock"
+        WHERE NULLIF(TRIM(raw->>'Producto'), '') IS NOT NULL
+        ON CONFLICT (sku) DO UPDATE
+        SET
+            product_name = EXCLUDED.product_name,
+            category = EXCLUDED.category,
+            quantity = EXCLUDED.quantity,
+            unit = EXCLUDED.unit,
+            last_updated = EXCLUDED.last_updated,
+            created_at = EXCLUDED.created_at,
+            notes = EXCLUDED.notes;
+    ELSE
+        RAISE NOTICE 'Tabla "Stock" no encontrada. inventory mantendrá los datos existentes.';
+    END IF;
+END;
+$$;
+
 -- Trigger para actualizar last_updated automáticamente
 CREATE OR REPLACE FUNCTION update_inventory_timestamp()
 RETURNS TRIGGER AS $$
@@ -33,18 +119,6 @@ CREATE TRIGGER trigger_update_inventory_timestamp
     BEFORE UPDATE ON inventory
     FOR EACH ROW
     EXECUTE FUNCTION update_inventory_timestamp();
-
--- Datos de ejemplo (opcional)
-INSERT INTO inventory (product_name, sku, category, quantity, unit, min_stock, notes)
-VALUES 
-    ('Chalecos Salvavidas', 'SAFE-001', 'Seguridad', 15, 'unidades', 10, 'Chalecos de seguridad para pasajeros'),
-    ('Combustible Gasolina', 'FUEL-001', 'Combustible', 50, 'litros', 100, 'Gasolina para embarcaciones'),
-    ('Aceite Motor 2T', 'OIL-001', 'Mantenimiento', 3, 'litros', 5, 'Aceite para motores de 2 tiempos'),
-    ('Botellas de Agua', 'BEV-001', 'Bebidas', 8, 'unidades', 20, 'Agua embotellada para clientes'),
-    ('Botiquín Primeros Auxilios', 'SAFE-002', 'Seguridad', 2, 'unidades', 2, 'Botiquín de emergencia'),
-    ('Aros Salvavidas', 'SAFE-003', 'Seguridad', 4, 'unidades', 4, 'Aros de rescate'),
-    ('Toallas', 'ACC-001', 'Accesorios', 12, 'unidades', 15, 'Toallas para clientes')
-ON CONFLICT (sku) DO NOTHING;
 
 -- Verificar que la tabla appointments existe (para el monitor)
 -- Si no existe, aquí hay un ejemplo básico
@@ -71,4 +145,23 @@ CREATE INDEX IF NOT EXISTS idx_appointments_phone ON appointments(phone_number);
 
 COMMENT ON TABLE inventory IS 'Tabla de inventario para el sistema de automatizaciones';
 COMMENT ON TABLE appointments IS 'Tabla de citas/reservas para el sistema de automatizaciones';
+
+-- Tabla de consumos (Info Reserva -> descuenta inventario)
+CREATE TABLE IF NOT EXISTS reservation_consumption (
+    id SERIAL PRIMARY KEY,
+    reservation_id INTEGER,
+    item_sku VARCHAR(100),
+    item_name VARCHAR(255) NOT NULL,
+    quantity INTEGER NOT NULL,
+    unit VARCHAR(50) DEFAULT 'unidades',
+    status VARCHAR(30) DEFAULT 'pending',
+    note TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    processed_at TIMESTAMP NULL
+);
+
+-- Índices para acelerar el procesamiento de consumos pendientes
+CREATE INDEX IF NOT EXISTS idx_reservation_consumption_processed ON reservation_consumption(processed_at, status);
+CREATE INDEX IF NOT EXISTS idx_reservation_consumption_sku ON reservation_consumption(item_sku);
+CREATE INDEX IF NOT EXISTS idx_reservation_consumption_name ON reservation_consumption(LOWER(item_name));
 

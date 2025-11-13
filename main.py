@@ -10,6 +10,7 @@ from app.config import get_settings, load_yaml_config
 from app.logger import setup_logger, logger
 from app.monitors.appointments_monitor import AppointmentsMonitor
 from app.monitors.stock_monitor import StockMonitor
+from app.monitors.consumption_monitor import ConsumptionMonitor
 from app.notifications.manager import NotificationManager
 
 
@@ -64,6 +65,16 @@ class AutomationSystem:
             )
             self.monitors.append(appointments_monitor)
             self.logger.info("📅 Monitor de Appointments activado")
+        
+        # Monitor de Consumos (Info Reserva -> Inventario)
+        if monitors_config.get("consumption", {}).get("enabled", False):
+            consumption_monitor = ConsumptionMonitor(
+                settings=self.settings,
+                config=monitors_config["consumption"],
+                notification_manager=self.notification_manager
+            )
+            self.monitors.append(consumption_monitor)
+            self.logger.info("🧾 Monitor de Consumos activado")
         
         # Monitor de Stock
         if monitors_config.get("stock", {}).get("enabled", False):
@@ -136,6 +147,12 @@ async def main():
 
 
 if __name__ == "__main__":
+    if sys.platform.startswith("win"):
+        try:
+            asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+        except AttributeError:
+            pass
+
     exit_code = asyncio.run(main())
     sys.exit(exit_code)
 

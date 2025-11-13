@@ -29,6 +29,7 @@ class DatabaseManager:
                 max_size=10,
                 timeout=30.0
             )
+            await self.pool.open()
             logger.info("✅ Pool de conexiones de BD inicializado")
             await self.ensure_schema()
         except Exception as e:
@@ -103,6 +104,21 @@ class DatabaseManager:
         """
         results = await self.execute_query(query, params)
         return results[0] if results else None
+    
+    async def execute_non_query(
+        self,
+        query: str,
+        params: Optional[tuple] = None
+    ) -> int:
+        """
+        Ejecuta una sentencia INSERT/UPDATE/DELETE y confirma la transacción.
+        Retorna la cantidad de filas afectadas.
+        """
+        async with self.get_connection() as conn:
+            async with conn.cursor() as cur:
+                await cur.execute(query, params)
+                await conn.commit()
+                return cur.rowcount
 
 
 # Global database manager instance

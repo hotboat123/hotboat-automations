@@ -42,6 +42,14 @@ DEFAULT_CONFIG = {
                 "stock_restored": True,
             },
         },
+        "consumption": {
+            "enabled": True,
+            "name": "Monitor de Consumos",
+            "check_interval": 30,
+            "table_name": "reservation_consumption",
+            "batch_limit": 100,
+            "notification_channel": "whatsapp",
+        },
     },
     "notifications": {
         "telegram": {
