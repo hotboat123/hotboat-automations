@@ -1,52 +1,87 @@
--- Script para actualizar SKUs en inventory con códigos cortos y descriptivos
--- Ejecutar UNA SOLA VEZ en tu base de datos
+-- Este script evita violar la restricción UNIQUE de sku cuando existen
+-- productos duplicados en inventory. Para cada nombre de producto, solo
+-- actualiza una fila (la más reciente que ya tenga el sku correcto o, en su
+-- defecto, la de id mayor).
 
--- CERVEZAS
-UPDATE inventory SET sku = 'CRV-AUCAL' WHERE LOWER(product_name) = LOWER('Cerveza Austral Calafate');
-UPDATE inventory SET sku = 'CRV-AULAG' WHERE LOWER(product_name) = LOWER('Cerveza Austral Lager');
-UPDATE inventory SET sku = 'CRV-KUVAL' WHERE LOWER(product_name) = LOWER('Cerveza Kunstman Valdivia');
-UPDATE inventory SET sku = 'CRV-KUTOR' WHERE LOWER(product_name) = LOWER('Cerveza Kunstman Torobayo');
-UPDATE inventory SET sku = 'CRV-ARTAMB' WHERE LOWER(product_name) = LOWER('Cerveza Artesanal Ambar');
-UPDATE inventory SET sku = 'CRV-ARTNEG' WHERE LOWER(product_name) = LOWER('Cerveza Artesanal Negra');
-UPDATE inventory SET sku = 'CRV-ROYAL' WHERE LOWER(product_name) = LOWER('Cerveza Royal');
+WITH product_skus (product_name, target_sku) AS (
+    VALUES
+        -- CERVEZAS
+        ('Cerveza Austral Calafate', 'CRV-AUCAL'),
+        ('Cerveza Austral Lager', 'CRV-AULAG'),
+        ('Cerveza Kunstman Valdivia', 'CRV-KUVAL'),
+        ('Cerveza Kunstman Torobayo', 'CRV-KUTOR'),
+        ('Cerveza Artesanal Ambar', 'CRV-ARTAMB'),
+        ('Cerveza Artesanal Negra', 'CRV-ARTNEG'),
+        ('Cerveza Royal', 'CRV-ROYAL'),
 
--- CHAMPAÑA
-UPDATE inventory SET sku = 'CHP-RICRUBY' WHERE LOWER(product_name) = LOWER('Champaña Riccadonna Ruby');
-UPDATE inventory SET sku = 'CHP-RICMROS' WHERE LOWER(product_name) = LOWER('Champaña Riccadonna Moscato Rose');
-UPDATE inventory SET sku = 'CHP-RICASTI' WHERE LOWER(product_name) = LOWER('Champaña Riccadonna Asti');
-UPDATE inventory SET sku = 'CHP-RAMAZ' WHERE LOWER(product_name) = LOWER('Champaña para Ramazotti');
+        -- CHAMPAÑA
+        ('Champaña Riccadonna Ruby', 'CHP-RICRUBY'),
+        ('Champaña Riccadonna Moscato Rose', 'CHP-RICMROS'),
+        ('Champaña Riccadonna Asti', 'CHP-RICASTI'),
+        ('Champaña para Ramazotti', 'CHP-RAMAZ'),
 
--- LICORES Y APERITIVOS
-UPDATE inventory SET sku = 'LIC-RAMAZ' WHERE LOWER(product_name) = LOWER('Ramazotti');
-UPDATE inventory SET sku = 'LIC-LEMON' WHERE LOWER(product_name) = LOWER('Lemon Stone');
-UPDATE inventory SET sku = 'LIC-MARAC' WHERE LOWER(product_name) = LOWER('Maracuya Stone');
+        -- LICORES Y APERITIVOS
+        ('Ramazotti', 'LIC-RAMAZ'),
+        ('Lemon Stone', 'LIC-LEMON'),
+        ('Maracuya Stone', 'LIC-MARAC'),
 
--- VINOS
-UPDATE inventory SET sku = 'VIN-CARMEN' WHERE LOWER(product_name) = LOWER('Vino Carmenere');
-UPDATE inventory SET sku = 'VIN-CABSAU' WHERE LOWER(product_name) = LOWER('Vino Cabernet Sauvignon');
-UPDATE inventory SET sku = 'VIN-MERLOT' WHERE LOWER(product_name) = LOWER('Vino Merlot');
+        -- VINOS
+        ('Vino Carmenere', 'VIN-CARMEN'),
+        ('Vino Cabernet Sauvignon', 'VIN-CABSAU'),
+        ('Vino Merlot', 'VIN-MERLOT'),
 
--- BEBIDAS Y JUGOS
-UPDATE inventory SET sku = 'BEB-COCA' WHERE LOWER(product_name) = LOWER('Coca-cola');
-UPDATE inventory SET sku = 'BEB-FANTA' WHERE LOWER(product_name) = LOWER('Fanta');
-UPDATE inventory SET sku = 'JUG-MANNAR' WHERE LOWER(product_name) = LOWER('Jugo Mango Naranja');
-UPDATE inventory SET sku = 'JUG-NARANJA' WHERE LOWER(product_name) = LOWER('Jugo Naranja');
-UPDATE inventory SET sku = 'JUG-BERRIES' WHERE LOWER(product_name) = LOWER('Jugo Berries');
+        -- BEBIDAS Y JUGOS
+        ('Coca-cola', 'BEB-COCA'),
+        ('Fanta', 'BEB-FANTA'),
+        ('Jugo Mango Naranja', 'JUG-MANNAR'),
+        ('Jugo Naranja', 'JUG-NARANJA'),
+        ('Jugo Berries', 'JUG-BERRIES'),
 
--- TABLAS
-UPDATE inventory SET sku = 'TBL-2P' WHERE LOWER(product_name) = LOWER('Tabla 2 Personas');
-UPDATE inventory SET sku = 'TBL-4P' WHERE LOWER(product_name) = LOWER('Tabla 4 Personas');
+        -- TABLAS
+        ('Tabla 2 Personas', 'TBL-2P'),
+        ('Tabla 4 Personas', 'TBL-4P'),
 
--- EXTRAS
-UPDATE inventory SET sku = 'EXT-CHALAS' WHERE LOWER(product_name) = LOWER('Chalas');
-UPDATE inventory SET sku = 'EXT-TOALLA' WHERE LOWER(product_name) = LOWER('Toalla');
-UPDATE inventory SET sku = 'EXT-TPONCHO' WHERE LOWER(product_name) = LOWER('Toalla Poncho');
-UPDATE inventory SET sku = 'EXT-ROMAN' WHERE LOWER(product_name) = LOWER('Modo Romantico');
-UPDATE inventory SET sku = 'EXT-VID15' WHERE LOWER(product_name) = LOWER('Video 15 Segundos');
-UPDATE inventory SET sku = 'EXT-VID60' WHERE LOWER(product_name) = LOWER('Video 60 Segundos');
-
--- Verificar resultados
-SELECT id, product_name, sku, quantity, min_stock 
-FROM inventory 
+        -- EXTRAS
+        ('Chalas', 'EXT-CHALAS'),
+        ('Toalla', 'EXT-TOALLA'),
+        ('Toalla Poncho', 'EXT-TPONCHO'),
+        ('Modo Romantico', 'EXT-ROMAN'),
+        ('Video 15 Segundos', 'EXT-VID15'),
+        ('Video 60 Segundos', 'EXT-VID60')
+),
+ranked_inventory AS (
+    SELECT
+        i.id,
+        ps.target_sku,
+        ROW_NUMBER() OVER (
+            PARTITION BY LOWER(i.product_name)
+            ORDER BY
+                CASE WHEN i.sku = ps.target_sku THEN 0 ELSE 1 END,
+                i.last_updated DESC NULLS LAST,
+                i.created_at DESC NULLS LAST,
+                i.id DESC
+        ) AS rn
+    FROM inventory i
+    JOIN product_skus ps
+        ON LOWER(i.product_name) = LOWER(ps.product_name)
+),
+updated_inventory AS (
+    UPDATE inventory i
+    SET sku = r.target_sku
+    FROM ranked_inventory r
+    WHERE i.id = r.id
+      AND r.rn = 1
+    RETURNING i.id, i.product_name, i.sku, i.quantity, i.min_stock
+)
+SELECT id, product_name, sku, quantity, min_stock
+FROM inventory
+WHERE LOWER(product_name) IN (
+    SELECT LOWER(product_name) FROM product_skus
+)
 ORDER BY sku;
+
+-- Opcional: revisar si quedaron duplicados sin actualizar
+-- SELECT product_name, sku FROM inventory WHERE LOWER(product_name) IN (
+--     SELECT LOWER(product_name) FROM product_skus
+-- ) ORDER BY product_name, sku;
 

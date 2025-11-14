@@ -32,6 +32,9 @@ class AutomationSystem:
         # Crear directorio de logs si no existe
         Path("logs").mkdir(exist_ok=True)
         
+        # Ejecutar migraciones de base de datos
+        await self._run_migrations()
+        
         # Inicializar sistema de notificaciones
         self.notification_manager = NotificationManager(
             settings=self.settings,
@@ -51,6 +54,28 @@ class AutomationSystem:
             )
         
         self.logger.info(f"✅ Sistema inicializado con {len(self.monitors)} monitores activos")
+    
+    async def _run_migrations(self):
+        """Ejecuta las migraciones de base de datos"""
+        try:
+            self.logger.info("🔄 Ejecutando migraciones de base de datos...")
+            
+            # Importar y ejecutar el script de migraciones
+            from scripts.run_migrations import run_all_migrations
+            
+            # Ejecutar en un thread separado para no bloquear el loop
+            import asyncio
+            success = await asyncio.to_thread(run_all_migrations)
+            
+            if success:
+                self.logger.info("✅ Migraciones completadas exitosamente")
+            else:
+                self.logger.warning("⚠️  Algunas migraciones no se completaron")
+                
+        except Exception as e:
+            self.logger.error(f"❌ Error ejecutando migraciones: {e}")
+            # No fallar el inicio si las migraciones fallan
+            self.logger.warning("⚠️  Continuando sin ejecutar migraciones...")
     
     async def _initialize_monitors(self):
         """Inicializa los monitores configurados"""
