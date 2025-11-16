@@ -149,7 +149,7 @@ COMMENT ON TABLE appointments IS 'Tabla de citas/reservas para el sistema de aut
 -- Tabla de consumos (Info Reserva -> descuenta inventario)
 CREATE TABLE IF NOT EXISTS reservation_consumption (
     id SERIAL PRIMARY KEY,
-    reservation_id INTEGER,
+    reservation_id VARCHAR(255),  -- Cambiado a VARCHAR para soportar IDs tipo hash
     item_sku VARCHAR(100),
     item_name VARCHAR(255) NOT NULL,
     quantity INTEGER NOT NULL,
@@ -328,7 +328,7 @@ BEGIN
                             created_at
                         )
                         VALUES (
-                            NEW.id::integer,     -- ID de la fila en "Informacion Reservas" (cast a integer)
+                            NEW.id::text,        -- ID de la fila en "Informacion Reservas" (cast a text)
                             v_sku,               -- SKU mapeado desde el alias
                             v_name,
                             v_qty_int,

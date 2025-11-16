@@ -1,11 +1,15 @@
--- Script para corregir el trigger y el cast de reservation_id
+-- Script para corregir el trigger y el tipo de dato de reservation_id
 -- Este script se ejecutará automáticamente al iniciar la app
 
--- Eliminar el trigger existente
+-- Paso 1: Eliminar el trigger existente
 DROP TRIGGER IF EXISTS trg_info_reservas_after_insert ON "Informacion Reservas";
 
--- Recrear la función con el cast correcto
+-- Paso 2: Eliminar la función existente
 DROP FUNCTION IF EXISTS fn_info_reservas_to_consumption();
+
+-- Paso 3: Cambiar el tipo de dato de reservation_id a VARCHAR (acepta texto e IDs)
+ALTER TABLE reservation_consumption 
+ALTER COLUMN reservation_id TYPE VARCHAR(255);
 
 CREATE FUNCTION fn_info_reservas_to_consumption()
 RETURNS trigger AS $$
@@ -141,7 +145,7 @@ BEGIN
                     created_at
                 )
                 VALUES (
-                    NEW.id::integer,
+                    NEW.id::text,
                     v_sku,
                     v_name,
                     v_qty_int,
