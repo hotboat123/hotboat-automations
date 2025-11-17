@@ -51,6 +51,7 @@ def run_all_migrations():
         migrations_dir = Path(__file__).parent
         migrations = [
             migrations_dir / "fix_trigger_cast.sql",
+            migrations_dir / "fix_trigger_duplicates.sql",
         ]
         
         success_count = 0
