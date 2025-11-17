@@ -179,10 +179,18 @@ class ConsumptionMonitor(BaseMonitor):
 ➡️ Considera reabastecer
         """.strip()
         
+        # Enviar por WhatsApp
         await self.send_notification(
             message=message,
             priority="high",
-            channel=self.notification_channel or "whatsapp"
+            channel="whatsapp"
+        )
+        
+        # Enviar también por Email
+        await self.send_notification(
+            message=message,
+            priority="high",
+            channel="email"
         )
 
 
