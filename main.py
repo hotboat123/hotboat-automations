@@ -11,6 +11,7 @@ from app.logger import setup_logger, logger
 from app.monitors.appointments_monitor import AppointmentsMonitor
 from app.monitors.stock_monitor import StockMonitor
 from app.monitors.consumption_monitor import ConsumptionMonitor
+from app.monitors.inventory_sync_monitor import InventorySyncMonitor
 from app.notifications.manager import NotificationManager
 
 
@@ -110,6 +111,16 @@ class AutomationSystem:
             )
             self.monitors.append(stock_monitor)
             self.logger.info("📦 Monitor de Stock activado")
+        
+        # Monitor de Sincronización Inventory → Google Sheets
+        if monitors_config.get("inventory_sync", {}).get("enabled", False):
+            inventory_sync_monitor = InventorySyncMonitor(
+                settings=self.settings,
+                config=monitors_config["inventory_sync"],
+                notification_manager=self.notification_manager
+            )
+            self.monitors.append(inventory_sync_monitor)
+            self.logger.info("🔄 Monitor de Sincronización Inventory → Sheets activado")
     
     async def start(self):
         """Inicia el sistema de monitoreo"""
