@@ -12,6 +12,7 @@ from app.monitors.appointments_monitor import AppointmentsMonitor
 from app.monitors.stock_monitor import StockMonitor
 from app.monitors.consumption_monitor import ConsumptionMonitor
 from app.monitors.inventory_sync_monitor import InventorySyncMonitor
+from app.monitors.daily_summary_monitor import DailySummaryMonitor
 from app.notifications.manager import NotificationManager
 
 
@@ -121,6 +122,16 @@ class AutomationSystem:
             )
             self.monitors.append(inventory_sync_monitor)
             self.logger.info("🔄 Monitor de Sincronización Inventory → Sheets activado")
+        
+        # Monitor de Resumen Diario
+        if monitors_config.get("daily_summary", {}).get("enabled", False):
+            daily_summary_monitor = DailySummaryMonitor(
+                settings=self.settings,
+                config=monitors_config["daily_summary"],
+                notification_manager=self.notification_manager
+            )
+            self.monitors.append(daily_summary_monitor)
+            self.logger.info("📊 Monitor de Resumen Diario activado")
     
     async def start(self):
         """Inicia el sistema de monitoreo"""
