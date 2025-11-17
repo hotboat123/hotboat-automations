@@ -53,14 +53,24 @@ BEGIN
                 v_qty_text := NULL;
             END IF;
 
+            v_qty_int := 0;
+            
             IF v_qty_text IS NOT NULL AND length(trim(v_qty_text)) > 0 THEN
-                v_qty_text := regexp_replace(v_qty_text, '[^0-9.-]', '', 'g');
-                IF v_qty_text IS NOT NULL AND length(trim(v_qty_text)) > 0 THEN
-                    BEGIN
-                        v_qty_int := v_qty_text::int;
-                    EXCEPTION WHEN others THEN
-                        v_qty_int := 0;
-                    END;
+                v_qty_text := trim(v_qty_text);
+                
+                -- Ignorar valores vacíos, ceros explícitos, o guiones
+                IF v_qty_text != '' AND v_qty_text != '0' AND v_qty_text != '-' THEN
+                    v_qty_text := regexp_replace(v_qty_text, '[^0-9.-]', '', 'g');
+                    IF v_qty_text IS NOT NULL AND length(trim(v_qty_text)) > 0 THEN
+                        BEGIN
+                            v_qty_int := v_qty_text::int;
+                            IF v_qty_int <= 0 THEN
+                                v_qty_int := 0;
+                            END IF;
+                        EXCEPTION WHEN others THEN
+                            v_qty_int := 0;
+                        END;
+                    END IF;
                 END IF;
             END IF;
 
