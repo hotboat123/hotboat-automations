@@ -105,7 +105,7 @@ class DailySummaryMonitor(BaseMonitor):
             SELECT COUNT(*) as total
             FROM booknetic_appointments
             WHERE DATE(starts_at) = %s
-              AND status NOT IN ('canceled', 'rejected')
+              AND (status IS NULL OR status NOT IN ('canceled', 'rejected'))
         """
         
         try:
@@ -141,10 +141,10 @@ class DailySummaryMonitor(BaseMonitor):
                 a.customer_name,
                 a.raw->>'customer_phone_number' as phone,
                 a.service_name
-            FROM booknetic_appointments a
-            WHERE DATE(a.starts_at) = %s
-              AND a.status NOT IN ('canceled', 'rejected')
-              AND NOT EXISTS (
+                FROM booknetic_appointments a
+                WHERE DATE(a.starts_at) = %s
+                  AND (a.status IS NULL OR a.status NOT IN ('canceled', 'rejected'))
+                  AND NOT EXISTS (
                   SELECT 1 
                   FROM "Informacion Reservas" ir
                   WHERE DATE(ir.created_at) = %s
@@ -174,7 +174,7 @@ class DailySummaryMonitor(BaseMonitor):
         info_count: int,
         missing_details: List[Dict[str, Any]]
     ) -> None:
-        """Envía el reporte diario por WhatsApp y Email"""
+        """Envía el reporte diario por Email"""
         
         date_str = date.strftime("%d/%m/%Y")
         missing_count = len(missing_details)
@@ -230,16 +230,16 @@ Estado: {status_text}
         
         message += f"\n\n📊 Generado el {datetime.now().strftime('%d/%m/%Y a las %H:%M')}"
         
-        # Enviar por WhatsApp
-        try:
-            await self.send_notification(
-                message=message,
-                priority="high",
-                channel="whatsapp"
-            )
-            logger.info("✅ Reporte diario enviado por WhatsApp")
-        except Exception as e:
-            logger.error(f"❌ Error enviando reporte por WhatsApp: {e}")
+        # Enviar por WhatsApp (DESHABILITADO)
+        # try:
+        #     await self.send_notification(
+        #         message=message,
+        #         priority="high",
+        #         channel="whatsapp"
+        #     )
+        #     logger.info("✅ Reporte diario enviado por WhatsApp")
+        # except Exception as e:
+        #     logger.error(f"❌ Error enviando reporte por WhatsApp: {e}")
         
         # Enviar por Email
         try:
