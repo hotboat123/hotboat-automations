@@ -5,6 +5,7 @@ Envía un reporte cada mañana comparando reservas vs información completada
 from typing import Dict, Any, List
 from datetime import datetime, timedelta, time as dt_time
 import asyncio
+import pytz
 
 from app.monitors.base_monitor import BaseMonitor
 from app.logger import logger
@@ -23,6 +24,13 @@ class DailySummaryMonitor(BaseMonitor):
         self.report_time = dt_time(hour, minute)
         # Flag para saber si ya se envió hoy
         self.last_report_date = None
+        # Zona horaria (por defecto Chile)
+        timezone_str = config.get("timezone", "America/Santiago")
+        try:
+            self.timezone = pytz.timezone(timezone_str)
+        except:
+            self.timezone = pytz.UTC
+            logger.warning(f"⚠️  Zona horaria '{timezone_str}' no válida, usando UTC")
     
     async def initialize(self):
         """Inicializa el monitor"""
@@ -33,14 +41,19 @@ class DailySummaryMonitor(BaseMonitor):
         """
         Verifica si es hora de enviar el reporte diario
         """
-        now = datetime.now()
-        current_time = now.time()
-        current_date = now.date()
+        # Obtener hora actual en la zona horaria configurada
+        now_utc = datetime.now(pytz.UTC)
+        now_local = now_utc.astimezone(self.timezone)
+        current_time = now_local.time()
+        current_date = now_local.date()
         
         # Verificar si es hora de enviar y no se ha enviado hoy
+        # Ventana de 5 minutos para asegurar que se ejecute
         if (current_time.hour == self.report_time.hour and 
-            current_time.minute >= self.report_time.minute and
+            self.report_time.minute <= current_time.minute < self.report_time.minute + 5 and
             self.last_report_date != current_date):
+            
+            logger.info(f"⏰ Es hora de enviar el reporte diario ({current_time.strftime('%H:%M')} {self.timezone})")
             
             # Marcar como enviado hoy
             self.last_report_date = current_date
@@ -54,7 +67,10 @@ class DailySummaryMonitor(BaseMonitor):
         """
         Genera y envía el reporte diario
         """
-        if not current_state or not current_state[0].get("generate_report"):
+        if not current_state:
+            return
+        
+        if not current_state[0].get("generate_report"):
             return
         
         logger.info("📊 Generando reporte diario...")
