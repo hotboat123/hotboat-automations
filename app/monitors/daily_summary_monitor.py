@@ -148,9 +148,13 @@ class DailySummaryMonitor(BaseMonitor):
                   SELECT 1 
                   FROM "Informacion Reservas" ir
                   WHERE DATE(ir.created_at) = %s
+                    AND ir.raw->>'nombre_cliente' IS NOT NULL
+                    AND ir.raw->>'nombre_cliente' != ''
+                    AND a.customer_name IS NOT NULL
+                    AND a.customer_name != ''
                     AND (
-                        ir.raw->>'nombre_cliente' ILIKE '%%' || a.customer_name || '%%'
-                        OR a.customer_name ILIKE '%%' || ir.raw->>'nombre_cliente' || '%%'
+                        POSITION(LOWER(TRIM(a.customer_name)) IN LOWER(TRIM(ir.raw->>'nombre_cliente'))) > 0
+                        OR POSITION(LOWER(TRIM(ir.raw->>'nombre_cliente')) IN LOWER(TRIM(a.customer_name))) > 0
                     )
               )
             ORDER BY a.starts_at
