@@ -65,9 +65,56 @@ async def review_date(target_date_str: str = None):
         info_count = await monitor._count_info_reservas(target_date)
         logger.info(f"📝 Información completada: {info_count}")
         
+        # Mostrar detalle de la información completada
+        logger.info("🔍 Revisando detalle de información completada...")
+        info_details = await monitor._get_info_reservas_details(target_date)
+        reservation_ids = [entry.get("info_id") for entry in info_details if entry.get("info_id")]
+        consumption_summary = await monitor._get_consumption_summary(reservation_ids)
+        if info_details:
+            logger.info(f"🧾 Detalle ({len(info_details)} filas):")
+            for entry in info_details:
+                logger.info(
+                    "   - {cliente} | fecha_form='{fecha_form}' | target_date={target} | created_at={created}".format(
+                        cliente=entry.get("nombre_cliente") or "Sin nombre",
+                        fecha_form=entry.get("fecha_formulario") or "N/A",
+                        target=entry.get("target_date"),
+                        created=entry.get("created_at")
+                    )
+                )
+                match = entry.get("_matched_appointment")
+                if match:
+                    logger.info(
+                        "      ↔ Booknetic: {nombre} | {service} | {people} | {payment}".format(
+                            nombre=match.get("customer_name") or "Reserva",
+                            service=match.get("service") or "Sin servicio",
+                            people=match.get("people_text") or "Sin dato",
+                            payment=match.get("payment_text") or "Sin dato"
+                        )
+                    )
+                    extras = match.get("extras") or []
+                    if extras:
+                        logger.info(f"         Extras: {', '.join(extras)}")
+                else:
+                    logger.info("      ↔ Booknetic: No se encontró coincidencia.")
+        else:
+            logger.info("⚠️ No se encontró información completada para esa fecha.")
+        
+        if consumption_summary:
+            logger.info("🧾 Consumo detectado por reserva:")
+            for entry in info_details:
+                info_id = entry.get("info_id")
+                if not info_id:
+                    continue
+                items = consumption_summary.get(info_id)
+                if not items:
+                    continue
+                logger.info(f"   - {entry.get('nombre_cliente') or 'Sin nombre'}: {', '.join(items)}")
+        else:
+            logger.info("⚠️ No hay consumo registrado en reservation_consumption para esa fecha.")
+        
         # Obtener faltantes
         logger.info("🔍 Buscando reservas faltantes...")
-        missing = await monitor._get_missing_reservas(target_date)
+        missing = await monitor._get_missing_reservas(target_date, info_details)
         logger.info(f"⚠️  Reservas faltantes: {len(missing)}")
         
         # Mostrar detalles en consola
@@ -106,7 +153,14 @@ async def review_date(target_date_str: str = None):
         logger.info("   (El reporte se enviará automáticamente)")
         
         # Enviar reporte
-        await monitor._send_daily_report(target_date, appointments_count, info_count, missing)
+        await monitor._send_daily_report(
+            target_date,
+            appointments_count,
+            info_count,
+            missing,
+            info_details,
+            consumption_summary
+        )
         
         logger.info("✅ Reporte enviado! Revisa tu Email")
         

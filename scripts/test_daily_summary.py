@@ -69,9 +69,13 @@ async def test_daily_summary():
         info_count = await monitor._count_info_reservas(yesterday)
         logger.info(f"📝 Información completada: {info_count}")
         
+        info_details = await monitor._get_info_reservas_details(yesterday)
+        reservation_ids = [entry.get("info_id") for entry in info_details if entry.get("info_id")]
+        consumption_summary = await monitor._get_consumption_summary(reservation_ids)
+        
         # Obtener reservas faltantes
         logger.info("🔍 Buscando reservas faltantes...")
-        missing = await monitor._get_missing_reservas(yesterday)
+        missing = await monitor._get_missing_reservas(yesterday, info_details)
         logger.info(f"⚠️  Reservas faltantes: {len(missing)}")
         
         if missing:
@@ -99,11 +103,13 @@ async def test_daily_summary():
             yesterday,
             appointments_count,
             info_count,
-            missing
+            missing,
+            info_details,
+            consumption_summary
         )
         
         logger.info("✅ Reporte de prueba enviado exitosamente!")
-        logger.info("📱 Revisa WhatsApp y Email para ver el reporte completo")
+        logger.info("📧 Revisa tu Email para ver el reporte completo")
         
     except Exception as e:
         logger.error(f"❌ Error en la prueba: {e}", exc_info=True)
