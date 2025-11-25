@@ -108,7 +108,7 @@ class DailySummaryMonitor(BaseMonitor):
         
         return []
 
-    def _has_passed_report_time(self, current_time: time) -> bool:
+    def _has_passed_report_time(self, current_time: dt_time) -> bool:
         """Determina si ya se alcanzó la hora de reporte configurada."""
         if current_time.hour > self.report_time.hour:
             return True
