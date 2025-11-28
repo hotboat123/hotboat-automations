@@ -29,7 +29,6 @@ venv.bak/
 
 # Environment variables
 .env
-config.yaml
 
 # IDE
 .vscode/

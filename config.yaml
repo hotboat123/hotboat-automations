@@ -1,0 +1,123 @@
+# HotBoat Automations Configuration
+
+# Monitors Configuration
+monitors:
+  appointments:
+    enabled: true
+    name: "Monitor de Reservas"
+    check_interval: 60  # segundos
+    table_name: "booknetic_appointments"
+    query: |
+      SELECT
+        id::text AS id,
+        customer_name,
+        customer_email,
+        service_name,
+        raw->>'service' AS service_label,
+        raw->>'customer_phone_number' AS phone_number,
+        raw->>'payment' AS payment,
+        raw->>'duration' AS duration,
+        raw->>'staff' AS staff_member,
+        raw->>'extras' AS extras,
+        raw,
+        starts_at,
+        status,
+        created_at,
+        updated_at
+      FROM booknetic_appointments
+      WHERE created_at >= NOW() - INTERVAL '30 days'
+      ORDER BY created_at DESC
+    notifications:
+      new_appointment: true
+      cancelled_appointment: true
+      modified_appointment: true
+      upcoming_reminder: true
+      reminder_hours_before: 24  # horas antes de la reserva
+  
+  stock:
+    enabled: true
+    name: "Monitor de Stock"
+    check_interval: 300  # segundos (5 minutos)
+    thresholds:
+      low_stock: 5
+      critical_stock: 2
+      out_of_stock: 0
+    notifications:
+      low_stock: true
+      critical_stock: true
+      out_of_stock: true
+      stock_restored: true  # cuando vuelve a tener stock
+  
+  consumption:
+    enabled: true
+    name: "Monitor de Consumos"
+    check_interval: 300  # segundos (procesa consumos cada 30 segundos)
+    table_name: "reservation_consumption"
+    batch_limit: 100  # máximo de consumos a procesar por ciclo
+    notification_channel: "whatsapp"  # whatsapp, telegram, email, o all
+    notifications:
+      stock_below_min: true  # notificar cuando stock queda bajo el mínimo
+  
+  inventory_sync:
+    enabled: true
+    name: "Monitor de Sincronización Inventory → Sheets"
+    check_interval: 300  # segundos (cada 5 minutos sincroniza con Google Sheets)
+  
+  daily_summary:
+    enabled: true
+    name: "Monitor de Resumen Diario"
+    check_interval: 300  # segundos (chequea cada 5 minutos si es hora de enviar)
+    report_time: "09:00"  # hora para enviar el reporte (formato 24h)
+    timezone: "America/Santiago"  # zona horaria para el reporte
+
+# Notification Channels
+notifications:
+  telegram:
+    enabled: false
+    priority_levels:
+      critical: true  # stock crítico, errores
+      high: true      # nuevas reservas, stock bajo
+      medium: true    # cambios en reservas
+      low: false      # info general
+  
+  email:
+    enabled: true
+    send_summary: true
+    summary_interval: "daily"  # daily, hourly, weekly
+    summary_time: "08:00"  # hora para enviar resumen diario
+    priority_levels:
+      critical: true
+      high: true
+      medium: false
+      low: false
+  
+  whatsapp:
+    enabled: false
+    priority_levels:
+      critical: true
+      high: true
+      medium: true
+      low: false
+
+# Database Configuration
+database:
+  pool_size: 5
+  max_overflow: 10
+  pool_timeout: 30
+  echo: false  # SQL logging
+
+# Logging Configuration
+logging:
+  level: "INFO"  # DEBUG, INFO, WARNING, ERROR, CRITICAL
+  format: "colored"  # colored, simple, json
+  rotation: "daily"  # daily, size
+  retention_days: 30
+  max_file_size: "10MB"
+
+# General Settings
+general:
+  timezone: "America/Santiago"
+  startup_notification: true
+  error_notification: true
+  health_check_interval: 3600  # segundos (1 hora)
+
