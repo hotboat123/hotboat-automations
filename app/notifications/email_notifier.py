@@ -6,6 +6,7 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from typing import List, Optional
 from datetime import datetime
+import asyncio
 
 from app.logger import logger
 from .base_notifier import BaseNotifier
@@ -20,13 +21,15 @@ class EmailNotifier(BaseNotifier):
             raise ValueError("Email no está habilitado")
         
         # Verificar configuración SMTP
-        if self.settings.smtp_host and self.settings.smtp_username:
-            self.use_smtp = True
+        self.use_smtp = bool(self.settings.smtp_host and self.settings.smtp_username)
+        self.use_sendgrid = bool(self.settings.sendgrid_api_key and self.settings.sendgrid_from_email)
+        
+        if self.use_smtp:
             logger.info(f"✅ Email SMTP configurado: {self.settings.smtp_host}")
-        elif self.settings.sendgrid_api_key:
-            self.use_smtp = False
+        if self.use_sendgrid and not self.use_smtp:
             logger.info("✅ Email SendGrid configurado")
-        else:
+        
+        if not self.use_smtp and not self.use_sendgrid:
             raise ValueError("No se configuró SMTP ni SendGrid")
         
         self.recipients = self.settings.email_to_list
@@ -41,10 +44,28 @@ class EmailNotifier(BaseNotifier):
         subject = self._get_subject(priority)
         html_body = self._format_html(message, priority)
         
+        smtp_error = None
         if self.use_smtp:
-            await self._send_smtp(subject, html_body)
-        else:
-            await self._send_sendgrid(subject, html_body)
+            try:
+                await self._send_smtp(subject, html_body)
+                return
+            except Exception as e:
+                smtp_error = e
+                logger.error(f"❌ Error al enviar email SMTP: {e}")
+                if not self.use_sendgrid:
+                    raise
+                logger.info("🔁 Intentando enviar email vía SendGrid...")
+        
+        if self.use_sendgrid:
+            try:
+                await self._send_sendgrid(subject, html_body)
+                if smtp_error:
+                    logger.info("✅ Email enviado correctamente vía SendGrid (fallback)")
+            except Exception as e:
+                logger.error(f"❌ Error al enviar email con SendGrid: {e}")
+                if smtp_error:
+                    raise smtp_error
+                raise
     
     def _get_subject(self, priority: str) -> str:
         """Genera el asunto del email según prioridad"""
@@ -134,26 +155,30 @@ class EmailNotifier(BaseNotifier):
     
     async def _send_smtp(self, subject: str, html_body: str):
         """Envía email usando SMTP"""
-        try:
-            msg = MIMEMultipart('alternative')
-            msg['From'] = self.settings.email_from or self.settings.smtp_username
-            msg['To'] = ", ".join(self.recipients)
-            msg['Subject'] = subject
-            
-            # Agregar contenido HTML
-            html_part = MIMEText(html_body, 'html')
-            msg.attach(html_part)
-            
-            # Conectar y enviar
-            with smtplib.SMTP(self.settings.smtp_host, self.settings.smtp_port) as server:
-                server.starttls()
-                server.login(self.settings.smtp_username, self.settings.smtp_password)
-                server.send_message(msg)
-            
-            logger.debug(f"📧 Email enviado a {len(self.recipients)} destinatarios")
+        use_ssl = bool(getattr(self.settings, "smtp_use_ssl", False))
+        if self.settings.smtp_port == 465:
+            use_ssl = True
         
-        except Exception as e:
-            logger.error(f"❌ Error al enviar email SMTP: {e}")
+        msg = MIMEMultipart('alternative')
+        msg['From'] = self.settings.email_from or self.settings.smtp_username
+        msg['To'] = ", ".join(self.recipients)
+        msg['Subject'] = subject
+        html_part = MIMEText(html_body, 'html')
+        msg.attach(html_part)
+        
+        async def send_sync():
+            if use_ssl:
+                with smtplib.SMTP_SSL(self.settings.smtp_host, self.settings.smtp_port, timeout=20) as server:
+                    server.login(self.settings.smtp_username, self.settings.smtp_password)
+                    server.send_message(msg)
+            else:
+                with smtplib.SMTP(self.settings.smtp_host, self.settings.smtp_port, timeout=20) as server:
+                    server.starttls()
+                    server.login(self.settings.smtp_username, self.settings.smtp_password)
+                    server.send_message(msg)
+        
+        await asyncio.to_thread(send_sync)
+        logger.debug(f"📧 Email enviado a {len(self.recipients)} destinatarios vía SMTP")
     
     async def _send_sendgrid(self, subject: str, html_body: str):
         """Envía email usando SendGrid"""

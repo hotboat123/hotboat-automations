@@ -20,6 +20,7 @@ class AppointmentsMonitor(BaseMonitor):
         self.check_interval = settings.check_interval_appointments or self.check_interval
         self.table_name = config.get("table_name", "appointments")
         self.custom_query = config.get("query")
+        self.last_reminder_sent: Dict[str, datetime] = {}
 
         timezone_name = config.get("timezone", "America/Santiago")
         try:
@@ -412,13 +413,18 @@ class AppointmentsMonitor(BaseMonitor):
             
             # Verificar si está en el rango de recordatorio
             if reminder_window_start <= appt_datetime <= reminder_window_end:
-                # Verificar si ya se envió recordatorio (usando algún mecanismo de estado)
-                # Por simplicidad, aquí solo logueamos
                 hours_until = (appt_datetime - now).total_seconds() / 3600
-                
-                if 0 < hours_until <= 24:  # En las próximas 24 horas
-                    logger.info(
-                        f"⏰ Recordatorio: Reserva de {appt.get('customer_name')} "
-                        f"en {hours_until:.1f} horas"
-                    )
+                if not (0 < hours_until <= reminder_hours):
+                    continue
+
+                appt_id = str(appt.get("id"))
+                last_sent = self.last_reminder_sent.get(appt_id)
+                if last_sent and (now - last_sent).total_seconds() < 3600:
+                    continue  # evitar recordatorios más de una vez por hora
+
+                logger.info(
+                    f"⏰ Recordatorio: Reserva de {appt.get('customer_name')} "
+                    f"en {hours_until:.1f} horas"
+                )
+                self.last_reminder_sent[appt_id] = now
 

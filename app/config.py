@@ -125,6 +125,7 @@ class Settings(BaseSettings):
     smtp_password: Optional[str] = None
     email_from: Optional[str] = None
     email_to: str = ""  # Comma-separated
+    smtp_use_ssl: bool = False
     
     # SendGrid
     sendgrid_api_key: Optional[str] = None
