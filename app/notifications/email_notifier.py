@@ -166,7 +166,7 @@ class EmailNotifier(BaseNotifier):
         html_part = MIMEText(html_body, 'html')
         msg.attach(html_part)
         
-        async def send_sync():
+        def send_sync():
             if use_ssl:
                 with smtplib.SMTP_SSL(self.settings.smtp_host, self.settings.smtp_port, timeout=20) as server:
                     server.login(self.settings.smtp_username, self.settings.smtp_password)
