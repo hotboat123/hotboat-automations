@@ -166,19 +166,46 @@ class EmailNotifier(BaseNotifier):
         html_part = MIMEText(html_body, 'html')
         msg.attach(html_part)
         
-        def send_sync():
-            if use_ssl:
-                with smtplib.SMTP_SSL(self.settings.smtp_host, self.settings.smtp_port, timeout=20) as server:
-                    server.login(self.settings.smtp_username, self.settings.smtp_password)
-                    server.send_message(msg)
-            else:
-                with smtplib.SMTP(self.settings.smtp_host, self.settings.smtp_port, timeout=20) as server:
-                    server.starttls()
-                    server.login(self.settings.smtp_username, self.settings.smtp_password)
-                    server.send_message(msg)
+        async def send_once():
+            def send_sync():
+                host = self.settings.smtp_host
+                port = self.settings.smtp_port
+                timeout = 20
+                
+                if use_ssl:
+                    with smtplib.SMTP_SSL(host, port, timeout=timeout) as server:
+                        server.login(self.settings.smtp_username, self.settings.smtp_password)
+                        server.send_message(msg)
+                else:
+                    with smtplib.SMTP(host, port, timeout=timeout) as server:
+                        server.starttls()
+                        server.login(self.settings.smtp_username, self.settings.smtp_password)
+                        server.send_message(msg)
+            
+            await asyncio.to_thread(send_sync)
         
-        await asyncio.to_thread(send_sync)
-        logger.debug(f"📧 Email enviado a {len(self.recipients)} destinatarios vía SMTP")
+        max_attempts = getattr(self.settings, "smtp_max_retries", 3)
+        backoff = getattr(self.settings, "smtp_retry_backoff", 2)
+        last_error: Optional[Exception] = None
+        
+        for attempt in range(1, max_attempts + 1):
+            try:
+                await send_once()
+                logger.debug(f"📧 Email enviado a {len(self.recipients)} destinatarios vía SMTP")
+                return
+            except Exception as exc:
+                last_error = exc
+                if attempt >= max_attempts:
+                    break
+                wait_time = min(backoff * attempt, 10)
+                logger.warning(
+                    f"⚠️  Falló el envío SMTP (intento {attempt}/{max_attempts}): {exc}. "
+                    f"Reintentando en {wait_time}s..."
+                )
+                await asyncio.sleep(wait_time)
+        
+        if last_error:
+            raise last_error
     
     async def _send_sendgrid(self, subject: str, html_body: str):
         """Envía email usando SendGrid"""

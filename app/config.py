@@ -126,6 +126,8 @@ class Settings(BaseSettings):
     email_from: Optional[str] = None
     email_to: str = ""  # Comma-separated
     smtp_use_ssl: bool = False
+    smtp_max_retries: int = 3
+    smtp_retry_backoff: int = 2
     
     # SendGrid
     sendgrid_api_key: Optional[str] = None

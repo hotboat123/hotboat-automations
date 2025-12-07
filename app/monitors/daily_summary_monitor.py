@@ -1013,12 +1013,18 @@ Estado: {status_text}
         
         # Enviar por Email
         try:
-            await self.send_notification(
+            sent = await self.send_notification(
                 message=message,
                 priority="high",
                 channel="email"
             )
-            logger.info("✅ Reporte diario enviado por Email")
+            if sent:
+                logger.info("✅ Reporte diario enviado por Email")
+            else:
+                logger.error("❌ No se pudo enviar el reporte diario (sin canales exitosos)")
+                # Permitir reintento en el próximo ciclo
+                self.last_report_date = None
         except Exception as e:
             logger.error(f"❌ Error enviando reporte por Email: {e}")
+            self.last_report_date = None
 

@@ -89,9 +89,9 @@ class BaseMonitor(ABC):
         message: str,
         priority: str = "medium",
         channel: Optional[str] = None
-    ):
+    ) -> bool:
         """Helper para enviar notificaciones"""
-        await self.notification_manager.send(
+        return await self.notification_manager.send(
             message=message,
             priority=priority,
             channel=channel

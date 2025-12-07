@@ -67,36 +67,42 @@ class NotificationManager:
         message: str,
         priority: str = "medium",
         channel: Optional[str] = None
-    ):
+    ) -> bool:
         """
-        Envía una notificación a través de los canales configurados
-        
-        Args:
-            message: Mensaje a enviar
-            priority: Prioridad (critical, high, medium, low)
-            channel: Canal específico o None para todos los configurados
+        Envía una notificación a través de los canales configurados.
+        Retorna True si al menos un canal la envió correctamente.
         """
         if not self.notifiers:
             logger.warning(f"⚠️ No hay notificadores disponibles para: {message[:50]}...")
-            return
+            return False
         
-        # Si se especificó un canal específico
+        targets = []
         if channel:
             notifier = self.notifiers.get(channel)
-            if notifier and notifier.should_send(priority):
-                try:
-                    await notifier.send(message, priority)
-                except Exception as e:
-                    logger.error(f"❌ Error al enviar por {channel}: {e}")
-            return
+            if not notifier:
+                logger.warning(f"⚠️ Canal {channel} no está configurado")
+                return False
+            if not notifier.should_send(priority):
+                return False
+            targets.append((channel, notifier))
+        else:
+            for name, notifier in self.notifiers.items():
+                if notifier.should_send(priority):
+                    targets.append((name, notifier))
         
-        # Enviar por todos los canales configurados según prioridad
-        for name, notifier in self.notifiers.items():
-            if notifier.should_send(priority):
-                try:
-                    await notifier.send(message, priority)
-                except Exception as e:
-                    logger.error(f"❌ Error al enviar por {name}: {e}")
+        if not targets:
+            logger.debug("ℹ️ No hay canales habilitados para esta prioridad")
+            return False
+        
+        success = False
+        for name, notifier in targets:
+            try:
+                await notifier.send(message, priority)
+                success = True
+            except Exception as e:
+                logger.error(f"❌ Error al enviar por {name}: {e}")
+        
+        return success
     
     async def close(self):
         """Cierra todos los notificadores"""
