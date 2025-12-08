@@ -4,6 +4,7 @@ Configuration management
 from copy import deepcopy
 from pathlib import Path
 from typing import List, Optional
+from pydantic import Field, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 import yaml
 
@@ -126,6 +127,8 @@ class Settings(BaseSettings):
     email_from: Optional[str] = None
     email_to: str = ""  # Comma-separated
     smtp_use_ssl: bool = False
+    email_use_ssl: Optional[bool] = Field(default=None, alias="EMAIL_USE_SSL")
+    email_use_stl: Optional[bool] = Field(default=None, alias="EMAIL_USE_STL")
     smtp_max_retries: int = 3
     smtp_retry_backoff: int = 2
     
@@ -181,6 +184,18 @@ class Settings(BaseSettings):
         if not self.whatsapp_recipients:
             return []
         return [phone.strip() for phone in self.whatsapp_recipients.split(",") if phone.strip()]
+
+    @model_validator(mode="after")
+    def _apply_email_use_flags(self):
+        """Permite compatibilidad con variables EMAIL_USE_SSL/EMAIL_USE_STL."""
+        if "smtp_use_ssl" in self.model_fields_set:
+            return self
+        for alias_field in ("email_use_stl", "email_use_ssl"):
+            value = getattr(self, alias_field, None)
+            if value is not None:
+                self.smtp_use_ssl = value
+                break
+        return self
 
 
 def get_settings() -> Settings:
