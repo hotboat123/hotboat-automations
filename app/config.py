@@ -127,8 +127,10 @@ class Settings(BaseSettings):
     email_from: Optional[str] = None
     email_to: str = ""  # Comma-separated
     smtp_use_ssl: bool = False
+    smtp_use_tls: bool = True
     email_use_ssl: Optional[bool] = Field(default=None, alias="EMAIL_USE_SSL")
     email_use_stl: Optional[bool] = Field(default=None, alias="EMAIL_USE_STL")
+    email_use_tls: Optional[bool] = Field(default=None, alias="EMAIL_USE_TLS")
     smtp_max_retries: int = 3
     smtp_retry_backoff: int = 2
     
@@ -188,13 +190,16 @@ class Settings(BaseSettings):
     @model_validator(mode="after")
     def _apply_email_use_flags(self):
         """Permite compatibilidad con variables EMAIL_USE_SSL/EMAIL_USE_STL."""
-        if "smtp_use_ssl" in self.model_fields_set:
-            return self
-        for alias_field in ("email_use_stl", "email_use_ssl"):
-            value = getattr(self, alias_field, None)
+        if "smtp_use_ssl" not in self.model_fields_set:
+            for alias_field in ("email_use_stl", "email_use_ssl"):
+                value = getattr(self, alias_field, None)
+                if value is not None:
+                    self.smtp_use_ssl = value
+                    break
+        if "smtp_use_tls" not in self.model_fields_set:
+            value = getattr(self, "email_use_tls", None)
             if value is not None:
-                self.smtp_use_ssl = value
-                break
+                self.smtp_use_tls = value
         return self
 
 

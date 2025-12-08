@@ -156,6 +156,7 @@ class EmailNotifier(BaseNotifier):
     async def _send_smtp(self, subject: str, html_body: str):
         """Envía email usando SMTP"""
         use_ssl = bool(getattr(self.settings, "smtp_use_ssl", False))
+        use_tls = bool(getattr(self.settings, "smtp_use_tls", True))
         if self.settings.smtp_port == 465:
             use_ssl = True
         
@@ -178,7 +179,8 @@ class EmailNotifier(BaseNotifier):
                         server.send_message(msg)
                 else:
                     with smtplib.SMTP(host, port, timeout=timeout) as server:
-                        server.starttls()
+                        if use_tls:
+                            server.starttls()
                         server.login(self.settings.smtp_username, self.settings.smtp_password)
                         server.send_message(msg)
             
