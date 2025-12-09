@@ -25,7 +25,12 @@ class EmailNotifier(BaseNotifier):
         self.use_sendgrid = bool(self.settings.sendgrid_api_key and self.settings.sendgrid_from_email)
         
         if self.use_smtp:
-            logger.info(f"✅ Email SMTP configurado: {self.settings.smtp_host}")
+            logger.info(
+                "✅ Email SMTP configurado: %s (SSL=%s, TLS=%s)",
+                self.settings.smtp_host,
+                self.settings.smtp_use_ssl,
+                getattr(self.settings, "smtp_use_tls", True),
+            )
         if self.use_sendgrid and not self.use_smtp:
             logger.info("✅ Email SendGrid configurado")
         
