@@ -138,6 +138,10 @@ class Settings(BaseSettings):
     sendgrid_api_key: Optional[str] = None
     sendgrid_from_email: Optional[str] = None
     
+    # Resend
+    resend_api_key: Optional[str] = None
+    resend_from_email: Optional[str] = None
+    
     # WhatsApp
     whatsapp_enabled: bool = False
     whatsapp_api_token: Optional[str] = None

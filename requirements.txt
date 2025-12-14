@@ -10,6 +10,7 @@ psycopg-pool==3.2.2
 # Notifications
 python-telegram-bot==21.0.1
 sendgrid==6.11.0
+resend==0.8.0
 
 # HTTP
 httpx==0.28.1

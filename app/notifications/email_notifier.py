@@ -4,9 +4,14 @@ Email Notifier
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-from typing import List, Optional
+from typing import List, Optional, Tuple, Callable, Awaitable
 from datetime import datetime
 import asyncio
+
+try:
+    import resend  # type: ignore
+except ImportError:  # pragma: no cover - optional dependency
+    resend = None
 
 from app.logger import logger
 from .base_notifier import BaseNotifier
@@ -23,6 +28,10 @@ class EmailNotifier(BaseNotifier):
         # Verificar configuración SMTP
         self.use_smtp = bool(self.settings.smtp_host and self.settings.smtp_username)
         self.use_sendgrid = bool(self.settings.sendgrid_api_key and self.settings.sendgrid_from_email)
+        self.use_resend = bool(self.settings.resend_api_key and resend is not None)
+        
+        if self.settings.resend_api_key and resend is None:
+            logger.warning("⚠️ Resend configurado pero la librería no está instalada")
         
         if self.use_smtp:
             logger.info(
@@ -33,13 +42,19 @@ class EmailNotifier(BaseNotifier):
             )
         if self.use_sendgrid and not self.use_smtp:
             logger.info("✅ Email SendGrid configurado")
+        if self.use_resend and not (self.use_smtp or self.use_sendgrid):
+            logger.info("✅ Email Resend configurado")
         
-        if not self.use_smtp and not self.use_sendgrid:
-            raise ValueError("No se configuró SMTP ni SendGrid")
+        if not any((self.use_smtp, self.use_sendgrid, self.use_resend)):
+            raise ValueError("No se configuró SMTP, SendGrid ni Resend")
         
         self.recipients = self.settings.email_to_list
         if not self.recipients:
             raise ValueError("EMAIL_TO no configurado")
+        
+        self.resend_from_email = self.settings.resend_from_email or self.settings.email_from
+        if self.use_resend and not self.resend_from_email:
+            raise ValueError("RESEND_FROM_EMAIL o EMAIL_FROM no configurado para Resend")
     
     async def send(self, message: str, priority: str = "medium"):
         """Envía un email"""
@@ -49,28 +64,27 @@ class EmailNotifier(BaseNotifier):
         subject = self._get_subject(priority)
         html_body = self._format_html(message, priority)
         
-        smtp_error = None
+        senders: List[Tuple[str, Callable[[str, str], Awaitable[None]]]] = []
         if self.use_smtp:
-            try:
-                await self._send_smtp(subject, html_body)
-                return
-            except Exception as e:
-                smtp_error = e
-                logger.error(f"❌ Error al enviar email SMTP: {e}")
-                if not self.use_sendgrid:
-                    raise
-                logger.info("🔁 Intentando enviar email vía SendGrid...")
-        
+            senders.append(("SMTP", self._send_smtp))
         if self.use_sendgrid:
+            senders.append(("SendGrid", self._send_sendgrid))
+        if self.use_resend:
+            senders.append(("Resend", self._send_resend))
+        
+        last_error: Optional[Exception] = None
+        for idx, (name, sender) in enumerate(senders, start=1):
             try:
-                await self._send_sendgrid(subject, html_body)
-                if smtp_error:
-                    logger.info("✅ Email enviado correctamente vía SendGrid (fallback)")
-            except Exception as e:
-                logger.error(f"❌ Error al enviar email con SendGrid: {e}")
-                if smtp_error:
-                    raise smtp_error
-                raise
+                await sender(subject, html_body)
+                if idx > 1:
+                    logger.info(f"✅ Email enviado correctamente vía {name} (fallback)")
+                return
+            except Exception as exc:
+                last_error = exc
+                logger.error(f"❌ Error al enviar email ({name}): {exc}")
+        
+        if last_error:
+            raise last_error
     
     def _get_subject(self, priority: str) -> str:
         """Genera el asunto del email según prioridad"""
@@ -216,22 +230,40 @@ class EmailNotifier(BaseNotifier):
     
     async def _send_sendgrid(self, subject: str, html_body: str):
         """Envía email usando SendGrid"""
-        try:
-            from sendgrid import SendGridAPIClient
-            from sendgrid.helpers.mail import Mail, Email, To, Content
-            
-            message = Mail(
-                from_email=Email(self.settings.sendgrid_from_email),
-                to_emails=[To(email) for email in self.recipients],
-                subject=subject,
-                html_content=Content("text/html", html_body)
-            )
-            
-            sg = SendGridAPIClient(self.settings.sendgrid_api_key)
-            response = sg.send(message)
-            
-            logger.debug(f"📧 Email enviado vía SendGrid (status: {response.status_code})")
+        from sendgrid import SendGridAPIClient
+        from sendgrid.helpers.mail import Mail, Email, To, Content
         
-        except Exception as e:
-            logger.error(f"❌ Error al enviar email con SendGrid: {e}")
+        message = Mail(
+            from_email=Email(self.settings.sendgrid_from_email),
+            to_emails=[To(email) for email in self.recipients],
+            subject=subject,
+            html_content=Content("text/html", html_body)
+        )
+        
+        sg = SendGridAPIClient(self.settings.sendgrid_api_key)
+        response = sg.send(message)
+        
+        logger.debug(f"📧 Email enviado vía SendGrid (status: {response.status_code})")
+    
+    async def _send_resend(self, subject: str, html_body: str):
+        """Envía email usando Resend"""
+        if resend is None:
+            raise RuntimeError("La librería resend no está instalada")
+        
+        payload = {
+            "from": self.resend_from_email,
+            "to": self.recipients,
+            "subject": subject,
+            "html": html_body,
+        }
+        
+        def send_sync():
+            resend.api_key = self.settings.resend_api_key
+            return resend.Emails.send(payload)
+        
+        result = await asyncio.to_thread(send_sync)
+        result_id = getattr(result, "id", None)
+        if not result_id and isinstance(result, dict):
+            result_id = result.get("id")
+        logger.debug(f"📧 Email enviado vía Resend (id: {result_id or 'n/a'})")
 
