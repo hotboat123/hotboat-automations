@@ -72,6 +72,16 @@ WHATSAPP_BUSINESS_ACCOUNT_ID=987654321
 WHATSAPP_VERIFY_TOKEN=cualquier_string_secreto
 WHATSAPP_RECIPIENTS=+56912345678
 
+# Email (OPCIONAL - para recibir emails automáticos de nuevas reservas)
+EMAIL_ENABLED=true
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USERNAME=tu_email@gmail.com
+SMTP_PASSWORD=tu_app_password  # Ver nota abajo
+SMTP_USE_TLS=true
+EMAIL_FROM=notificaciones@hotboat.cl
+EMAIL_TO=admin@hotboat.cl,manager@hotboat.cl
+
 # Configuración de Monitores (¡TODO configurable desde aquí!)
 CHECK_INTERVAL_APPOINTMENTS=60    # Segundos entre cada revisión de reservas
 CHECK_INTERVAL_STOCK=300          # Segundos entre cada revisión de stock (5 min)
@@ -87,6 +97,12 @@ DATABASE_AUTO_SETUP=false         # Déjalo en false si ya tienes tablas propias
 ```
 
 > 💡 **Ventaja de Railway**: Puedes cambiar cualquiera de estas variables sin modificar el código. Railway reiniciará automáticamente la aplicación con los nuevos valores.
+
+> 📧 **Configurar Gmail para SMTP**: 
+> 1. Ve a https://myaccount.google.com/apppasswords
+> 2. Genera una contraseña de aplicación
+> 3. Úsala en `SMTP_PASSWORD`
+> 4. Ver guía completa: `CONFIGURATION.md` → "Configuración de Emails para Nuevas Reservas"
 
 > 🗄️ **¿Tus tablas tienen otros nombres?**
 > - Ajusta `monitors.appointments.table_name` en `config.yaml` (por ejemplo `booknetic_appointments`).
@@ -157,8 +173,10 @@ O desde el Dashboard:
 📍 Entorno: production
 🗄️  Base de datos conectada
 💬 WhatsApp configurado para 1 destinatarios
+📧 Email SMTP configurado: smtp.gmail.com (SSL=False, TLS=True)
 ✅ Monitor de Reservas iniciado (intervalo: 60s)
 ✅ Monitor de Stock iniciado (intervalo: 300s)
+📊 Monitor de Resumen Diario inicializado (envío: 09:00)
 ```
 
 ### 📱 Mensaje de Inicio
@@ -222,7 +240,26 @@ INSERT INTO appointments (
 );
 ```
 
-**Resultado:** 📅 Notificación de nueva reserva en WhatsApp
+**Resultado:** 
+- 📱 Notificación de nueva reserva en WhatsApp
+- 📧 **Email automático** con todos los detalles de la reserva (si configuraste EMAIL_ENABLED=true)
+
+**Ejemplo de email recibido:**
+```
+🎉 Nueva Reserva HotBoat
+
+👤 Cliente: Juan Pérez
+📞 Contacto: +56912345678
+📅 Fecha: 16/01/2026 a las 10:00
+🛥️ Servicio: Lancha Deportiva
+👥 Personas: 4
+💳 Pago: $50,000
+📌 Estado: confirmed
+🆔 ID Reserva: 123
+```
+
+> 💡 **Probar email localmente**: Ejecuta `python scripts/test_new_appointment_email.py` 
+> o simplemente `test_email.bat` (Windows) / `./test_email.sh` (Linux/Mac)
 
 ---
 

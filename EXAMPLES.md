@@ -29,19 +29,26 @@ INSERT INTO appointments (
 );
 ```
 
-**Notificación que recibes:**
+**Notificación que recibes (WhatsApp/Email):**
 ```
-⚠️ 🎉 Nueva Reserva Creada
+🎉 Nueva Reserva HotBoat
 
 👤 Cliente: María González
-📱 Teléfono: +56987654321
-📅 Fecha: 15/11/2025
-⏰ Hora: 14:00
-⛵ Embarcación: Lancha Rápida
+📞 Contacto: +56987654321
+📅 Fecha: 15/11/2025 a las 14:00
+🛥️ Servicio: Lancha Rápida
 👥 Personas: 6
-💰 Total: $80,000
-📝 Estado: confirmed
+➕ Extras: Sin extras registradas
+⏱️ Duración: N/A
+💳 Pago: $80,000
+👨‍✈️ Staff: Sin asignar
+📌 Estado: confirmed
+🆔 ID Reserva: 123
 ```
+
+> 💡 **Nota**: Esta notificación se envía automáticamente tanto por **WhatsApp** (si está habilitado) 
+> como por **Email** (si `EMAIL_ENABLED=true`). El email tiene el mismo contenido pero con formato HTML 
+> profesional. No necesitas hacer nada adicional, el sistema detecta la nueva fila automáticamente.
 
 ---
 
@@ -411,6 +418,67 @@ grep ERROR logs/automation.log
 # Últimas 100 líneas
 tail -100 logs/automation.log
 ```
+
+---
+
+## 📧 Ejemplo de Email de Nueva Reserva
+
+Cuando se agrega una nueva reserva en `booknetic_appointments`, recibes un email como este:
+
+**Asunto:** `[IMPORTANTE] HotBoat Automations - 15/01/2026 18:45`
+
+**Cuerpo (HTML con formato):**
+
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🚤 HotBoat Automations
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🎉 Nueva Reserva HotBoat
+
+👤 Cliente: Juan Pérez
+📞 Contacto: +56912345678 | juan@example.com
+📅 Fecha: 16/01/2026 a las 14:00
+🛥️ Servicio: Lancha Deportiva - 8 personas
+👥 Personas: 8
+➕ Extras: 2 x Tabla de Quesos, 1 x Botella de Vino
+⏱️ Duración: 4h
+💳 Pago: $150,000
+👨‍✈️ Staff: Carlos Rodríguez
+📌 Estado: confirmed
+🆔 ID Reserva: 12345
+🕒 Creada: 15/01/2026 18:30
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Este es un mensaje automático del sistema 
+de monitoreo de HotBoat Chile.
+Fecha: 15/01/2026 18:45:32
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+```
+
+**Características del email:**
+
+- ✅ **Formato HTML profesional** con colores según prioridad
+- ✅ **Respuesta automática** - no necesitas hacer nada
+- ✅ **Múltiples destinatarios** - configura varios emails en `EMAIL_TO`
+- ✅ **Mismo contenido que WhatsApp** - consistencia en todas las notificaciones
+- ✅ **Incluye toda la información** - cliente, fecha, extras, pagos, etc.
+
+**Configuración para recibir estos emails:**
+
+```bash
+# En Railway Variables
+EMAIL_ENABLED=true
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USERNAME=notificaciones@hotboat.cl
+SMTP_PASSWORD=tu_app_password
+SMTP_USE_TLS=true
+EMAIL_FROM=notificaciones@hotboat.cl
+EMAIL_TO=admin@hotboat.cl,manager@hotboat.cl
+```
+
+Ver más detalles en: `CONFIGURATION.md` → Sección "📧 Configuración de Emails para Nuevas Reservas"
 
 ---
 

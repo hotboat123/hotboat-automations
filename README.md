@@ -5,8 +5,10 @@ Sistema de monitoreo y notificaciones automáticas para Hot Boat Chile.
 ## 🚀 Características
 
 - **Monitor de Appointments**: Detecta nuevas reservas y cambios en tiempo real
+- **Notificaciones por Email**: Emails automáticos al agregar nuevas reservas
 - **Monitor de Stock**: Alerta cuando el inventario está bajo
 - **Notificaciones WhatsApp**: Mensajes instantáneos a tu teléfono personal
+- **Reportes Diarios**: Resumen automático enviado cada mañana a las 9:00 AM
 - **Configuración Flexible**: Ajusta umbrales y frecuencias de monitoreo
 - **Logs Detallados**: Registro de todas las actividades
 - **Desplegado en Railway**: Corre 24/7 en la nube
@@ -76,10 +78,13 @@ python main.py
 
 ### 1. Monitor de Appointments (Reservas)
 Detecta:
-- Nuevas reservas creadas
+- ✅ **Nuevas reservas creadas** → Envía email automáticamente con toda la información
 - Reservas canceladas
 - Cambios en reservas existentes
 - Reservas próximas (recordatorio)
+
+**Email Automático**: Cada vez que se agrega una nueva fila en `booknetic_appointments`, 
+recibes un email detallado con: cliente, fecha, hora, servicio, personas, extras, pago, etc.
 
 ### 2. Monitor de Stock (Inventario)
 Detecta:
@@ -87,23 +92,68 @@ Detecta:
 - Productos sin stock
 - Cambios significativos en inventario
 
+### 3. Monitor de Resumen Diario
+Envía automáticamente:
+- Reporte diario a las 9:00 AM (configurable)
+- Comparación de reservas vs información completada
+- Detalle de consumos registrados
+- Lista de reservas sin información
+
 ## 🔔 Canales de Notificación
 
-### Telegram
+### WhatsApp (Principal)
+- Notificaciones instantáneas de nuevas reservas
+- Integración con WhatsApp Business API
+- Mensajes a múltiples usuarios
+- Ver guía: `WHATSAPP_SETUP.md`
+
+### Email (Automático)
+- ✅ **Email automático por cada nueva reserva**
+- Reportes diarios a las 9:00 AM
+- Alertas de stock crítico
+- Formato HTML profesional
+- Múltiples destinatarios
+- Compatible con Gmail, SendGrid, Resend
+- Ver guía: `CONFIGURATION.md` → Sección "Configuración de Emails"
+
+### Telegram (Opcional)
 - Notificaciones instantáneas
 - Grupos o chats privados
 - Formato rico con botones
-
-### Email
-- Resúmenes diarios/horarios
-- Alertas críticas
-- Formato HTML profesional
-
-### WhatsApp (Opcional)
-- Integración con WhatsApp Business API
-- Notificaciones a múltiples usuarios
+- Ver guía: `TELEGRAM_SETUP.md`
 
 ## ⚙️ Configuración
+
+### Configuración Rápida de Emails para Nuevas Reservas
+
+Para recibir un email automáticamente cada vez que se agregue una nueva reserva:
+
+**1. Variables de entorno (Railway):**
+```bash
+EMAIL_ENABLED=true
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USERNAME=tu_email@gmail.com
+SMTP_PASSWORD=tu_contraseña_de_app  # Ver nota abajo
+SMTP_USE_TLS=true
+EMAIL_FROM=notificaciones@hotboat.cl
+EMAIL_TO=admin@hotboat.cl,manager@hotboat.cl
+```
+
+**2. Gmail - Contraseña de Aplicación:**
+- Ve a: https://myaccount.google.com/apppasswords
+- Genera una nueva contraseña
+- Úsala en `SMTP_PASSWORD`
+
+**3. Verifica que funciona:**
+```bash
+# Ejecuta el script de prueba
+python scripts/test_new_appointment_email.py
+```
+
+**4. ¡Listo!** Ahora recibirás un email cada vez que se agregue una nueva reserva.
+
+### Personalización Avanzada
 
 Edita `config.yaml` para personalizar:
 
@@ -112,21 +162,31 @@ monitors:
   appointments:
     enabled: true
     check_interval: 60  # segundos
+    notifications:
+      new_appointment: true  # Enviar email por cada nueva reserva
   
   stock:
     enabled: true
     check_interval: 300  # segundos
     low_stock_threshold: 5
+  
+  daily_summary:
+    enabled: true
+    report_time: "09:00"  # Hora del reporte diario
 
 notifications:
-  telegram:
-    enabled: true
-    chat_ids: [123456789]
-  
   email:
     enabled: true
-    recipients: ["admin@hotboat.cl"]
+    priority_levels:
+      high: true  # Nuevas reservas y reportes diarios
+  
+  whatsapp:
+    enabled: true
+    priority_levels:
+      high: true
 ```
+
+Ver guía completa: `CONFIGURATION.md`
 
 ## 🔍 Logs
 

@@ -125,11 +125,30 @@ class AppointmentsMonitor(BaseMonitor):
         
         message = self._build_new_appointment_message(appointment)
         
-        await self.send_notification(
-            message=message,
-            priority="high",
-            channel="whatsapp"
-        )
+        # Enviar por WhatsApp (si está habilitado)
+        try:
+            await self.send_notification(
+                message=message,
+                priority="high",
+                channel="whatsapp"
+            )
+            logger.info("✅ Notificación de nueva reserva enviada por WhatsApp")
+        except Exception as e:
+            logger.warning(f"⚠️ No se pudo enviar por WhatsApp: {e}")
+        
+        # Enviar por Email (de la misma manera que el reporte diario)
+        try:
+            sent = await self.send_notification(
+                message=message,
+                priority="high",
+                channel="email"
+            )
+            if sent:
+                logger.info("✅ Notificación de nueva reserva enviada por Email")
+            else:
+                logger.warning("⚠️ No se pudo enviar el email de nueva reserva")
+        except Exception as e:
+            logger.error(f"❌ Error enviando email de nueva reserva: {e}")
         
         logger.info(
             "🎉 Nueva reserva: %s - %s",

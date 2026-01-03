@@ -5,6 +5,35 @@ Todos los cambios notables en este proyecto serán documentados aquí.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+## [1.1.0] - 2026-01-02
+
+### Agregado
+- **Email automático por cada nueva reserva**: Ahora el sistema envía un email detallado cada vez que se agrega una nueva fila en `booknetic_appointments`
+  - Usa la misma configuración SMTP que los reportes diarios
+  - Incluye toda la información de la reserva: cliente, fecha, hora, servicio, extras, pago, etc.
+  - Formato HTML profesional con colores según prioridad
+  - Soporte para múltiples destinatarios
+  - Compatible con Gmail, SendGrid y Resend
+- Script de prueba: `scripts/test_new_appointment_email.py` para verificar el envío de emails
+- Scripts de ejecución rápida: `test_email.bat` (Windows) y `test_email.sh` (Linux/Mac)
+- Documentación extendida:
+  - Nueva sección en `CONFIGURATION.md`: "📧 Configuración de Emails para Nuevas Reservas"
+  - Actualizado `EXAMPLES.md` con ejemplo de email de nueva reserva
+  - Actualizado `README.md` destacando la funcionalidad de emails automáticos
+  - Actualizado `QUICKSTART.md` con instrucciones de configuración de email
+
+### Modificado
+- `app/monitors/appointments_monitor.py`: 
+  - `_notify_new_appointment()` ahora envía tanto por WhatsApp como por Email
+  - Manejo de errores mejorado con fallback
+  - Logs más descriptivos
+- `config.yaml`: Agregado comentario explicativo en `notifications.new_appointment`
+
+### Mejorado
+- Consistencia entre notificaciones de WhatsApp y Email
+- Mejor experiencia de usuario con scripts de prueba fáciles de usar
+- Documentación más completa y ejemplos prácticos
+
 ## [1.0.0] - 2025-11-04
 
 ### Agregado
