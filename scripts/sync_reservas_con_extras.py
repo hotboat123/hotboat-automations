@@ -364,9 +364,9 @@ def sync_reservas_con_extras(start_date: str = None, end_date: str = None, force
                 # Extraer extras y calcular costos/ingresos
                 extras_data = extract_extras_dict(extras_json, costs_dict, prices_dict)
                 
-                ingreso_extras = extras_data['ingreso_extras']
-                costo_variable = extras_data['costo_extras']
-                ingreso_total = payment_amount + ingreso_extras
+                ingreso_extras = float(extras_data['ingreso_extras'])
+                costo_variable = float(extras_data['costo_extras'])
+                ingreso_total = float(payment_amount) + ingreso_extras
                 costo_total = COSTO_FIJO_POR_RESERVA + costo_variable
                 tiene_cruce = bool(reservation_id)
                 
