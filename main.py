@@ -13,6 +13,8 @@ from app.monitors.stock_monitor import StockMonitor
 from app.monitors.consumption_monitor import ConsumptionMonitor
 from app.monitors.inventory_sync_monitor import InventorySyncMonitor
 from app.monitors.daily_summary_monitor import DailySummaryMonitor
+from app.monitors.weekly_monthly_summary_monitor import WeeklyMonthlySummaryMonitor
+from app.monitors.reservas_sync_monitor import ReservasSyncMonitor
 from app.notifications.manager import NotificationManager
 
 
@@ -132,6 +134,26 @@ class AutomationSystem:
             )
             self.monitors.append(daily_summary_monitor)
             self.logger.info("📊 Monitor de Resumen Diario activado")
+        
+        # Monitor de Resumen Semanal/Mensual
+        if monitors_config.get("weekly_monthly_summary", {}).get("enabled", False):
+            weekly_monthly_monitor = WeeklyMonthlySummaryMonitor(
+                settings=self.settings,
+                config=monitors_config["weekly_monthly_summary"],
+                notification_manager=self.notification_manager
+            )
+            self.monitors.append(weekly_monthly_monitor)
+            self.logger.info("📅 Monitor de Resumen Semanal/Mensual activado")
+        
+        # Monitor de Sincronización de Reservas
+        if monitors_config.get("reservas_sync", {}).get("enabled", False):
+            reservas_sync_monitor = ReservasSyncMonitor(
+                settings=self.settings,
+                config=monitors_config["reservas_sync"],
+                notification_manager=self.notification_manager
+            )
+            self.monitors.append(reservas_sync_monitor)
+            self.logger.info("🔄 Monitor de Sincronización de Reservas activado")
     
     async def start(self):
         """Inicia el sistema de monitoreo"""

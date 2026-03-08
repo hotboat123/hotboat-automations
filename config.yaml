@@ -69,6 +69,19 @@ monitors:
     check_interval: 300  # segundos (chequea cada 5 minutos si es hora de enviar)
     report_time: "09:00"  # hora para enviar el reporte (formato 24h)
     timezone: "America/Santiago"  # zona horaria para el reporte
+  
+  weekly_monthly_summary:
+    enabled: true
+    name: "Monitor de Resumen Semanal/Mensual"
+    check_interval: 300  # segundos (chequea cada 5 minutos si es lunes y hora de enviar)
+    report_time: "09:00"  # hora para enviar el reporte (formato 24h)
+    timezone: "America/Santiago"  # zona horaria para el reporte
+  
+  reservas_sync:
+    enabled: true
+    name: "Monitor de Sincronización de Reservas"
+    check_interval: 600  # segundos (cada 10 minutos)
+    lookback_days: 7  # sincronizar últimos 7 días
 
 # Notification Channels
 notifications:
