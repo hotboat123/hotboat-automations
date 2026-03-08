@@ -82,6 +82,12 @@ monitors:
     name: "Monitor de Sincronización de Reservas"
     check_interval: 600  # segundos (cada 10 minutos)
     lookback_days: 7  # sincronizar últimos 7 días
+  
+  reservas_sheets_sync:
+    enabled: true
+    name: "Monitor de Sincronización Reservas → Google Sheets"
+    check_interval: 600  # segundos (cada 10 minutos)
+    sync_days_back: 90  # sincronizar últimos 90 días
 
 # Notification Channels
 notifications:

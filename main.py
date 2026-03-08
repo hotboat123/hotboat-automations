@@ -19,6 +19,7 @@ from app.monitors.inventory_sync_monitor import InventorySyncMonitor
 from app.monitors.daily_summary_monitor import DailySummaryMonitor
 from app.monitors.weekly_monthly_summary_monitor import WeeklyMonthlySummaryMonitor
 from app.monitors.reservas_sync_monitor import ReservasSyncMonitor
+from app.monitors.reservas_sheets_sync_monitor import ReservasSheetsSyncMonitor
 from app.notifications.manager import NotificationManager
 
 
@@ -158,6 +159,16 @@ class AutomationSystem:
             )
             self.monitors.append(reservas_sync_monitor)
             self.logger.info("🔄 Monitor de Sincronización de Reservas activado")
+        
+        # Monitor de Sincronización de Reservas → Google Sheets
+        if monitors_config.get("reservas_sheets_sync", {}).get("enabled", False):
+            reservas_sheets_monitor = ReservasSheetsSyncMonitor(
+                settings=self.settings,
+                config=monitors_config["reservas_sheets_sync"],
+                notification_manager=self.notification_manager
+            )
+            self.monitors.append(reservas_sheets_monitor)
+            self.logger.info("📊 Monitor de Sincronización Reservas → Sheets activado")
     
     async def start(self):
         """Inicia el sistema de monitoreo"""
