@@ -88,8 +88,10 @@ monitors:
     enabled: true
     name: "Monitor de Sincronización Reservas → Google Sheets"
     check_interval: 600  # cada 10 minutos
-    sync_days_back: 90  # últimos 90 días
+    sync_from_today: true  # Solo sincronizar desde HOY en adelante (no modifica fechas pasadas)
 ```
+
+**IMPORTANTE:** Por defecto, el sistema solo sincroniza **desde la fecha actual en adelante** para preservar tus ediciones manuales en Google Sheets. Si necesitas sincronizar fechas pasadas, cambia `sync_from_today: false`.
 
 ### 3. Configurar Google Sheets (hotboat-etl)
 

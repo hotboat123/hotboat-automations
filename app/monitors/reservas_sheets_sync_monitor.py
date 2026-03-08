@@ -16,21 +16,31 @@ class ReservasSheetsSyncMonitor(BaseMonitor):
     def __init__(self, settings, config, notification_manager):
         super().__init__(settings, config, notification_manager)
         self.check_interval = config.get("check_interval", 600)  # cada 10 minutos
-        self.sync_days_back = config.get("sync_days_back", 90)  # sincronizar últimos 90 días
+        # Sincronizar solo desde hoy en adelante para no modificar fechas pasadas
+        self.sync_from_today = config.get("sync_from_today", True)  
         self.last_sync_time = None
     
     async def initialize(self):
         """Inicializa el monitor"""
         await super().initialize()
         logger.info("🔄 Monitor de Sincronización Reservas → Sheets inicializado")
-        logger.info(f"📊 Sincronizará los últimos {self.sync_days_back} días cada {self.check_interval//60} minutos")
+        if self.sync_from_today:
+            logger.info("📊 Sincronizará solo fechas >= HOY (no modifica fechas pasadas)")
+        else:
+            logger.info("📊 Sincronizará todas las fechas")
     
     async def check(self) -> List[Dict[str, Any]]:
         """
-        Obtiene todas las reservas de los últimos X días para sincronizar
+        Obtiene reservas para sincronizar.
+        Por defecto solo sincroniza desde HOY en adelante para no modificar fechas pasadas.
         """
-        # Calcular fecha de inicio (últimos X días)
-        start_date = datetime.now().date() - timedelta(days=self.sync_days_back)
+        if self.sync_from_today:
+            # Solo sincronizar desde hoy en adelante
+            start_date = datetime.now().date()
+            logger.debug(f"📅 Sincronizando solo desde {start_date} en adelante")
+        else:
+            # Sincronizar todo (modo legacy)
+            start_date = datetime.now().date() - timedelta(days=365)
         
         query = """
             SELECT 
@@ -96,18 +106,13 @@ class ReservasSheetsSyncMonitor(BaseMonitor):
     
     async def _sync_to_sheets_table(self, reservas: List[Dict[str, Any]]) -> None:
         """
-        Sincroniza las reservas a una tabla intermedia que se conecta con Google Sheets
-        Similar a como funciona la tabla Stock
+        Sincroniza las reservas a una tabla intermedia que se conecta con Google Sheets.
+        Solo actualiza/inserta registros de fechas >= HOY para no modificar fechas pasadas.
         """
         try:
-            # Primero, limpiar datos antiguos (más de X días)
-            delete_old_query = """
-                DELETE FROM "Reservas_Con_Extras_Sheets"
-                WHERE (raw->>'fecha')::date < CURRENT_DATE - INTERVAL '%s days'
-            """
-            await self.db.execute_non_query(delete_old_query, (self.sync_days_back,))
+            # NO limpiamos datos antiguos para mantener ediciones manuales
+            # Solo sincronizamos fechas >= hoy
             
-            # Ahora insertar/actualizar cada reserva
             success_count = 0
             error_count = 0
             
