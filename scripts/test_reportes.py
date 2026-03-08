@@ -42,7 +42,10 @@ async def test_daily_report():
     await monitor.detect_changes([{"generate_report": True, "date": yesterday}])
     
     await notification_manager.close()
-    print("\n✅ Reporte diario generado\n")
+    try:
+        print("\n✅ Reporte diario generado\n")
+    except UnicodeEncodeError:
+        print("\n[OK] Reporte diario generado\n")
 
 
 async def test_weekly_report():
@@ -73,7 +76,10 @@ async def test_weekly_report():
     await monitor.detect_changes([{"type": "weekly", "date": last_monday}])
     
     await notification_manager.close()
-    print("\n✅ Reporte semanal generado\n")
+    try:
+        print("\n✅ Reporte semanal generado\n")
+    except UnicodeEncodeError:
+        print("\n[OK] Reporte semanal generado\n")
 
 
 async def test_monthly_report():
@@ -103,7 +109,10 @@ async def test_monthly_report():
     await monitor.detect_changes([{"type": "monthly", "date": first_day_current}])
     
     await notification_manager.close()
-    print("\n✅ Reporte mensual generado\n")
+    try:
+        print("\n✅ Reporte mensual generado\n")
+    except UnicodeEncodeError:
+        print("\n[OK] Reporte mensual generado\n")
 
 
 async def test_all_reports():
@@ -117,10 +126,16 @@ async def test_all_reports():
         await test_weekly_report()
         await test_monthly_report()
         
-        print("\n" + "="*80)
-        print("✅ TODOS LOS REPORTES GENERADOS EXITOSAMENTE")
-        print("="*80)
-        print("\n📧 Revisa tu email para ver los reportes\n")
+        try:
+            print("\n" + "="*80)
+            print("✅ TODOS LOS REPORTES GENERADOS EXITOSAMENTE")
+            print("="*80)
+            print("\n📧 Revisa tu email para ver los reportes\n")
+        except UnicodeEncodeError:
+            print("\n" + "="*80)
+            print("[OK] TODOS LOS REPORTES GENERADOS EXITOSAMENTE")
+            print("="*80)
+            print("\n[EMAIL] Revisa tu email para ver los reportes\n")
         
     except Exception as e:
         print(f"\n❌ Error: {e}")
