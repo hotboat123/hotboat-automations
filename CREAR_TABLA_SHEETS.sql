@@ -6,14 +6,12 @@ CREATE TABLE IF NOT EXISTS "Reservas_Con_Extras_Sheets" (
     raw JSONB NOT NULL,
     source TEXT DEFAULT 'reservas_con_extras',
     created_at TIMESTAMP DEFAULT NOW(),
-    updated_at TIMESTAMP DEFAULT NOW(),
-    
-    -- Constraint única para evitar duplicados
-    CONSTRAINT unique_reserva_sheets UNIQUE (
-        (raw->>'appointment_id'),
-        (raw->>'fecha')
-    )
+    updated_at TIMESTAMP DEFAULT NOW()
 );
+
+-- Crear índice único para evitar duplicados
+CREATE UNIQUE INDEX IF NOT EXISTS idx_unique_reserva_sheets 
+    ON "Reservas_Con_Extras_Sheets" ((raw->>'appointment_id'), (raw->>'fecha'));
 
 -- Índices para mejorar el rendimiento
 CREATE INDEX IF NOT EXISTS idx_reservas_sheets_fecha 
