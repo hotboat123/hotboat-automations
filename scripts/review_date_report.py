@@ -72,15 +72,38 @@ async def review_date(target_date_str: str = None):
         consumption_summary = await monitor._get_consumption_summary(reservation_ids)
         if info_details:
             logger.info(f"🧾 Detalle ({len(info_details)} filas):")
-            for entry in info_details:
+            for idx, entry in enumerate(info_details, 1):
+                raw_data = entry.get("raw", {})
+                if isinstance(raw_data, str):
+                    import json
+                    try:
+                        raw_data = json.loads(raw_data)
+                    except:
+                        raw_data = {}
+                
+                horario_salida = raw_data.get("horario_salida") or raw_data.get("hora_salida")
+                
                 logger.info(
-                    "   - {cliente} | fecha_form='{fecha_form}' | target_date={target} | created_at={created}".format(
+                    "   #{idx} {cliente} | fecha_form='{fecha_form}' | hora='{hora}' | target_date={target} | created_at={created}".format(
+                        idx=idx,
                         cliente=entry.get("nombre_cliente") or "Sin nombre",
                         fecha_form=entry.get("fecha_formulario") or "N/A",
+                        hora=horario_salida or "N/A",
                         target=entry.get("target_date"),
                         created=entry.get("created_at")
                     )
                 )
+                
+                # Mostrar extras detectados
+                extras_found = []
+                for key, value in raw_data.items():
+                    if 'extra' in key.lower() or 'cerveza' in key.lower() or 'bebida' in key.lower():
+                        if value:
+                            extras_found.append(f"{key}={value}")
+                
+                if extras_found:
+                    logger.info(f"         Extras raw: {', '.join(extras_found)}")
+                
                 match = entry.get("_matched_appointment")
                 if match:
                     logger.info(
@@ -116,6 +139,14 @@ async def review_date(target_date_str: str = None):
         logger.info("🔍 Buscando reservas faltantes...")
         missing = await monitor._get_missing_reservas(target_date, info_details)
         logger.info(f"⚠️  Reservas faltantes: {len(missing)}")
+        
+        # Calcular ingresos
+        logger.info("💰 Calculando ingresos...")
+        revenue_data = await monitor._calculate_revenue_for_date(target_date)
+        logger.info(f"💵 Total ingresos: ${revenue_data.get('total_revenue', 0):,.0f}")
+        logger.info(f"   - Reservas: ${revenue_data.get('revenue_reservations', 0):,.0f}")
+        logger.info(f"   - Extras: ${revenue_data.get('revenue_extras', 0):,.0f}")
+        logger.info(f"   - Promedio: ${revenue_data.get('average_revenue', 0):,.0f}")
         
         # Mostrar detalles en consola
         if missing:
@@ -159,7 +190,8 @@ async def review_date(target_date_str: str = None):
             info_count,
             missing,
             info_details,
-            consumption_summary
+            consumption_summary,
+            revenue_data
         )
         
         logger.info("✅ Reporte enviado! Revisa tu Email")

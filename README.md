@@ -86,11 +86,15 @@ Detecta:
 **Email Automático**: Cada vez que se agrega una nueva fila en `booknetic_appointments`, 
 recibes un email detallado con: cliente, fecha, hora, servicio, personas, extras, pago, etc.
 
+📖 **[Ver cómo funciona el sistema de emails →](docs/SISTEMA_EMAILS.md)**
+
 ### 2. Monitor de Stock (Inventario)
 Detecta:
 - Productos con stock bajo
 - Productos sin stock
 - Cambios significativos en inventario
+
+📧 **Emails automáticos** cuando el stock está bajo, crítico o agotado.
 
 ### 3. Monitor de Resumen Diario
 Envía automáticamente:
@@ -98,6 +102,73 @@ Envía automáticamente:
 - Comparación de reservas vs información completada
 - Detalle de consumos registrados
 - Lista de reservas sin información
+
+## 📈 Análisis y Reportes
+
+### Exportar Reservas con Extras (Formato JSON) ⭐ NUEVO
+
+Genera un CSV consolidado con extras en formato diccionario JSON:
+
+```bash
+# Windows
+export_reservas_extras.bat 2026-01-01 2026-01-31
+
+# Linux/Mac
+./export_reservas_extras.sh 2026-01-01 2026-01-31
+
+# Python directo
+python scripts/export_reservas_con_extras.py 2026-01-01 2026-01-31
+```
+
+**Genera 2 archivos:**
+1. **Reservas cruzadas** con extras en JSON: `{"tabla_2_personas": 1, "cerveza": 3}`
+2. **Registros huérfanos** (Info Reservas sin appointment)
+
+**Ventajas:**
+- ✅ Captura correctamente el ingreso de reservas (no $0)
+- ✅ Extras en formato JSON parseable
+- ✅ Identifica registros sin cruce
+- ✅ Basado en el método probado de `export_daily_analysis.py`
+
+Ver guía completa: [docs/EXPORT_RESERVAS_JSON.md](docs/EXPORT_RESERVAS_JSON.md)
+
+### Exportar Información Completa de Reservas
+
+Genera un CSV consolidado con **toda la información** de cada reserva:
+
+```bash
+# Windows
+export_reservations.bat 2026-01-01 2026-01-31
+
+# Linux/Mac
+./export_reservations.sh 2026-01-01 2026-01-31
+
+# Python directo
+python scripts/export_reservations_full.py 2026-01-01 2026-01-31
+```
+
+**El CSV incluye:**
+- Identificadores (IDs de appointment, payment, reserva)
+- Información del cliente (nombre, email, teléfono)
+- Detalles de la reserva (servicio, ubicación, personas, descuento, notas)
+- Ingresos (reserva, extras, total)
+- Costos (operativos fijos, variables, marketing, total)
+- Utilidades (bruta, neta, márgenes %)
+- Extras vendidos
+- Status y timestamps
+
+Ver guía completa: [docs/EXPORT_RESERVATIONS.md](docs/EXPORT_RESERVATIONS.md)
+
+### Explicación Técnica del Cruce de Tablas
+
+El sistema cruza 3 tablas principales para generar los análisis:
+- `booknetic_appointments` - Datos de citas/reservas
+- `booknetic_payments` - Datos de pagos
+- `Informacion Reservas` - Extras y detalles adicionales
+
+El cruce se hace por **fecha + hora + número de fila** (ROW_NUMBER).
+
+Ver documentación técnica completa: [docs/CRUCE_TABLAS.md](docs/CRUCE_TABLAS.md)
 
 ## 🔔 Canales de Notificación
 

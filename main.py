@@ -6,6 +6,10 @@ import signal
 import sys
 from pathlib import Path
 
+# Fix para Windows: psycopg requiere WindowsSelectorEventLoopPolicy
+if sys.platform == 'win32':
+    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+
 from app.config import get_settings, load_yaml_config
 from app.logger import setup_logger, logger
 from app.monitors.appointments_monitor import AppointmentsMonitor

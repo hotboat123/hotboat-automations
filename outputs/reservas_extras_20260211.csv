@@ -1,0 +1,6 @@
+﻿Fecha,Hora,Nombre Cliente,Servicio,Ingreso Reserva,Ingreso Extras,Ingreso Total,Costo Operativo Fijo,Costo Operativo Variable,Costo Operativo Total,Num Adultos,Num Ninos,Ciudad Origen,Como Supieron,Clima del Dia,Tipo Clientes,ID Appointment,ID Reserva,Email,Telefono,Num Personas,Categoria Clientes,Status,Extras (JSON),Tiene Cruce
+11/02/2026,09:00,javier figueroa,HotBoat Trip 5 people (38.990 per person),194950,0,194950,18000,0,18000,5,0,Santiago,Instagram,Lluvia,Trabajador,775,3b28c578,,,,Grupo de amigos,,{},Si
+11/02/2026,11:00,Sergio Godoy,HotBoat Trip 2 people (69.990 per person),164980,20000,184980,18000,9000,27000,2,0,Santiago,Instagram,,Empresario,761,c3929039,,,,Pareja,,"{""tabla_2_personas"": 1}",Si
+11/02/2026,14:00,carolina seebach,HotBoat Trip 2 people (69.990 per person),139980,0,139980,18000,0,18000,2,0,Santiago,Instagram,Lluvia,Empresario,762,005c40ad,,,,Pareja,,{},Si
+11/02/2026,17:00,karen seguell,HotBoat Trip 4 people (44.990 per person),209960,30000,239960,18000,10000,28000,4,0,Temuco,Instagram,Lluvia,Trabajador,768,458c50ab,,,,Familia,,"{""video_15_segundos"": 1}",Si
+11/02/2026,20:00,nestor arriagada,HotBoat Trip 6 people (32.990 per person),197940,0,197940,18000,0,18000,6,0,Santiago,Instagram,Noche,Trabajador,766,ffda7c18,,,,Familia,,{},Si

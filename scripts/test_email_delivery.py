@@ -39,3 +39,4 @@ if __name__ == "__main__":
     test_message = sys.argv[1] if len(sys.argv) > 1 else "Este es un email de verificación."
     asyncio.run(send_test_email(test_message))
 
+

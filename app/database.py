@@ -2,9 +2,14 @@
 Database connection and utilities
 """
 import asyncio
+import sys
 from pathlib import Path
 from typing import Optional, List, Dict, Any, Callable, Awaitable
 from contextlib import asynccontextmanager
+
+# Fix para Windows: psycopg requiere WindowsSelectorEventLoopPolicy
+if sys.platform == 'win32':
+    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
 import psycopg
 from psycopg_pool import AsyncConnectionPool

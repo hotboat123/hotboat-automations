@@ -1,0 +1,2 @@
+﻿Fecha,Hora,ID Appointment,ID Reserva,Nombre Cliente,Email,Telefono,Servicio,Num Personas,Ingreso Reserva,Ingreso Extras,Ingreso Total,Costo Operativo Fijo,Costo Operativo Variable,Costo Operativo Total,Status,Extras (JSON),Tiene Cruce
+18/01/2026,17:00,631,a1f9ab5c,Juan pablo Hoyos,,,HotBoat Trip 5 people (38.990 per person),,194950,52900,247850,18000,19750,37750,,"{""fanta"": 1, ""tabla_2_personas"": 1, ""video_15_segundos"": 1}",Si

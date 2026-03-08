@@ -1,0 +1,6 @@
+﻿ID Reserva,Fecha,Hora,Nombre,Telefono,Email,Num Personas,Num Adultos,Num Ninos,Ingreso Extras,Costo Extras,Extras (JSON),Creado,Motivo
+62cd40c0,05/02/2026,0:00:00,Sin nombre,,axelaguirre12352@gmail.com,,6,3,31000,10690,"{""cerveza_austral_calafate"": 4, ""champaña_riccadonna_asti"": 1}",06/02/2026 04:24,No se encontro appointment con misma fecha/hora
+d10dd48e,05/02/2026,20:43:00,Sin nombre,,axelaguirre12352@gmail.com,,2,0,0,0,{},06/02/2026 04:24,No se encontro appointment con misma fecha/hora
+7724ecc7,05/02/2026,21:00:00,Sin nombre,,axelaguirre12352@gmail.com,,4,0,0,0,{},06/02/2026 16:01,No se encontro appointment con misma fecha/hora
+e845c306,07/02/2026,18:00:00,Sin nombre,,axelaguirre12352@gmail.com,,4,0,0,0,{},07/02/2026 23:06,No se encontro appointment con misma fecha/hora
+b5bb327d,21/02/2026,11:00:00,Sin nombre,,aguirrenestor479@gmail.com,,5,0,20000,9000,"{""tabla_2_personas"": 1}",22/02/2026 21:20,No se encontro appointment con misma fecha/hora

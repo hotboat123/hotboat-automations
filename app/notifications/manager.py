@@ -1,7 +1,7 @@
 """
 Notification Manager - Coordina todos los canales de notificación
 """
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 from app.logger import logger
 from .telegram_notifier import TelegramNotifier
 from .email_notifier import EmailNotifier
@@ -66,11 +66,18 @@ class NotificationManager:
         self,
         message: str,
         priority: str = "medium",
-        channel: Optional[str] = None
+        channel: Optional[str] = None,
+        attachments: Optional[List] = None
     ) -> bool:
         """
         Envía una notificación a través de los canales configurados.
         Retorna True si al menos un canal la envió correctamente.
+        
+        Args:
+            message: Mensaje a enviar
+            priority: Prioridad del mensaje
+            channel: Canal específico (si es None, envía por todos los configurados)
+            attachments: Lista de adjuntos (solo para email)
         """
         if not self.notifiers:
             logger.warning(f"⚠️ No hay notificadores disponibles para: {message[:50]}...")
@@ -97,7 +104,11 @@ class NotificationManager:
         success = False
         for name, notifier in targets:
             try:
-                await notifier.send(message, priority)
+                # Solo pasar attachments al notificador de email
+                if name == "email" and attachments:
+                    await notifier.send(message, priority, attachments)
+                else:
+                    await notifier.send(message, priority)
                 success = True
             except Exception as e:
                 logger.error(f"❌ Error al enviar por {name}: {e}")

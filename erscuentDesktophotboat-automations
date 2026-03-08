@@ -1,0 +1,200 @@
+[1mdiff --git a/app/config.py b/app/config.py[m
+[1mindex 3fb0a4d..76879cc 100644[m
+[1m--- a/app/config.py[m
+[1m+++ b/app/config.py[m
+[36m@@ -138,6 +138,10 @@[m [mclass Settings(BaseSettings):[m
+     sendgrid_api_key: Optional[str] = None[m
+     sendgrid_from_email: Optional[str] = None[m
+     [m
+[32m+[m[32m    # Resend[m
+[32m+[m[32m    resend_api_key: Optional[str] = None[m
+[32m+[m[32m    resend_from_email: Optional[str] = None[m
+[32m+[m[41m    [m
+     # WhatsApp[m
+     whatsapp_enabled: bool = False[m
+     whatsapp_api_token: Optional[str] = None[m
+[1mdiff --git a/app/notifications/email_notifier.py b/app/notifications/email_notifier.py[m
+[1mindex c8aa323..81d05f3 100644[m
+[1m--- a/app/notifications/email_notifier.py[m
+[1m+++ b/app/notifications/email_notifier.py[m
+[36m@@ -4,10 +4,15 @@[m [mEmail Notifier[m
+ import smtplib[m
+ from email.mime.text import MIMEText[m
+ from email.mime.multipart import MIMEMultipart[m
+[31m-from typing import List, Optional[m
+[32m+[m[32mfrom typing import List, Optional, Tuple, Callable, Awaitable[m
+ from datetime import datetime[m
+ import asyncio[m
+ [m
+[32m+[m[32mtry:[m
+[32m+[m[32m    import resend  # type: ignore[m
+[32m+[m[32mexcept ImportError:  # pragma: no cover - optional dependency[m
+[32m+[m[32m    resend = None[m
+[32m+[m
+ from app.logger import logger[m
+ from .base_notifier import BaseNotifier[m
+ [m
+[36m@@ -23,6 +28,10 @@[m [mclass EmailNotifier(BaseNotifier):[m
+         # Verificar configuración SMTP[m
+         self.use_smtp = bool(self.settings.smtp_host and self.settings.smtp_username)[m
+         self.use_sendgrid = bool(self.settings.sendgrid_api_key and self.settings.sendgrid_from_email)[m
+[32m+[m[32m        self.use_resend = bool(self.settings.resend_api_key and resend is not None)[m
+[32m+[m[41m        [m
+[32m+[m[32m        if self.settings.resend_api_key and resend is None:[m
+[32m+[m[32m            logger.warning("⚠️ Resend configurado pero la librería no está instalada")[m
+         [m
+         if self.use_smtp:[m
+             logger.info([m
+[36m@@ -33,13 +42,19 @@[m [mclass EmailNotifier(BaseNotifier):[m
+             )[m
+         if self.use_sendgrid and not self.use_smtp:[m
+             logger.info("✅ Email SendGrid configurado")[m
+[32m+[m[32m        if self.use_resend and not (self.use_smtp or self.use_sendgrid):[m
+[32m+[m[32m            logger.info("✅ Email Resend configurado")[m
+         [m
+[31m-        if not self.use_smtp and not self.use_sendgrid:[m
+[31m-            raise ValueError("No se configuró SMTP ni SendGrid")[m
+[32m+[m[32m        if not any((self.use_smtp, self.use_sendgrid, self.use_resend)):[m
+[32m+[m[32m            raise ValueError("No se configuró SMTP, SendGrid ni Resend")[m
+         [m
+         self.recipients = self.settings.email_to_list[m
+         if not self.recipients:[m
+             raise ValueError("EMAIL_TO no configurado")[m
+[32m+[m[41m        [m
+[32m+[m[32m        self.resend_from_email = self.settings.resend_from_email or self.settings.email_from[m
+[32m+[m[32m        if self.use_resend and not self.resend_from_email:[m
+[32m+[m[32m            raise ValueError("RESEND_FROM_EMAIL o EMAIL_FROM no configurado para Resend")[m
+     [m
+     async def send(self, message: str, priority: str = "medium"):[m
+         """Envía un email"""[m
+[36m@@ -49,28 +64,27 @@[m [mclass EmailNotifier(BaseNotifier):[m
+         subject = self._get_subject(priority)[m
+         html_body = self._format_html(message, priority)[m
+         [m
+[31m-        smtp_error = None[m
+[32m+[m[32m        senders: List[Tuple[str, Callable[[str, str], Awaitable[None]]]] = [][m
+         if self.use_smtp:[m
+[32m+[m[32m            senders.append(("SMTP", self._send_smtp))[m
+[32m+[m[32m        if self.use_sendgrid:[m
+[32m+[m[32m            senders.append(("SendGrid", self._send_sendgrid))[m
+[32m+[m[32m        if self.use_resend:[m
+[32m+[m[32m            senders.append(("Resend", self._send_resend))[m
+[32m+[m[41m        [m
+[32m+[m[32m        last_error: Optional[Exception] = None[m
+[32m+[m[32m        for idx, (name, sender) in enumerate(senders, start=1):[m
+             try:[m
+[31m-                await self._send_smtp(subject, html_body)[m
+[32m+[m[32m                await sender(subject, html_body)[m
+[32m+[m[32m                if idx > 1:[m
+[32m+[m[32m                    logger.info(f"✅ Email enviado correctamente vía {name} (fallback)")[m
+                 return[m
+[31m-            except Exception as e:[m
+[31m-                smtp_error = e[m
+[31m-                logger.error(f"❌ Error al enviar email SMTP: {e}")[m
+[31m-                if not self.use_sendgrid:[m
+[31m-                    raise[m
+[31m-                logger.info("🔁 Intentando enviar email vía SendGrid...")[m
+[32m+[m[32m            except Exception as exc:[m
+[32m+[m[32m                last_error = exc[m
+[32m+[m[32m                logger.error(f"❌ Error al enviar email ({name}): {exc}")[m
+         [m
+[31m-        if self.use_sendgrid:[m
+[31m-            try:[m
+[31m-                await self._send_sendgrid(subject, html_body)[m
+[31m-                if smtp_error:[m
+[31m-                    logger.info("✅ Email enviado correctamente vía SendGrid (fallback)")[m
+[31m-            except Exception as e:[m
+[31m-                logger.error(f"❌ Error al enviar email con SendGrid: {e}")[m
+[31m-                if smtp_error:[m
+[31m-                    raise smtp_error[m
+[31m-                raise[m
+[32m+[m[32m        if last_error:[m
+[32m+[m[32m            raise last_error[m
+     [m
+     def _get_subject(self, priority: str) -> str:[m
+         """Genera el asunto del email según prioridad"""[m
+[36m@@ -216,22 +230,40 @@[m [mclass EmailNotifier(BaseNotifier):[m
+     [m
+     async def _send_sendgrid(self, subject: str, html_body: str):[m
+         """Envía email usando SendGrid"""[m
+[31m-        try:[m
+[31m-            from sendgrid import SendGridAPIClient[m
+[31m-            from sendgrid.helpers.mail import Mail, Email, To, Content[m
+[31m-            [m
+[31m-            message = Mail([m
+[31m-                from_email=Email(self.settings.sendgrid_from_email),[m
+[31m-                to_emails=[To(email) for email in self.recipients],[m
+[31m-                subject=subject,[m
+[31m-                html_content=Content("text/html", html_body)[m
+[31m-            )[m
+[31m-            [m
+[31m-            sg = SendGridAPIClient(self.settings.sendgrid_api_key)[m
+[31m-            response = sg.send(message)[m
+[31m-            [m
+[31m-            logger.debug(f"📧 Email enviado vía SendGrid (status: {response.status_code})")[m
+[32m+[m[32m        from sendgrid import SendGridAPIClient[m
+[32m+[m[32m        from sendgrid.helpers.mail import Mail, Email, To, Content[m
+[32m+[m[41m        [m
+[32m+[m[32m        message = Mail([m
+[32m+[m[32m            from_email=Email(self.settings.sendgrid_from_email),[m
+[32m+[m[32m            to_emails=[To(email) for email in self.recipients],[m
+[32m+[m[32m            subject=subject,[m
+[32m+[m[32m            html_content=Content("text/html", html_body)[m
+[32m+[m[32m        )[m
+[32m+[m[41m        [m
+[32m+[m[32m        sg = SendGridAPIClient(self.settings.sendgrid_api_key)[m
+[32m+[m[32m        response = sg.send(message)[m
+[32m+[m[41m        [m
+[32m+[m[32m        logger.debug(f"📧 Email enviado vía SendGrid (status: {response.status_code})")[m
+[32m+[m[41m    [m
+[32m+[m[32m    async def _send_resend(self, subject: str, html_body: str):[m
+[32m+[m[32m        """Envía email usando Resend"""[m
+[32m+[m[32m        if resend is None:[m
+[32m+[m[32m            raise RuntimeError("La librería resend no está instalada")[m
+[32m+[m[41m        [m
+[32m+[m[32m        payload = {[m
+[32m+[m[32m            "from": self.resend_from_email,[m
+[32m+[m[32m            "to": self.recipients,[m
+[32m+[m[32m            "subject": subject,[m
+[32m+[m[32m            "html": html_body,[m
+[32m+[m[32m        }[m
+[32m+[m[41m        [m
+[32m+[m[32m        def send_sync():[m
+[32m+[m[32m            resend.api_key = self.settings.resend_api_key[m
+[32m+[m[32m            return resend.Emails.send(payload)[m
+         [m
+[31m-        except Exception as e:[m
+[31m-            logger.error(f"❌ Error al enviar email con SendGrid: {e}")[m
+[32m+[m[32m        result = await asyncio.to_thread(send_sync)[m
+[32m+[m[32m        result_id = getattr(result, "id", None)[m
+[32m+[m[32m        if not result_id and isinstance(result, dict):[m
+[32m+[m[32m            result_id = result.get("id")[m
+[32m+[m[32m        logger.debug(f"📧 Email enviado vía Resend (id: {result_id or 'n/a'})")[m
+ [m
+[1mdiff --git a/env.example b/env.example[m
+[1mindex 24ea056..81ee18b 100644[m
+[1m--- a/env.example[m
+[1m+++ b/env.example[m
+[36m@@ -30,6 +30,10 @@[m [mEMAIL_TO=admin@hotboat.cl,manager@hotboat.cl[m
+ SENDGRID_API_KEY=your_sendgrid_api_key[m
+ SENDGRID_FROM_EMAIL=notificaciones@hotboat.cl[m
+ [m
+[32m+[m[32m# Resend (Alternativa HTTP)[m
+[32m+[m[32mRESEND_API_KEY=your_resend_api_key[m
+[32m+[m[32mRESEND_FROM_EMAIL=notificaciones@hotboat.cl[m
+[32m+[m
+ # WhatsApp Business API (PRINCIPAL - Railway)[m
+ WHATSAPP_ENABLED=true[m
+ WHATSAPP_API_TOKEN=your_whatsapp_token[m
+[1mdiff --git a/requirements.txt b/requirements.txt[m
+[1mindex 05b2e62..b4f7d23 100644[m
+[1m--- a/requirements.txt[m
+[1m+++ b/requirements.txt[m
+[36m@@ -10,6 +10,7 @@[m [mpsycopg-pool==3.2.2[m
+ # Notifications[m
+ python-telegram-bot==21.0.1[m
+ sendgrid==6.11.0[m
+[32m+[m[32mresend==0.8.0[m
+ [m
+ # HTTP[m
+ httpx==0.28.1[m

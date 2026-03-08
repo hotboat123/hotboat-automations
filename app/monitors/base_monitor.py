@@ -3,7 +3,7 @@ Base monitor class
 """
 import asyncio
 from abc import ABC, abstractmethod
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, List
 from datetime import datetime
 
 from app.logger import logger
@@ -88,12 +88,14 @@ class BaseMonitor(ABC):
         self,
         message: str,
         priority: str = "medium",
-        channel: Optional[str] = None
+        channel: Optional[str] = None,
+        attachments: Optional[List] = None
     ) -> bool:
         """Helper para enviar notificaciones"""
         return await self.notification_manager.send(
             message=message,
             priority=priority,
-            channel=channel
+            channel=channel,
+            attachments=attachments
         )
 

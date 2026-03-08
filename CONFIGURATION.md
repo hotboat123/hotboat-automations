@@ -355,9 +355,7 @@ Cada vez que se agrega una nueva fila en la tabla `booknetic_appointments`, el s
 
 ### Configuración Necesaria
 
-#### 1. Variables de Entorno (Railway)
-
-Asegúrate de tener estas variables configuradas:
+#### 1. Variables de Entorno (Railway)Asegúrate de tener estas variables configuradas:
 
 ```bash
 # Habilitar email
@@ -407,9 +405,7 @@ SENDGRID_FROM_EMAIL=notificaciones@hotboat.cl
 EMAIL_TO=admin@hotboat.cl
 ```
 
-#### Resend
-
-```bash
+#### Resend```bash
 EMAIL_ENABLED=true
 RESEND_API_KEY=tu_api_key
 RESEND_FROM_EMAIL=notificaciones@hotboat.cl
@@ -505,4 +501,3 @@ EMAIL_TO=admin@hotboat.cl,manager@hotboat.cl,operaciones@hotboat.cl
 ```
 
 Separa los emails con comas, sin espacios.
-

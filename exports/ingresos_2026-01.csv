@@ -1,0 +1,38 @@
+﻿fecha,hora,cliente,email,servicio,num_personas,precio_base,descuento_%,precio_reserva,extras_detalle,precio_extras,precio_total
+01/01/2026,15:00,Rossana Balboa Soto,ribalboasoto@gmail.com,HotBoat Trip 5 people (38.990 per person),5,194950,0,194950.0,"1x fanta ($2,900); 4x coca-cola ($0)",2900.0,197850.0
+01/01/2026,18:00,Florencia Crisoliti,florenciacrisoliti@gmail.com,HotBoat Trip 4 people (44.990 per person),4,189960,0,189960.0,"3x cerveza_royal ($10,500); 1x tabla_4_personas ($20,000)",30500.0,220460.0
+02/01/2026,12:00,MARYORI VARGAS,conuecarmaryori@gmail.com,HotBoat Trip 4 people (44.990 per person),4,189960,0,189960.0,2x coca-cola ($0),0.0,189960.0
+02/01/2026,20:00,Ignacio Vatel,ignacio.vatel.lemus@gmail.com,HotBoat Trip 2 people (69.990 per person),2,139990,0,139990.0,Sin extras,0,139990.0
+03/01/2026,19:00,Angelica Muñoz,a.munozR1710@gmail.com,HotBoat Trip 2 people (69.990 per person),2,139990,0,139990.0,Sin extras,0,139990.0
+04/01/2026,18:00,Guillermo Rios,guille.rios.cortes96@gmail.com,HotBoat Trip 5 people (38.990 per person),5,194950,0,194950.0,Sin extras,0,194950.0
+06/01/2026,19:00,Nair Rocio Aragon,rocionairaragon@gmail.com,HotBoat Trip 6 people (32.990 per person),6,197940,0,197940.0,Sin extras,0,197940.0
+07/01/2026,19:00,Catalina Vega,Abogadacatalina@gmail.com,HotBoat Trip 5 people (38.990 per person),5,194950,0,194950.0,Sin extras,0,194950.0
+07/01/2026,21:00,javiera Ceron Favio,javieraceron19@gmail.com,HotBoat Trip 2 people (69.990 per person),2,139990,0,139990.0,"2x tabla_2_personas ($50,000); 1x coca-cola ($0); 1x maracuya_stone_ ($3,500); 2x cerveza_artesanal_ambar ($12,000)",65500.0,205490.0
+08/01/2026,21:00,Sergio Navarro,sanavarro8422@gmail.com,HotBoat Trip 2 people (69.990 per person),2,139990,0,139990.0,"1x pack_iluminacion_(velas_y_letras) ($20,000)",20000.0,159990.0
+09/01/2026,11:00,MARIELA GONZALEZ,mariegonzalez.industrial@gmail.com,HotBoat Trip 4 people (44.990 per person),4,189960,0,189960.0,Sin extras,0,189960.0
+09/01/2026,15:00,Valeska Ramirez,vramirez.unidad@gmail.com,HotBoat Trip 3 people (54.990 per person),3,159990,0,159990.0,Sin extras,0,159990.0
+09/01/2026,21:00,Patricio Urzua,patourzua7@gmail.com,HotBoat Trip 2 people (69.990 per person),2,139990,0,139990.0,Sin extras,0,139990.0
+10/01/2026,17:00,Jaime Delgado Daroch,jaime.delgado@adco.cl,HotBoat Trip 4 people (44.990 per person),4,189960,0,189960.0,Sin extras,0,189960.0
+10/01/2026,19:00,Claudia Alarcón,csa.charnock@gmail.com,HotBoat Trip 2 people (69.990 per person),2,139990,0,139990.0,Sin extras,0,139990.0
+10/01/2026,21:00,juan carlos morales ovalle,juancarlosmorales1942@gmail.com,HotBoat Trip 2 people (69.990 per person),2,139990,0,139990.0,"1x tabla_2_personas ($25,000); 1x champaña_riccadonna_ruby ($22,000); 1x champaña_riccadonna_moscato_rose ($22,000)",69000.0,208990.0
+11/01/2026,12:00,Roxana Opazo,rroxanaopazo@gmail.com,HotBoat Trip 6 people (32.990 per person),6,197940,0,197940.0,"1x coca-cola ($0); 1x lemon_stone ($3,500); 8x cerveza_artesanal_negra ($48,000); 1x champaña_riccadonna_moscato_rose ($22,000)",73500.0,271440.0
+11/01/2026,12:00,Roxana Opazo,rroxanaopazo@gmail.com,HotBoat Trip 5 people (38.990 per person),5,194950,0,194950.0,"5x cerveza_artesanal_negra ($30,000); 1x champaña_riccadonna_ruby ($22,000)",52000.0,246950.0
+11/01/2026,19:00,Matias Levit,Matiaslevit@gmail.com,HotBoat Trip 2 people (69.990 per person),2,139990,0,139990.0,Sin extras,0,139990.0
+12/01/2026,12:00,ximena escobar,na2@gmail.com,HotBoat Trip 4 people (44.990 per person),4,189960,0,189960.0,Sin extras,0,189960.0
+12/01/2026,16:00,vianca leon escobar,vianca.leon@corporacionbuin.cl,HotBoat Trip 6 people (32.990 per person),6,197940,0,197940.0,Sin extras,0,197940.0
+12/01/2026,19:00,Angela Skornia,lovelifeandtravelmore@gmail.com,HotBoat Trip 4 people (44.990 per person),4,189960,0,189960.0,"1x tabla_2_personas ($25,000); 1x vino_merlot ($15,000); 1x cerveza_artesanal_ambar ($6,000); 1x cerveza_artesanal_negra ($6,000)",52000.0,241960.0
+13/01/2026,19:00,adriana alejandra sobarzo saldaña,brujitale@aol.com,HotBoat Trip 7 people (29.990 per person),7,0,0,0.0,"1x tabla_4_personas ($20,000); 1x video_15_segundos ($30,000)",50000.0,50000.0
+14/01/2026,17:00,Jose luis Coya,joseluis@grupread.com,HotBoat Trip 2 people (69.990 per person),2,139990,0,139990.0,"1x tabla_2_personas ($25,000)",25000.0,164990.0
+15/01/2026,11:00,Constanza Muñoz,Cony20@gmail.com,HotBoat Trip 5 people (38.990 per person),5,194950,0,194950.0,"1x foto_con_marco ($15,000)",15000.0,209950.0
+15/01/2026,14:00,piera cacciuttolo,cacciuttolopiera@gmail.com,HotBoat Trip 2 people (69.990 per person),2,139990,0,139990.0,"1x tabla_2_personas ($25,000); 1x foto_con_marco ($15,000)",40000.0,179990.0
+15/01/2026,16:00,Christian Ferreira,christianferreira.p@gmail.com,HotBoat Trip 6 people (32.990 per person),6,197940,0,197940.0,"1x foto_con_marco ($15,000); 1x video_60_segundos ($40,000)",55000.0,252940.0
+15/01/2026,18:00,Mariela Risco,Calibrenatural@gmail.com,HotBoat Trip 2 people (69.990 per person),2,139990,0,139990.0,"1x tabla_2_personas ($25,000); 1x foto_con_marco ($15,000)",40000.0,179990.0
+15/01/2026,20:00,Loring Soto,loring.f.s@gmail.com,HotBoat Trip 2 people (69.990 per person),2,139990,0,139990.0,Sin extras,0,139990.0
+15/01/2026,23:00,Marco Rodriguez,marco.rodriguez@inproyecchile.cl,HotBoat Trip 2 people (69.990 per person),2,139990,0,139990.0,"1x tabla_2_personas ($25,000)",25000.0,164990.0
+16/01/2026,11:00,patricia silva,mariano.nancupil.m@gmail.com,HotBoat Trip 4 people (44.990 per person),4,189960,0,189960.0,Sin extras,0,189960.0
+16/01/2026,21:00,Bastian Zurita,bastianzurita21@gmail.com,HotBoat Trip 2 people (69.990 per person),2,139990,0,139990.0,"1x tabla_2_personas ($25,000); 1x video_15_segundos ($30,000); 1x video_60_segundos ($40,000); 1x pack_iluminacion_(velas_y_letras) ($20,000)",115000.0,254990.0
+17/01/2026,19:00,karen caceres,karendyancaceres@gmail.com,HotBoat Trip 3 people (54.990 per person),3,159990,0,159990.0,"1x foto_con_marco ($15,000); 1x video_15_segundos ($30,000)",45000.0,204990.0
+18/01/2026,17:00,Juan pablo Hoyos,juanpablohoyos@live.com.ar,HotBoat Trip 5 people (38.990 per person),5,194950,0,194950.0,"1x fanta ($2,900); 1x tabla_2_personas ($25,000); 1x video_15_segundos ($30,000)",57900.0,252850.0
+19/01/2026,17:00,rodrigo sanhueza,rodrigosanhuezav@gmail.com,HotBoat Trip 3 people (54.990 per person),3,159990,0,159990.0,Sin extras,0,159990.0
+19/01/2026,19:00,Eduardo Fuentealba,Edo.fuentealba010@gamil.com,HotBoat Trip 4 people (44.990 per person),4,189960,0,189960.0,Sin extras,0,189960.0
+19/01/2026,21:00,luis ortega,stocaranza@gmail.com,HotBoat Trip 2 people (69.990 per person),2,139990,0,139990.0,Sin extras,0,139990.0

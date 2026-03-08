@@ -1,0 +1,9 @@
+﻿ID Reserva,Fecha,Hora,Nombre,Telefono,Email,Num Personas,Num Adultos,Num Ninos,Ingreso Extras,Costo Extras,Extras (JSON),Creado,Motivo
+ec492652,10/01/2026,11:00:00,Sin nombre,,axelaguirre12352@gmail.com,,6,0,38400,15950,"{""fanta"": 1, ""tabla_2_personas"": 1, ""lemon_stone"": 1, ""cerveza_artesanal_ambar"": 2}",10/01/2026 03:14,No se encontro appointment con misma fecha/hora
+3c85965c,10/01/2026,15:00:00,Sin nombre,,aguirrenestor479@gmail.com,,2,0,32000,14400,"{""tabla_2_personas"": 1, ""cerveza_artesanal_ambar"": 1, ""cerveza_artesanal_negra"": 1}",10/01/2026 03:14,No se encontro appointment con misma fecha/hora
+7d54312a,12/01/2026,0:00:00,Sin nombre,,aguirrenestor479@gmail.com,,2,2,0,0,{},14/01/2026 01:41,No se encontro appointment con misma fecha/hora
+76f56bfb,12/01/2026,15:00:00,Sin nombre,,aguirrenestor479@gmail.com,,3,3,0,0,{},14/01/2026 01:41,No se encontro appointment con misma fecha/hora
+8dcc36ec,26/01/2026,18:30:00,Sin nombre,,axelaguirre12352@gmail.com,,2,0,20000,9000,"{""tabla_2_personas"": 1}",27/01/2026 13:52,No se encontro appointment con misma fecha/hora
+273b45fd,26/01/2026,20:30:00,Sin nombre,,axelaguirre12352@gmail.com,,4,1,50000,19000,"{""tabla_2_personas"": 1, ""video_15_segundos"": 1}",27/01/2026 13:52,No se encontro appointment con misma fecha/hora
+643b31dd,30/01/2026,20:00:00,Sin nombre,,aguirrenestor479@gmail.com,,4,0,0,0,{},31/01/2026 05:11,No se encontro appointment con misma fecha/hora
+13b0fbab,30/01/2026,23:30:00,Sin nombre,,axelaguirre12352@gmail.com,,2,0,0,0,{},31/01/2026 05:11,No se encontro appointment con misma fecha/hora

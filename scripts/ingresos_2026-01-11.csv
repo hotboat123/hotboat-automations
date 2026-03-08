@@ -1,0 +1,11 @@
+﻿Payment ID,Cliente,Email,Fecha/Hora,Estado,Total Reserva,Extras,Total Extras,TOTAL
+458,Roxana Opazo,axelaguirre12352@gmail.com,2026-01-11 12:00:00+00:00,Paid (deposit),"$197,940","cerveza_artesanal_negra x5 ($30,000); champaña_riccadonna_ruby x1 ($22,000)","$52,000","$249,940"
+459,Roxana Opazo,axelaguirre12352@gmail.com,2026-01-11 12:00:00+00:00,Paid (deposit),"$194,950","cerveza_artesanal_negra x5 ($30,000); champaña_riccadonna_ruby x1 ($22,000)","$52,000","$246,950"
+607,Matias Levit,axelaguirre12352@gmail.com,2026-01-11 19:00:00+00:00,Paid (deposit),"$164,980",,$0,"$164,980"
+
+RESUMEN
+Fecha,2026-01-11
+Total Reservas,3
+Ingresos Reservas,"$557,870"
+Ingresos Extras,"$104,000"
+TOTAL,"$661,870"

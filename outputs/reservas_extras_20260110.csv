@@ -1,0 +1,4 @@
+﻿Fecha,Hora,ID Appointment,ID Reserva,Nombre Cliente,Email,Telefono,Servicio,Num Personas,Ingreso Reserva,Ingreso Extras,Ingreso Total,Costo Operativo Fijo,Costo Operativo Variable,Costo Operativo Total,Status,Extras (JSON),Tiene Cruce
+10/01/2026,17:00,626,,Jaime Delgado Daroch,,,HotBoat Trip 4 people (44.990 per person),,197956,0,197956,18000,0,18000,,{},No
+10/01/2026,19:00,619,,Claudia Alarcón,,,HotBoat Trip 2 people (69.990 per person),,139980,0,139980,18000,0,18000,,{},No
+10/01/2026,21:00,574,38d980dd,juan carlos morales ovalle,,,HotBoat Trip 2 people (69.990 per person),,139980,50000,189980,18000,19980,37980,,"{""tabla_2_personas"": 1, ""champaña_riccadonna_ruby"": 1, ""champaña_riccadonna_moscato_rose"": 1}",Si

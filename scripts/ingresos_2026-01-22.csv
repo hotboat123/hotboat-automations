@@ -1,0 +1,12 @@
+﻿Payment ID,Cliente,Email,Fecha/Hora,Estado,Total Reserva,Extras,Total Extras,TOTAL
+577,Georgette Borges,axelaguirre12352@gmail.com,2026-01-22 19:00:00+00:00,Paid (deposit),"$139,980","tabla_2_personas x1 ($25,000)","$25,000","$164,980"
+580,Barbara Zeiser,axelaguirre12352@gmail.com,2026-01-22 17:00:00+00:00,Paid,"$167,944","video_15_segundos x1 ($30,000)","$30,000","$197,944"
+644,Scarlet Muñoz,axelaguirre12352@gmail.com,2026-01-22 21:00:00+00:00,Paid (deposit),"$125,982",,$0,"$125,982"
+664,camila grinstein,axelaguirre12352@gmail.com,2026-01-22 15:00:00+00:00,Not paid,"$179,960","tabla_2_personas x2 ($50,000); jugo_naranja x1 ($10,000)","$60,000","$239,960"
+
+RESUMEN
+Fecha,2026-01-22
+Total Reservas,4
+Ingresos Reservas,"$613,866"
+Ingresos Extras,"$115,000"
+TOTAL,"$728,866"

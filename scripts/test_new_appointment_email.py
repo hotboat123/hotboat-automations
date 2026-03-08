@@ -104,3 +104,4 @@ if __name__ == "__main__":
     logger.info("✅ Prueba completada")
     logger.info("="*60)
 
+

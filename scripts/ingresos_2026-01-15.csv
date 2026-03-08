@@ -1,0 +1,14 @@
+﻿Payment ID,Cliente,Email,Fecha/Hora,Estado,Total Reserva,Extras,Total Extras,TOTAL
+602,Loring Soto,,2026-01-15 20:00:00+00:00,Paid (deposit),"$179,980",,$0,"$179,980"
+624,Marco Rodriguez,,2026-01-15 23:00:00+00:00,Paid (deposit),"$164,980",,$0,"$164,980"
+630,Mariela Risco,,2026-01-15 18:00:00+00:00,Paid (deposit),"$139,980",,$0,"$139,980"
+635,Constanza Muñoz,,2026-01-15 11:00:00+00:00,Paid (deposit),"$194,950",,$0,"$194,950"
+642,piera cacciuttolo,,2026-01-15 14:00:00+00:00,Not paid,"$139,980",,$0,"$139,980"
+646,Christian Ferreira,,2026-01-15 16:00:00+00:00,Pending,"$197,940",,$0,"$197,940"
+
+RESUMEN
+Fecha,2026-01-15
+Total Reservas,6
+Ingresos Reservas,"$1,017,810"
+Ingresos Extras,$0
+TOTAL,"$1,017,810"

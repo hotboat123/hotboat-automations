@@ -21,3 +21,4 @@ python scripts/test_new_appointment_email.py
 echo ""
 read -p "Presiona Enter para continuar..."
 
+

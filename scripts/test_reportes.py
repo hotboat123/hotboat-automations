@@ -6,6 +6,10 @@ import sys
 from datetime import datetime, timedelta
 from pathlib import Path
 
+# Fix para Windows: psycopg requiere WindowsSelectorEventLoopPolicy
+if sys.platform == 'win32':
+    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from app.config import get_settings, load_yaml_config

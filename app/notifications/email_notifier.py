@@ -4,9 +4,14 @@ Email Notifier
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-from typing import List, Optional, Tuple, Callable, Awaitable
+from email.mime.image import MIMEImage
+from email.mime.base import MIMEBase
+from email import encoders
+from typing import List, Optional, Tuple, Callable, Awaitable, Dict
 from datetime import datetime
+from pathlib import Path
 import asyncio
+import base64
 
 try:
     import resend  # type: ignore
@@ -56,15 +61,22 @@ class EmailNotifier(BaseNotifier):
         if self.use_resend and not self.resend_from_email:
             raise ValueError("RESEND_FROM_EMAIL o EMAIL_FROM no configurado para Resend")
     
-    async def send(self, message: str, priority: str = "medium"):
-        """Envía un email"""
+    async def send(self, message: str, priority: str = "medium", attachments: Optional[List[Dict]] = None):
+        """
+        Envía un email
+        
+        Args:
+            message: Mensaje del email
+            priority: Prioridad del mensaje
+            attachments: Lista de diccionarios con 'path', 'filename', 'content_type' (opcional)
+        """
         if not self.should_send(priority):
             return
         
         subject = self._get_subject(priority)
         html_body = self._format_html(message, priority)
         
-        senders: List[Tuple[str, Callable[[str, str], Awaitable[None]]]] = []
+        senders: List[Tuple[str, Callable[[str, str, Optional[List[Dict]]], Awaitable[None]]]] = []
         if self.use_smtp:
             senders.append(("SMTP", self._send_smtp))
         if self.use_sendgrid:
@@ -75,7 +87,7 @@ class EmailNotifier(BaseNotifier):
         last_error: Optional[Exception] = None
         for idx, (name, sender) in enumerate(senders, start=1):
             try:
-                await sender(subject, html_body)
+                await sender(subject, html_body, attachments)
                 if idx > 1:
                     logger.info(f"✅ Email enviado correctamente vía {name} (fallback)")
                 return
@@ -172,19 +184,46 @@ class EmailNotifier(BaseNotifier):
         
         return html
     
-    async def _send_smtp(self, subject: str, html_body: str):
+    async def _send_smtp(self, subject: str, html_body: str, attachments: Optional[List[Dict]] = None):
         """Envía email usando SMTP"""
         use_ssl = bool(getattr(self.settings, "smtp_use_ssl", False))
         use_tls = bool(getattr(self.settings, "smtp_use_tls", True))
         if self.settings.smtp_port == 465:
             use_ssl = True
         
-        msg = MIMEMultipart('alternative')
+        msg = MIMEMultipart('mixed')
         msg['From'] = self.settings.email_from or self.settings.smtp_username
         msg['To'] = ", ".join(self.recipients)
         msg['Subject'] = subject
+        
+        # Adjuntar contenido HTML
         html_part = MIMEText(html_body, 'html')
         msg.attach(html_part)
+        
+        # Adjuntar archivos si los hay
+        if attachments:
+            for attachment in attachments:
+                filepath = Path(attachment['path'])
+                if not filepath.exists():
+                    logger.warning(f"⚠️ Archivo adjunto no encontrado: {filepath}")
+                    continue
+                
+                filename = attachment.get('filename', filepath.name)
+                content_type = attachment.get('content_type')
+                
+                with open(filepath, 'rb') as f:
+                    file_data = f.read()
+                
+                # Detectar tipo de contenido
+                if content_type and content_type.startswith('image/'):
+                    part = MIMEImage(file_data, name=filename)
+                else:
+                    part = MIMEBase('application', 'octet-stream')
+                    part.set_payload(file_data)
+                    encoders.encode_base64(part)
+                
+                part.add_header('Content-Disposition', f'attachment; filename="{filename}"')
+                msg.attach(part)
         
         async def send_once():
             def send_sync():
@@ -228,8 +267,11 @@ class EmailNotifier(BaseNotifier):
         if last_error:
             raise last_error
     
-    async def _send_sendgrid(self, subject: str, html_body: str):
+    async def _send_sendgrid(self, subject: str, html_body: str, attachments: Optional[List[Dict]] = None):
         """Envía email usando SendGrid"""
+        if attachments:
+            logger.warning("⚠️ Adjuntos no soportados en SendGrid, usando solo SMTP")
+            raise NotImplementedError("Adjuntos no implementados para SendGrid")
         from sendgrid import SendGridAPIClient
         from sendgrid.helpers.mail import Mail, Email, To, Content
         
@@ -245,8 +287,11 @@ class EmailNotifier(BaseNotifier):
         
         logger.debug(f"📧 Email enviado vía SendGrid (status: {response.status_code})")
     
-    async def _send_resend(self, subject: str, html_body: str):
+    async def _send_resend(self, subject: str, html_body: str, attachments: Optional[List[Dict]] = None):
         """Envía email usando Resend"""
+        if attachments:
+            logger.warning("⚠️ Adjuntos no soportados en Resend, usando solo SMTP")
+            raise NotImplementedError("Adjuntos no implementados para Resend")
         if resend is None:
             raise RuntimeError("La librería resend no está instalada")
         

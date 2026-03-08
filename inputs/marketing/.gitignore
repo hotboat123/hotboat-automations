@@ -1,0 +1,5 @@
+# Ignorar archivos CSV de marketing (pueden contener datos sensibles)
+*.csv
+
+# Mantener el README
+!README.md

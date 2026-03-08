@@ -1,0 +1,9 @@
+﻿Payment ID,Cliente,Email,Fecha/Hora,Estado,Total Reserva,Extras,Total Extras,TOTAL
+622,Jose luis Coya,aguirrenestor479@gmail.com,2026-01-14 17:00:00+00:00,Not paid,"$139,980","tabla_2_personas x1 ($25,000)","$25,000","$164,980"
+
+RESUMEN
+Fecha,2026-01-14
+Total Reservas,1
+Ingresos Reservas,"$139,980"
+Ingresos Extras,"$25,000"
+TOTAL,"$164,980"
