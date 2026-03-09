@@ -78,10 +78,15 @@ def find_cost_for_extra(extra_name: str, costs_dict: Dict[str, float]) -> float:
     
     return 0
 
-def load_costs_and_prices_from_db(conn) -> tuple[Dict[str, float], Dict[str, float]]:
-    """Carga los costos Y precios desde la tabla Precios Extras"""
+def load_costs_and_prices_from_db(conn) -> tuple[Dict[str, float], Dict[str, float], Dict[int, tuple]]:
+    """
+    Carga costos, precios y tabla de precios HotBoat desde la BD
+    Retorna: (costs_dict, prices_dict, hotboat_prices_dict)
+    donde hotboat_prices_dict = {num_personas: (precio, costo)}
+    """
     costs = {}
     prices = {}
+    hotboat_prices = {}
     
     with conn.cursor() as cur:
         cur.execute('SELECT raw FROM "Precios Extras"')
@@ -111,8 +116,17 @@ def load_costs_and_prices_from_db(conn) -> tuple[Dict[str, float], Dict[str, flo
             normalized = normalize_text(extra_name)
             costs[normalized] = costo
             prices[normalized] = precio
+            
+            # Detectar precios base de HotBoat
+            if 'hotboat' in extra_name.lower():
+                import re
+                # Buscar el número de personas: "HotBoat 2p" -> 2
+                match = re.search(r'(\d+)p', extra_name, re.IGNORECASE)
+                if match:
+                    num_personas = int(match.group(1))
+                    hotboat_prices[num_personas] = (precio, costo)
     
-    return costs, prices
+    return costs, prices, hotboat_prices
 
 def extract_extras_dict(info_raw: Dict, costs_dict: Dict[str, float], prices_dict: Dict[str, float]) -> Dict[str, Any]:
     """
@@ -177,7 +191,7 @@ def extract_extras_dict(info_raw: Dict, costs_dict: Dict[str, float], prices_dic
         'costo_extras': costo_extras
     }
 
-def get_reservations_with_extras(conn, start_date: str, end_date: str, costs_dict: Dict[str, float], prices_dict: Dict[str, float]) -> List[Dict[str, Any]]:
+def get_reservations_with_extras(conn, start_date: str, end_date: str, costs_dict: Dict[str, float], prices_dict: Dict[str, float], hotboat_prices: Dict[int, tuple]) -> List[Dict[str, Any]]:
     """
     Obtiene las reservas cruzadas con sus extras
     Usa booknetic_appointments como fuente principal (igual que export_daily_analysis.py)
@@ -326,14 +340,32 @@ def get_reservations_with_extras(conn, start_date: str, end_date: str, costs_dic
                         except (ValueError, AttributeError):
                             pass
             
+            # CALCULAR INGRESO BASE SEGÚN NÚMERO DE PERSONAS
+            ingreso_base = 0
+            
+            # Intentar obtener número de personas (adultos)
+            num_personas_calculado = adultos if adultos > 0 else (int(num_personas) if num_personas and str(num_personas).isdigit() else 2)
+            
+            # Buscar en tabla de precios HotBoat
+            if num_personas_calculado in hotboat_prices:
+                ingreso_base, _ = hotboat_prices[num_personas_calculado]
+            else:
+                # Si no está en la tabla, usar el payment como fallback
+                ingreso_base = payment_amount if payment_amount else 0
+                # Y restar los extras para no duplicar
+                if ingreso_base > extras_data['ingreso_extras']:
+                    ingreso_base -= extras_data['ingreso_extras']
+            
+            ingreso_total = ingreso_base + extras_data['ingreso_extras']
+            
             results.append({
                 'Fecha': fecha.strftime('%d/%m/%Y') if fecha else '',
                 'Hora': hora[:5] if hora else '',  # Solo HH:MM
                 'Nombre Cliente': nombre_final,
                 'Servicio': service_name,
-                'Ingreso Reserva': int(payment_amount),
+                'Ingreso Reserva': int(ingreso_base),
                 'Ingreso Extras': int(extras_data['ingreso_extras']),
-                'Ingreso Total': int(payment_amount + extras_data['ingreso_extras']),
+                'Ingreso Total': int(ingreso_total),
                 'Costo Operativo Fijo': COSTO_FIJO_POR_RESERVA,
                 'Costo Operativo Variable': int(extras_data['costo_extras']),
                 'Costo Operativo Total': int(COSTO_FIJO_POR_RESERVA + extras_data['costo_extras']),
@@ -520,13 +552,13 @@ def main():
     
     with psycopg.connect(settings.database_url) as conn:
         # Cargar precios y costos
-        print("\nCargando costos y precios...")
-        costs_dict, prices_dict = load_costs_and_prices_from_db(conn)
-        print(f"[OK] {len(costs_dict)} costos y {len(prices_dict)} precios cargados")
+        print("\nCargando costos, precios y tabla HotBoat...")
+        costs_dict, prices_dict, hotboat_prices = load_costs_and_prices_from_db(conn)
+        print(f"[OK] {len(costs_dict)} costos, {len(prices_dict)} precios, {len(hotboat_prices)} precios HotBoat cargados")
         
         # Obtener reservas cruzadas
         print("\nObteniendo reservas cruzadas...")
-        reservas = get_reservations_with_extras(conn, start_date_str, end_date_str, costs_dict, prices_dict)
+        reservas = get_reservations_with_extras(conn, start_date_str, end_date_str, costs_dict, prices_dict, hotboat_prices)
         print(f"[OK] {len(reservas)} reservas encontradas")
         
         # Obtener info reservas huerfanas
