@@ -34,10 +34,15 @@ def normalize_text(text: str) -> str:
     
     return text
 
-def load_costs_and_prices_from_db(conn) -> tuple[Dict[str, float], Dict[str, float]]:
-    """Carga costos y precios desde la BD"""
+def load_costs_and_prices_from_db(conn) -> tuple[Dict[str, float], Dict[str, float], Dict[int, tuple]]:
+    """
+    Carga costos, precios y tabla de precios HotBoat desde la BD
+    Retorna: (costs_dict, prices_dict, hotboat_prices_dict)
+    donde hotboat_prices_dict = {num_personas: (precio, costo)}
+    """
     costs = {}
     prices = {}
+    hotboat_prices = {}
     
     with conn.cursor() as cur:
         cur.execute('SELECT raw FROM "Precios Extras"')
@@ -67,8 +72,17 @@ def load_costs_and_prices_from_db(conn) -> tuple[Dict[str, float], Dict[str, flo
             normalized = normalize_text(extra_name)
             costs[normalized] = costo
             prices[normalized] = precio
+            
+            # Detectar precios base de HotBoat
+            if 'hotboat' in extra_name.lower():
+                import re
+                # Buscar el número de personas: "HotBoat 2p" -> 2
+                match = re.search(r'(\d+)p', extra_name, re.IGNORECASE)
+                if match:
+                    num_personas = int(match.group(1))
+                    hotboat_prices[num_personas] = (precio, costo)
     
-    return costs, prices
+    return costs, prices, hotboat_prices
 
 def find_cost_for_extra(extra_name: str, costs_dict: Dict[str, float]) -> float:
     """Busca el costo de un extra"""
@@ -197,9 +211,9 @@ def sync_reservas_con_extras(start_date: str = None, end_date: str = None, force
         conn = psycopg.connect(settings.database_url)
         
         # Cargar costos y precios
-        print("Cargando costos y precios...")
-        costs_dict, prices_dict = load_costs_and_prices_from_db(conn)
-        print(f"[OK] {len(costs_dict)} costos y {len(prices_dict)} precios cargados\n")
+        print("Cargando costos, precios y tabla HotBoat...")
+        costs_dict, prices_dict, hotboat_prices = load_costs_and_prices_from_db(conn)
+        print(f"[OK] {len(costs_dict)} costos, {len(prices_dict)} precios, {len(hotboat_prices)} precios HotBoat cargados\n")
         
         # Si force_recreate, borrar datos del periodo
         if force_recreate:
@@ -366,7 +380,25 @@ def sync_reservas_con_extras(start_date: str = None, end_date: str = None, force
                 
                 ingreso_extras = float(extras_data['ingreso_extras'])
                 costo_variable = float(extras_data['costo_extras'])
-                ingreso_total = float(payment_amount) + ingreso_extras
+                
+                # CALCULAR INGRESO BASE SEGÚN NÚMERO DE PERSONAS
+                ingreso_base = 0
+                costo_base = 0
+                
+                # Intentar obtener número de personas (adultos)
+                num_personas_calculado = adultos if adultos > 0 else (int(num_personas) if num_personas and str(num_personas).isdigit() else 2)
+                
+                # Buscar en tabla de precios HotBoat
+                if num_personas_calculado in hotboat_prices:
+                    ingreso_base, costo_base = hotboat_prices[num_personas_calculado]
+                else:
+                    # Si no está en la tabla, usar el payment como fallback
+                    ingreso_base = float(payment_amount) if payment_amount else 0
+                    # Y restar los extras para no duplicar
+                    if ingreso_base > ingreso_extras:
+                        ingreso_base -= ingreso_extras
+                
+                ingreso_total = float(ingreso_base) + ingreso_extras
                 costo_total = COSTO_FIJO_POR_RESERVA + costo_variable
                 tiene_cruce = bool(reservation_id)
                 
@@ -425,7 +457,7 @@ def sync_reservas_con_extras(start_date: str = None, end_date: str = None, force
                     appointment_id, reservation_id, fecha, hora,
                     nombre_final, customer_email, telefono_final,
                     service_name, num_personas,
-                    payment_amount, ingreso_extras, ingreso_total,
+                    ingreso_base, ingreso_extras, ingreso_total,
                     COSTO_FIJO_POR_RESERVA, costo_variable, costo_total,
                     adultos, ninos,
                     ciudad_origen, como_supieron, clima_del_dia,
