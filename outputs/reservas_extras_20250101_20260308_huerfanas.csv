@@ -1,0 +1,40 @@
+﻿ID Reserva,Fecha,Hora,Nombre,Telefono,Email,Num Personas,Num Adultos,Num Ninos,Ingreso Extras,Costo Extras,Extras (JSON),Creado,Motivo
+8ba814c7,09/10/2025,18:00:00,Sin nombre,,hotboatvillarrica@gmail.com,,2,0,40000,10000,"{""video_60_segundos"": 1}",06/11/2025 16:25,No se encontro appointment con misma fecha/hora
+5511e063,10/10/2025,20:00:00,Sin nombre,,hotboatvillarrica@gmail.com,,2,0,59600,13000,"{""coca-cola"": 4, ""toalla"": 2, ""modo_romantico"": 1, ""video_15_segundos"": 1}",06/11/2025 16:25,No se encontro appointment con misma fecha/hora
+0d9f7b72,20/10/2025,20:00:00,Sin nombre,,hotboatvillarrica@gmail.com,,2,0,0,0,{},06/11/2025 16:25,No se encontro appointment con misma fecha/hora
+92478f9a,30/10/2025,15:00:00,Sin nombre,,tomasdamjanic@hotmail.com,,2,0,0,0,{},06/11/2025 16:25,No se encontro appointment con misma fecha/hora
+12e082ee,06/11/2025,15:00:00,Sin nombre,,hotboatvillarrica@gmail.com,,2,0,12000,5400,"{""cerveza_artesanal_ambar"": 1, ""cerveza_artesanal_negra"": 1}",07/11/2025 18:06,No se encontro appointment con misma fecha/hora
+a2701011,06/11/2025,18:00:00,Sin nombre,,hotboatvillarrica@gmail.com,,4,0,24000,10800,"{""cerveza_artesanal_ambar"": 2, ""cerveza_artesanal_negra"": 2}",08/11/2025 15:07,No se encontro appointment con misma fecha/hora
+6c95dce8,07/11/2025,15:00:00,Sin nombre,,hotboatvillarrica@gmail.com,,7,6,12000,5400,"{""cerveza_artesanal_ambar"": 1, ""cerveza_artesanal_negra"": 1}",08/11/2025 21:10,No se encontro appointment con misma fecha/hora
+4087de78,12/11/2025,15:00:00,Sin nombre,,hotboatvillarrica@gmail.com,,2,0,18000,8100,"{""cerveza_artesanal_ambar"": 2, ""cerveza_artesanal_negra"": 1}",13/11/2025 02:43,No se encontro appointment con misma fecha/hora
+3ab07f6d,12/11/2025,17:00:00,Sin nombre,,hotboatvillarrica@gmail.com,,2,0,18000,8100,"{""cerveza_artesanal_ambar"": 1, ""cerveza_artesanal_negra"": 2}",13/11/2025 02:56,No se encontro appointment con misma fecha/hora
+79eec539,12/11/2025,19:00:00,Sin nombre,,hotboatvillarrica@gmail.com,,2,0,18000,8100,"{""cerveza_artesanal_ambar"": 2, ""cerveza_artesanal_negra"": 1}",13/11/2025 03:22,No se encontro appointment con misma fecha/hora
+6865712a,13/11/2025,10:00:00,Sin nombre,,hotboatvillarrica@gmail.com,,0,0,18000,8100,"{""cerveza_artesanal_ambar"": 2, ""cerveza_artesanal_negra"": 1}",13/11/2025 03:43,No se encontro appointment con misma fecha/hora
+d2a1d2c7,13/11/2025,15:00:00,Sin nombre,,hotboatvillarrica@gmail.com,,0,0,18000,8100,"{""cerveza_artesanal_ambar"": 2, ""cerveza_artesanal_negra"": 1}",13/11/2025 16:26,No se encontro appointment con misma fecha/hora
+bddbee25,14/11/2025,12:00:00,Sin nombre,,hotboatvillarrica@gmail.com,,0,0,18000,8100,"{""cerveza_artesanal_ambar"": 2, ""cerveza_artesanal_negra"": 1}",16/11/2025 23:52,No se encontro appointment con misma fecha/hora
+2ce25393,14/11/2025,17:00:00,Sin nombre,,hotboatvillarrica@gmail.com,,2,0,62900,23340,"{""chalas"": 1, ""tabla_2_personas"": 1, ""coca-cola"": 1, ""cerveza_artesanal_ambar"": 2, ""cerveza_artesanal_negra"": 1, ""champaña_riccadonna_ruby"": 1}",13/11/2025 16:39,No se encontro appointment con misma fecha/hora
+097f2818,14/11/2025,23:59:00,Sin nombre,,hotboatvillarrica@gmail.com,,2,0,18000,8100,"{""cerveza_artesanal_ambar"": 2, ""cerveza_artesanal_negra"": 1}",16/11/2025 23:52,No se encontro appointment con misma fecha/hora
+56c909ae,14/11/2025,23:59:00,Sin nombre,,hotboatvillarrica@gmail.com,,0,0,18000,8100,"{""cerveza_artesanal_ambar"": 2, ""cerveza_artesanal_negra"": 1}",17/11/2025 00:15,No se encontro appointment con misma fecha/hora
+9b1b54a1,14/11/2025,23:59:00,Sin nombre,,hotboatvillarrica@gmail.com,,0,0,18000,8100,"{""cerveza_artesanal_ambar"": 2, ""cerveza_artesanal_negra"": 1}",17/11/2025 00:19,No se encontro appointment con misma fecha/hora
+0ea4faf9,14/11/2025,23:59:00,Sin nombre,,hotboatvillarrica@gmail.com,,0,0,18000,8100,"{""cerveza_artesanal_ambar"": 2, ""cerveza_artesanal_negra"": 1}",17/11/2025 00:26,No se encontro appointment con misma fecha/hora
+0bf4d75a,14/11/2025,23:59:00,Sin nombre,,hotboatvillarrica@gmail.com,,0,0,18000,8100,"{""cerveza_artesanal_ambar"": 2, ""cerveza_artesanal_negra"": 1}",17/11/2025 03:29,No se encontro appointment con misma fecha/hora
+8bc4aa8d,14/11/2025,23:59:00,Sin nombre,,hotboatvillarrica@gmail.com,,0,0,18000,8100,"{""cerveza_artesanal_ambar"": 2, ""cerveza_artesanal_negra"": 1}",17/11/2025 11:20,No se encontro appointment con misma fecha/hora
+28e1a80b,14/11/2025,23:59:00,Sin nombre,,hotboatvillarrica@gmail.com,,0,0,42000,15900,"{""cerveza_royal"": 6, ""cerveza_artesanal_ambar"": 2, ""cerveza_artesanal_negra"": 1}",17/11/2025 11:33,No se encontro appointment con misma fecha/hora
+25d69776,14/11/2025,23:59:00,Sin nombre,,hotboatvillarrica@gmail.com,,0,0,42000,15900,"{""cerveza_royal"": 6, ""cerveza_artesanal_ambar"": 2, ""cerveza_artesanal_negra"": 1}",17/11/2025 11:50,No se encontro appointment con misma fecha/hora
+f0e081e4,14/11/2025,23:59:00,Sin nombre,,hotboatvillarrica@gmail.com,,0,0,42000,15900,"{""cerveza_royal"": 6, ""cerveza_artesanal_ambar"": 2, ""cerveza_artesanal_negra"": 1}",17/11/2025 12:03,No se encontro appointment con misma fecha/hora
+abe6cce0,14/11/2025,23:59:00,Sin nombre,,hotboatvillarrica@gmail.com,,0,0,18000,8100,"{""cerveza_artesanal_ambar"": 2, ""cerveza_artesanal_negra"": 1}",17/11/2025 12:07,No se encontro appointment con misma fecha/hora
+25996e5e,14/11/2025,23:59:00,Sin nombre,,hotboatvillarrica@gmail.com,,0,0,18000,8100,"{""cerveza_artesanal_ambar"": 2, ""cerveza_artesanal_negra"": 1}",17/11/2025 12:11,No se encontro appointment con misma fecha/hora
+364117e4,14/11/2025,23:59:00,Sin nombre,,hotboatvillarrica@gmail.com,,0,0,18000,8100,"{""cerveza_artesanal_ambar"": 2, ""cerveza_artesanal_negra"": 1}",17/11/2025 12:28,No se encontro appointment con misma fecha/hora
+b6a49668,14/11/2025,23:59:00,Sin nombre,,hotboatvillarrica@gmail.com,,0,0,18000,8100,"{""cerveza_artesanal_ambar"": 2, ""cerveza_artesanal_negra"": 1}",17/11/2025 12:58,No se encontro appointment con misma fecha/hora
+713e805c,14/11/2025,23:59:00,Sin nombre,,hotboatvillarrica@gmail.com,,0,0,38000,14600,"{""cerveza_royal"": 5, ""cerveza_artesanal_ambar"": 1, ""cerveza_artesanal_negra"": 2}",17/11/2025 13:02,No se encontro appointment con misma fecha/hora
+384b2028,14/11/2025,23:59:00,Sin nombre,,hotboatvillarrica@gmail.com,,0,0,24000,7800,"{""cerveza_royal"": 6}",17/11/2025 13:15,No se encontro appointment con misma fecha/hora
+ff162c50,15/11/2025,12:00:00,Sin nombre,,hotboatvillarrica@gmail.com,,0,0,18000,8100,"{""cerveza_artesanal_ambar"": 2, ""cerveza_artesanal_negra"": 1}",16/11/2025 23:52,No se encontro appointment con misma fecha/hora
+de911c7c,18/11/2025,18:00:00,Sin nombre,,hotboatvillarrica@gmail.com,,0,0,18000,8100,"{""cerveza_artesanal_ambar"": 2, ""cerveza_artesanal_negra"": 1}",13/11/2025 18:45,No se encontro appointment con misma fecha/hora
+3301ac46,22/11/2025,18:18:00,Sin nombre,,aguirrenestor479@gmail.com,,3,1,0,0,{},26/11/2025 19:06,No se encontro appointment con misma fecha/hora
+62cd40c0,05/02/2026,0:00:00,Sin nombre,,axelaguirre12352@gmail.com,,6,3,31000,10690,"{""cerveza_austral_calafate"": 4, ""champaña_riccadonna_asti"": 1}",06/02/2026 04:24,No se encontro appointment con misma fecha/hora
+d10dd48e,05/02/2026,20:43:00,Sin nombre,,axelaguirre12352@gmail.com,,2,0,0,0,{},06/02/2026 04:24,No se encontro appointment con misma fecha/hora
+7724ecc7,05/02/2026,21:00:00,Sin nombre,,axelaguirre12352@gmail.com,,4,0,0,0,{},06/02/2026 16:01,No se encontro appointment con misma fecha/hora
+e845c306,07/02/2026,18:00:00,Sin nombre,,axelaguirre12352@gmail.com,,4,0,0,0,{},07/02/2026 23:06,No se encontro appointment con misma fecha/hora
+b5bb327d,21/02/2026,11:00:00,Sin nombre,,aguirrenestor479@gmail.com,,5,0,20000,9000,"{""tabla_2_personas"": 1}",22/02/2026 21:20,No se encontro appointment con misma fecha/hora
+2eb40c94,03/03/2026,14:00:00,Sin nombre,,axelaguirre12352@gmail.com,,4,0,0,0,{},04/03/2026 02:01,No se encontro appointment con misma fecha/hora
+7a95e7e8,07/03/2026,23:00:00,Sin nombre,,aguirrenestor479@gmail.com,,5,0,0,0,{},08/03/2026 04:18,No se encontro appointment con misma fecha/hora

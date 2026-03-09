@@ -1,0 +1,385 @@
+﻿Fecha,Hora,Nombre Cliente,Servicio,Ingreso Reserva,Ingreso Extras,Ingreso Total,Costo Operativo Fijo,Costo Operativo Variable,Costo Operativo Total,Num Adultos,Num Ninos,Ciudad Origen,Como Supieron,Clima del Dia,Tipo Clientes,ID Appointment,ID Reserva,Email,Telefono,Num Personas,Categoria Clientes,Status,Extras (JSON),Tiene Cruce
+11/01/2025,19:00,Abraham Cañete,HotBoat Trip 4 people (44.990 per person),179960,0,179960,18000,0,18000,0,0,,,,,91,,,,,,,{},No
+12/01/2025,19:00,Felipe Nawrath,HotBoat Trip 3 people (54.990 per person),164970,0,164970,18000,0,18000,0,0,,,,,93,,,,,,,{},No
+14/01/2025,19:00,Loreto Ahumada Camilo,HotBoat Trip 6 people (32.990 per person),197940,0,197940,18000,0,18000,0,0,,,,,94,,,,,,,{},No
+15/01/2025,19:00,Andrés Dutilh,HotBoat Trip 4 people (44.990 per person),179960,0,179960,18000,0,18000,0,0,,,,,97,,,,,,,{},No
+18/01/2025,19:00,Felipe Nawrath,HotBoat Trip 5 people (38.990 per person),194950,0,194950,18000,0,18000,0,0,,,,,100,,,,,,,{},No
+19/01/2025,18:00,David Gutierrez,HotBoat Trip 2 people (69.990 per person),139990,0,139990,18000,0,18000,0,0,,,,,79,,,,,,,{},No
+20/01/2025,19:00,Francisca Sereño,HotBoat Trip 5 people (38.990 per person),194950,0,194950,18000,0,18000,0,0,,,,,104,,,,,,,{},No
+23/01/2025,09:00,Cristian Sepúlveda,HotBoat Trip 2 people (69.990 per person),139990,0,139990,18000,0,18000,0,0,,,,,109,,,,,,,{},No
+24/01/2025,19:00,Jenny Anabalon,HotBoat Trip 4 people (44.990 per person),179960,0,179960,18000,0,18000,0,0,,,,,112,,,,,,,{},No
+25/01/2025,09:00,Evelin Wiemberg,HotBoat Trip 4 people (44.990 per person),179960,0,179960,18000,0,18000,0,0,,,,,115,,,,,,,{},No
+25/01/2025,19:00,Maria Kleinheinz,HotBoat Trip 2 people (69.990 per person),139990,0,139990,18000,0,18000,0,0,,,,,116,,,,,,,{},No
+26/01/2025,19:00,Catherine Schürch Vega,HotBoat Trip 3 people (54.990 per person),164970,0,164970,18000,0,18000,0,0,,,,,108,,,,,,,{},No
+28/01/2025,19:00,Fulvia Pimienta,HotBoat Trip 5 people (38.990 per person),194950,0,194950,18000,0,18000,0,0,,,,,119,,,,,,,{},No
+30/01/2025,19:00,Dayanna Navarrete,HotBoat Trip 4 people (44.990 per person),179960,0,179960,18000,0,18000,0,0,,,,,102,,,,,,,{},No
+31/01/2025,19:00,kevin soto,HotBoat Trip 4 people (44.990 per person),179960,0,179960,18000,0,18000,0,0,,,,,120,,,,,,,{},No
+01/02/2025,19:00,jailein schomber,HotBoat Trip 6 people (32.990 per person),197940,0,197940,18000,0,18000,0,0,,,,,123,,,,,,,{},No
+02/02/2025,19:00,Francisco Riquelme,HotBoat Trip 2 people (69.990 per person),139990,0,139990,18000,0,18000,0,0,,,,,124,,,,,,,{},No
+04/02/2025,14:00,Katherine Silva,HotBoat Trip 6 people (32.990 per person),197940,0,197940,18000,0,18000,0,0,,,,,140,,,,,,,{},No
+04/02/2025,18:00,leticia amaza,HotBoat Trip 6 people (32.990 per person),197940,0,197940,18000,0,18000,0,0,,,,,136,,,,,,,{},No
+05/02/2025,13:00,Victor Gonzalez,HotBoat Trip 4 people (44.990 per person),179960,0,179960,18000,0,18000,0,0,,,,,141,,,,,,,{},No
+05/02/2025,19:00,Barbara Zeiser,HotBoat Trip 5 people (38.990 per person),194950,0,194950,18000,0,18000,0,0,,,,,92,,,,,,,{},No
+06/02/2025,18:00,Paola Alvarez,HotBoat Trip 6 people (32.990 per person),197940,0,197940,18000,0,18000,0,0,,,,,137,,,,,,,{},No
+09/02/2025,18:00,Gustavo Salazar flores,HotBoat Trip 2 people (69.990 per person),139990,0,139990,18000,0,18000,0,0,,,,,143,,,,,,,{},No
+10/02/2025,13:00,Tamara Sandoval Sanchez,HotBoat Trip 6 people (32.990 per person),197940,0,197940,18000,0,18000,0,0,,,,,147,,,,,,,{},No
+10/02/2025,18:00,Josefa Sanchez,HotBoat Trip 5 people (38.990 per person),194950,0,194950,18000,0,18000,0,0,,,,,150,,,,,,,{},No
+11/02/2025,19:00,Carola Arteche Fischer,HotBoat Trip 5 people (38.990 per person),194950,0,194950,18000,0,18000,0,0,,,,,95,,,,,,,{},No
+13/02/2025,14:00,Diego Sila,HotBoat Trip 6 people (32.990 per person),197940,0,197940,18000,0,18000,0,0,,,,,135,,,,,,,{},No
+13/02/2025,17:00,Alejandro Carmach,Extras,139990,0,139990,18000,0,18000,0,0,,,,,105,,,,,,,{},No
+13/02/2025,19:00,Alejandro Carmach,HotBoat Trip 2 people (69.990 per person),139990,0,139990,18000,0,18000,0,0,,,,,106,,,,,,,{},No
+14/02/2025,10:00,constanza quiñones,HotBoat Trip 5 people (38.990 per person),194950,0,194950,18000,0,18000,0,0,,,,,149,,,,,,,{},No
+14/02/2025,14:00,viviana ramirez,HotBoat Trip 6 people (32.990 per person),197940,0,197940,18000,0,18000,0,0,,,,,142,,,,,,,{},No
+14/02/2025,19:00,Braulio Cisternas,HotBoat Trip 5 people (38.990 per person),194950,0,194950,18000,0,18000,0,0,,,,,151,,,,,,,{},No
+15/02/2025,10:00,Francisca Jorquera,HotBoat Trip 6 people (32.990 per person),0,0,0,18000,0,18000,0,0,,,,,165,,,,,,,{},No
+15/02/2025,18:00,Carolina Astudillo,HotBoat Trip 4 people (44.990 per person),179960,0,179960,18000,0,18000,0,0,,,,,162,,,,,,,{},No
+16/02/2025,14:00,ivania lara oñate,HotBoat Trip 2 people (69.990 per person),139990,0,139990,18000,0,18000,0,0,,,,,170,,,,,,,{},No
+16/02/2025,19:00,Christopher Veas,HotBoat Trip 4 people (44.990 per person),179960,0,179960,18000,0,18000,0,0,,,,,166,,,,,,,{},No
+17/02/2025,09:00,Victor Valenzuela,HotBoat Trip 2 people (69.990 per person),139990,0,139990,18000,0,18000,0,0,,,,,174,,,,,,,{},No
+17/02/2025,14:00,Matias Peña,HotBoat Trip 3 people (54.990 per person),164970,0,164970,18000,0,18000,0,0,,,,,179,,,,,,,{},No
+17/02/2025,19:00,Soledad Sandoval,HotBoat Trip 4 people (44.990 per person),179960,0,179960,18000,0,18000,0,0,,,,,177,,,,,,,{},No
+18/02/2025,19:00,Sebastian Soto,HotBoat Trip 5 people (38.990 per person),194950,0,194950,18000,0,18000,0,0,,,,,181,,,,,,,{},No
+19/02/2025,10:00,Willy Kruse,HotBoat Trip 2 people (69.990 per person),139990,0,139990,18000,0,18000,0,0,,,,,183,,,,,,,{},No
+19/02/2025,14:00,daisy obreque,HotBoat Trip 5 people (38.990 per person),194950,0,194950,18000,0,18000,0,0,,,,,171,,,,,,,{},No
+19/02/2025,18:00,Javiera Nadia Barría Retamal,HotBoat Trip 4 people (44.990 per person),179960,0,179960,18000,0,18000,0,0,,,,,187,,,,,,,{},No
+20/02/2025,13:00,Valentina Reyes,HotBoat Trip 3 people (54.990 per person),164970,0,164970,18000,0,18000,0,0,,,,,185,,,,,,,{},No
+20/02/2025,19:00,Maria Jesus Pellegrini,HotBoat Trip 5 people (38.990 per person),194950,0,194950,18000,0,18000,0,0,,,,,176,,,,,,,{},No
+21/02/2025,19:00,Macarena Sanchez Valdes,HotBoat Trip 5 people (38.990 per person),0,0,0,18000,0,18000,0,0,,,,,186,,,,,,,{},No
+22/02/2025,10:00,Nathalie Marín,HotBoat Trip 2 people (69.990 per person),139990,0,139990,18000,0,18000,0,0,,,,,192,,,,,,,{},No
+22/02/2025,13:00,Benjamin Calvo,HotBoat Trip 2 people (69.990 per person),139990,0,139990,18000,0,18000,0,0,,,,,189,,,,,,,{},No
+22/02/2025,19:00,marcelo ergas,HotBoat Trip 2 people (69.990 per person),139990,0,139990,18000,0,18000,0,0,,,,,196,,,,,,,{},No
+23/02/2025,09:00,Nabor Alejandro Ortiz Ibarra,HotBoat Trip 5 people (38.990 per person),194950,0,194950,18000,0,18000,0,0,,,,,188,,,,,,,{},No
+23/02/2025,14:00,Francisca Manzano Miranda,HotBoat Trip 5 people (38.990 per person),194950,0,194950,18000,0,18000,0,0,,,,,194,,,,,,,{},No
+23/02/2025,18:00,Nicole Galdames,HotBoat Trip 2 people (69.990 per person),139990,0,139990,18000,0,18000,0,0,,,,,191,,,,,,,{},No
+24/02/2025,18:00,Camila Victoria Fica Cueto,HotBoat Trip 6 people (32.990 per person),197940,0,197940,18000,0,18000,0,0,,,,,195,,,,,,,{},No
+25/02/2025,14:00,Florencia Muñoz,HotBoat Trip 2 people (69.990 per person),0,0,0,18000,0,18000,0,0,,,,,197,,,,,,,{},No
+25/02/2025,18:00,Michael Gonzalez,HotBoat Trip 5 people (38.990 per person),194950,0,194950,18000,0,18000,0,0,,,,,198,,,,,,,{},No
+27/02/2025,18:00,Cristobal Estibill,HotBoat Trip 2 people (69.990 per person),139990,0,139990,18000,0,18000,0,0,,,,,203,,,,,,,{},No
+28/02/2025,14:00,Melissa Diaz,HotBoat Trip 5 people (38.990 per person),194950,0,194950,18000,0,18000,0,0,,,,,205,,,,,,,{},No
+28/02/2025,18:00,Eduardo Soto,HotBoat Trip 5 people (38.990 per person),194950,0,194950,18000,0,18000,0,0,,,,,200,,,,,,,{},No
+05/03/2025,18:00,Nicolas Espinoza,HotBoat Trip 2 people (69.990 per person),139990,0,139990,18000,0,18000,0,0,,,,,207,,,,,,,{},No
+08/03/2025,18:00,Karin Maragaño benner,HotBoat Trip 4 people (44.990 per person),179960,0,179960,18000,0,18000,0,0,,,,,210,,,,,,,{},No
+09/03/2025,13:00,Jaime Buedo,HotBoat Trip 4 people (44.990 per person),179960,0,179960,18000,0,18000,0,0,,,,,209,,,,,,,{},No
+12/03/2025,18:00,Nestor Cornejo,HotBoat Trip 2 people (69.990 per person),139990,0,139990,18000,0,18000,0,0,,,,,213,,,,,,,{},No
+14/03/2025,18:00,Rodrigo Gundert,HotBoat Trip 2 people (69.990 per person),139990,0,139990,18000,0,18000,0,0,,,,,212,,,,,,,{},No
+20/03/2025,13:00,Noelia Fernandez,HotBoat Trip 3 people (54.990 per person),164970,0,164970,18000,0,18000,0,0,,,,,214,,,,,,,{},No
+20/03/2025,18:00,valeria navarro,HotBoat Trip 2 people (69.990 per person),139990,0,139990,18000,0,18000,0,0,,,,,216,,,,,,,{},No
+09/04/2025,18:00,Fernando Araos,HotBoat Trip 2 people (69.990 per person),139990,0,139990,18000,0,18000,0,0,,,,,224,,,,,,,{},No
+11/04/2025,18:00,Giannina Reghezza,HotBoat Trip 4 people (44.990 per person),179960,0,179960,18000,0,18000,0,0,,,,,225,,,,,,,{},No
+12/04/2025,16:00,Gabriela Ortega Valdes,HotBoat Trip 3 people (54.990 per person),164970,0,164970,18000,0,18000,0,0,,,,,240,,,,,,,{},No
+14/04/2025,16:00,Constanza Castillo,HotBoat Trip 2 people (69.990 per person),139990,0,139990,18000,0,18000,0,0,,,,,244,,,,,,,{},No
+15/04/2025,17:00,Jacqueline Leon,HotBoat Trip 2 people (69.990 per person),139990,0,139990,18000,0,18000,0,0,,,,,247,,,,,,,{},No
+17/04/2025,10:00,Nathalie Cifuentes,HotBoat Trip 2 people (69.990 per person),139990,0,139990,18000,0,18000,0,0,,,,,234,,,,,,,{},No
+17/04/2025,17:00,Karen Quinteros,HotBoat Trip 3 people (54.990 per person),164970,0,164970,18000,0,18000,0,0,,,,,245,,,,,,,{},No
+18/04/2025,14:00,catalina barra,HotBoat Trip 2 people (69.990 per person),139990,0,139990,18000,0,18000,0,0,,,,,241,,,,,,,{},No
+18/04/2025,18:00,javiera muñoz,HotBoat Trip 2 people (69.990 per person),139990,0,139990,18000,0,18000,0,0,,,,,221,,,,,,,{},No
+19/04/2025,12:00,Giannina Labbe Oyarce,HotBoat Trip 3 people (54.990 per person),164970,0,164970,18000,0,18000,0,0,,,,,246,,,,,,,{},No
+19/04/2025,16:00,Carlos Gonzalez Bustos,HotBoat Trip 2 people (69.990 per person),139990,0,139990,18000,0,18000,0,0,,,,,243,,,,,,,{},No
+21/04/2025,13:00,Monserrat Masferrer,HotBoat Trip 3 people (54.990 per person),164970,0,164970,18000,0,18000,0,0,,,,,250,,,,,,,{},No
+21/04/2025,17:00,tania fernanda valdivia flores,HotBoat Trip 2 people (69.990 per person),139990,0,139990,18000,0,18000,0,0,,,,,251,,,,,,,{},No
+01/05/2025,12:00,Victoria Muñoz,HotBoat Trip 2 people (69.990 per person),139990,0,139990,18000,0,18000,0,0,,,,,255,,,,,,,{},No
+02/05/2025,11:00,jorge romagnoli,HotBoat Trip 5 people (38.990 per person),194950,0,194950,18000,0,18000,0,0,,,,,262,,,,,,,{},No
+02/05/2025,15:00,Gonzalo Dinamarca,HotBoat Trip 4 people (44.990 per person),179960,0,179960,18000,0,18000,0,0,,,,,259,,,,,,,{},No
+04/05/2025,12:00,rodrigo maturana,HotBoat Trip 6 people (32.990 per person),197940,0,197940,18000,0,18000,0,0,,,,,261,,,,,,,{},No
+04/05/2025,16:00,Francisco barria Barria,HotBoat Trip 2 people (69.990 per person),139990,0,139990,18000,0,18000,0,0,,,,,264,,,,,,,{},No
+11/05/2025,10:00,Roberto Sandoval,HotBoat Trip 4 people (44.990 per person),179960,0,179960,18000,0,18000,0,0,,,,,265,,,,,,,{},No
+11/05/2025,16:00,Alisha Debouzy,HotBoat Trip 2 people (69.990 per person),139990,0,139990,18000,0,18000,0,0,,,,,263,,,,,,,{},No
+14/05/2025,15:00,Danilo Tapia Tapia,HotBoat Trip 5 people (38.990 per person),194950,0,194950,18000,0,18000,0,0,,,,,267,,,,,,,{},No
+18/05/2025,16:00,ervin Barria,HotBoat Trip 2 people (69.990 per person),139990,0,139990,18000,0,18000,0,0,,,,,269,,,,,,,{},No
+23/05/2025,12:00,natalia burgos,HotBoat Trip 2 people (69.990 per person),139990,0,139990,18000,0,18000,0,0,,,,,268,,,,,,,{},No
+23/05/2025,15:00,Kevin Rojas,HotBoat Trip 2 people (69.990 per person),139990,0,139990,18000,0,18000,0,0,,,,,260,,,,,,,{},No
+24/05/2025,14:00,valeria torres olivares,HotBoat Trip 3 people (54.990 per person),164970,0,164970,18000,0,18000,0,0,,,,,272,,,,,,,{},No
+30/05/2025,16:00,Michelle Montoya,HotBoat Trip 2 people (69.990 per person),139990,0,139990,18000,0,18000,0,0,,,,,253,,,,,,,{},No
+31/05/2025,12:00,gloria XU,HotBoat Trip 2 people (69.990 per person),139990,0,139990,18000,0,18000,0,0,,,,,273,,,,,,,{},No
+05/06/2025,15:00,Cristhopfer Glausser,HotBoat Trip 2 people (69.990 per person),139990,0,139990,18000,0,18000,0,0,,,,,276,,,,,,,{},No
+13/06/2025,14:00,Ursula Venegas,HotBoat Trip 2 people (69.990 per person),139990,0,139990,18000,0,18000,0,0,,,,,270,,,,,,,{},No
+20/06/2025,14:00,erick perez,HotBoat Trip 4 people (44.990 per person),179960,0,179960,18000,0,18000,0,0,,,,,278,,,,,,,{},No
+21/06/2025,15:00,marcela martinez,HotBoat Trip 5 people (38.990 per person),194950,0,194950,18000,0,18000,0,0,,,,,284,,,,,,,{},No
+24/06/2025,16:00,Macarena Valdivia duran,HotBoat Trip 2 people (69.990 per person),139990,0,139990,18000,0,18000,0,0,,,,,285,,,,,,,{},No
+25/06/2025,15:00,Natalia Olmos,HotBoat Trip 4 people (44.990 per person),179960,0,179960,18000,0,18000,0,0,,,,,286,,,,,,,{},No
+27/06/2025,15:00,patricio moyna acuña,HotBoat Trip 3 people (54.990 per person),164970,0,164970,18000,0,18000,0,0,,,,,293,,,,,,,{},No
+28/06/2025,16:00,Stephanie Vidal,HotBoat Trip 5 people (38.990 per person),194950,0,194950,18000,0,18000,0,0,,,,,296,,,,,,,{},No
+02/07/2025,11:00,rodrigo pino,HotBoat Trip 3 people (54.990 per person),164970,0,164970,18000,0,18000,0,0,,,,,302,,,,,,,{},No
+02/07/2025,15:00,Sabrina Lorca,HotBoat Trip 2 people (69.990 per person),139990,0,139990,18000,0,18000,0,0,,,,,301,,,,,,,{},No
+03/07/2025,15:00,Cesar Gutiérrez,HotBoat Trip 3 people (54.990 per person),164970,0,164970,18000,0,18000,0,0,,,,,304,,,,,,,{},No
+04/07/2025,10:00,Camila Aillon,HotBoat Trip 4 people (44.990 per person),179960,0,179960,18000,0,18000,0,0,,,,,308,,,,,,,{},No
+04/07/2025,13:00,Francisco Basso,HotBoat Trip 5 people (38.990 per person),194950,0,194950,18000,0,18000,0,0,,,,,307,,,,,,,{},No
+04/07/2025,16:00,Anitta Moreira,HotBoat Trip 4 people (44.990 per person),179960,0,179960,18000,0,18000,0,0,,,,,309,,,,,,,{},No
+05/07/2025,14:00,María jose Toro castillo,HotBoat Trip 6 people (32.990 per person),197940,0,197940,18000,0,18000,0,0,,,,,298,,,,,,,{},No
+06/07/2025,14:00,Daniela Villena,HotBoat Trip 3 people (54.990 per person),164970,0,164970,18000,0,18000,0,0,,,,,305,,,,,,,{},No
+08/07/2025,16:00,Ricardo Rosales,HotBoat Trip 4 people (44.990 per person),179960,0,179960,18000,0,18000,0,0,,,,,311,,,,,,,{},No
+10/07/2025,12:00,Yesenia Muñoz,HotBoat Trip 2 people (69.990 per person),139990,0,139990,18000,0,18000,0,0,,,,,280,,,,,,,{},No
+12/07/2025,11:00,Cata Quezada,HotBoat Trip 2 people (69.990 per person),139990,0,139990,18000,0,18000,0,0,,,,,318,,,,,,,{},No
+27/07/2025,12:00,Samuel Norambuena painiqueo,HotBoat Trip 2 people (69.990 per person),139990,0,139990,18000,0,18000,0,0,,,,,340,,,,,,,{},No
+27/07/2025,15:00,Luisa fernanda Diaz carrillo,HotBoat Trip 2 people (69.990 per person),139990,0,139990,18000,0,18000,0,0,,,,,290,,,,,,,{},No
+29/07/2025,15:00,mauricio alvarez bastias,HotBoat Trip 5 people (38.990 per person),194950,0,194950,18000,0,18000,0,0,,,,,346,,,,,,,{},No
+31/07/2025,12:00,Rodrigo Andres Fredes Días,HotBoat Trip 4 people (44.990 per person),179960,0,179960,18000,0,18000,0,0,,,,,347,,,,,,,{},No
+31/07/2025,16:00,katherine ubillo recabal,HotBoat Trip 5 people (38.990 per person),194950,0,194950,18000,0,18000,0,0,,,,,350,,,,,,,{},No
+01/08/2025,15:00,Catalina Searovich,HotBoat Trip 2 people (69.990 per person),139990,0,139990,18000,0,18000,0,0,,,,,349,,,,,,,{},No
+02/08/2025,11:00,Fernanda Hagedorn,HotBoat Trip 5 people (38.990 per person),194950,0,194950,18000,0,18000,0,0,,,,,354,,,,,,,{},No
+02/08/2025,14:00,hector javier valenzuela,HotBoat Trip 2 people (69.990 per person),0,0,0,18000,0,18000,0,0,,,,,343,,,,,,,{},No
+03/08/2025,13:00,henry muñoz,HotBoat Trip 7 people (29.990 per person),209930,0,209930,18000,0,18000,0,0,,,,,357,,,,,,,{},No
+03/08/2025,16:00,Naiara Diaz Palma,HotBoat Trip 5 people (38.990 per person),194950,0,194950,18000,0,18000,0,0,,,,,351,,,,,,,{},No
+15/08/2025,12:00,Consuelo Torres,HotBoat Trip 2 people (69.990 per person),139990,0,139990,18000,0,18000,0,0,,,,,369,,,,,,,{},No
+15/08/2025,15:00,Elena Faúndez,HotBoat Trip 2 people (69.990 per person),139990,0,139990,18000,0,18000,0,0,,,,,376,,,,,,,{},No
+16/08/2025,13:00,Patricia Rodriguez Lopez,HotBoat Trip 4 people (44.990 per person),179960,0,179960,18000,0,18000,0,0,,,,,370,,,,,,,{},No
+16/08/2025,16:00,Diego Valdebenito,HotBoat Trip 2 people (69.990 per person),139990,0,139990,18000,0,18000,0,0,,,,,381,,,,,,,{},No
+17/08/2025,12:00,Varvara Solovyeva,HotBoat Trip 4 people (44.990 per person),179960,0,179960,18000,0,18000,0,0,,,,,379,,,,,,,{},No
+17/08/2025,15:00,Marcelo Nawrath,HotBoat Trip 2 people (69.990 per person),139990,0,139990,18000,0,18000,0,0,,,,,377,,,,,,,{},No
+18/08/2025,16:00,alexander alexander,HotBoat Trip 3 people (54.990 per person),164970,0,164970,18000,0,18000,0,0,,,,,382,,,,,,,{},No
+23/08/2025,12:00,Benjamin Nagel,HotBoat Trip 2 people (69.990 per person),139990,0,139990,18000,0,18000,0,0,,,,,387,,,,,,,{},No
+23/08/2025,15:00,Catherine Roa,HotBoat Trip 2 people (69.990 per person),139990,0,139990,18000,0,18000,0,0,,,,,352,,,,,,,{},No
+28/08/2025,10:00,Leandro Canales,HotBoat Trip 7 people (29.990 per person),209930,0,209930,18000,0,18000,0,0,,,,,391,,,,,,,{},No
+31/08/2025,15:00,Ismael Norambuena,HotBoat Trip 3 people (54.990 per person),164970,0,164970,18000,0,18000,0,0,,,,,392,,,,,,,{},No
+03/09/2025,17:00,Stephanie Cardenas,HotBoat Trip 2 people (69.990 per person),139990,0,139990,18000,0,18000,0,0,,,,,400,,,,,,,{},No
+05/09/2025,16:00,Alonso Novoa,HotBoat Trip 2 people (69.990 per person),139990,0,139990,18000,0,18000,0,0,,,,,388,,,,,,,{},No
+07/09/2025,16:00,Danitza Herrera,HotBoat Trip 2 people (69.990 per person),139990,0,139990,18000,0,18000,0,0,,,,,386,,,,,,,{},No
+14/09/2025,12:00,Thomas Foot,HotBoat Trip 4 people (44.990 per person),179960,0,179960,18000,0,18000,0,0,,,,,413,,,,,,,{},No
+14/09/2025,16:00,Andrés Lores,HotBoat Trip 2 people (69.990 per person),139990,0,139990,18000,0,18000,0,0,,,,,396,,,,,,,{},No
+16/09/2025,12:00,Claudio Araya,HotBoat Trip 2 people (69.990 per person),139990,0,139990,18000,0,18000,0,0,,,,,389,,,,,,,{},No
+16/09/2025,18:00,Javier Navarro,HotBoat Trip 2 people (69.990 per person),139990,0,139990,18000,0,18000,0,0,,,,,418,,,,,,,{},No
+17/09/2025,12:00,Javier Villarroel,HotBoat Trip 3 people (54.990 per person),164970,0,164970,18000,0,18000,0,0,,,,,428,,,,,,,{},No
+17/09/2025,15:00,Sara Cabello,HotBoat Trip 2 people (69.990 per person),139990,0,139990,18000,0,18000,0,0,,,,,417,,,,,,,{},No
+17/09/2025,18:00,Enith Rodriguez,HotBoat Trip 7 people (29.990 per person),209930,0,209930,18000,0,18000,0,0,,,,,426,,,,,,,{},No
+18/09/2025,16:00,Kamila Meyers,HotBoat Trip 4 people (44.990 per person),179960,0,179960,18000,0,18000,0,0,,,,,427,,,,,,,{},No
+19/09/2025,17:00,Brigitte Rebolledo,HotBoat Trip 7 people (29.990 per person),209930,0,209930,18000,0,18000,0,0,,,,,405,,,,,,,{},No
+20/09/2025,12:00,liliana ibarra,HotBoat Trip 7 people (29.990 per person),209930,0,209930,18000,0,18000,0,0,,,,,431,,,,,,,{},No
+20/09/2025,15:00,Camila Salinas Prieto,HotBoat Trip 7 people (29.990 per person),209930,0,209930,18000,0,18000,0,0,,,,,407,,,,,,,{},No
+21/09/2025,09:00,daniel okuinghttons,HotBoat Trip 2 people (69.990 per person),139990,0,139990,18000,0,18000,0,0,,,,,434,,,,,,,{},No
+21/09/2025,12:00,Silvana Montaña,HotBoat Trip 5 people (38.990 per person),194950,0,194950,18000,0,18000,0,0,,,,,411,,,,,,,{},No
+21/09/2025,17:00,yho Clhan Loo,HotBoat Trip 6 people (32.990 per person),197940,0,197940,18000,0,18000,0,0,,,,,436,,,,,,,{},No
+25/09/2025,11:00,benjamin rodriguez,HotBoat Trip 2 people (69.990 per person),139990,0,139990,18000,0,18000,0,0,,,,,442,,,,,,,{},No
+26/09/2025,15:00,Dyouly Henry,HotBoat Trip 2 people (69.990 per person),139990,0,139990,18000,0,18000,0,0,,,,,329,,,,,,,{},No
+27/09/2025,15:00,nicole molina,HotBoat Trip 2 people (69.990 per person),139990,0,139990,18000,0,18000,0,0,,,,,440,,,,,,,{},No
+03/10/2025,18:00,felipe hueichapan,HotBoat Trip 2 people (69.990 per person),139990,0,139990,18000,0,18000,0,0,,,,,447,,,,,,,{},No
+04/10/2025,18:00,carolayn garcia galleguillos,HotBoat Trip 3 people (54.990 per person),164970,0,164970,18000,0,18000,0,0,,,,,443,,,,,,,{},No
+04/10/2025,21:00,Nicole Hernandez,HotBoat Trip 2 people (69.990 per person),139990,0,139990,18000,0,18000,0,0,,,,,448,,,,,,,{},No
+09/10/2025,17:00,Patricia Ambrosi Ambrosi escobar,HotBoat Trip 2 people (69.990 per person),139990,0,139990,18000,0,18000,0,0,,,,,452,,,,,,,{},No
+10/10/2025,18:00,gabriela fernandez,HotBoat Trip 2 people (69.990 per person),139990,0,139990,18000,0,18000,0,0,,,,,441,,,,,,,{},No
+13/10/2025,19:00,Neil Landeros,HotBoat Trip 2 people (69.990 per person),139990,0,139990,18000,0,18000,0,0,,,,,457,,,,,,,{},No
+16/10/2025,15:00,yani gallardo,HotBoat Trip 2 people (69.990 per person),139990,0,139990,18000,0,18000,0,0,,,,,437,,,,,,,{},No
+20/10/2025,16:00,Cristian Reyes,HotBoat Trip 4 people (44.990 per person),139990,0,139990,18000,0,18000,2,2,Santiago,Google,Lluvia,Trabajador,463,a59ba6eb,,,,Familia,,{},Si
+20/10/2025,19:00,felipe cid,HotBoat Trip 2 people (69.990 per person),139990,0,139990,18000,0,18000,0,0,,,,,464,,,,,,,{},No
+22/10/2025,18:00,JOANNE FREEMAN,HotBoat Trip 4 people (44.990 per person),179960,0,179960,18000,0,18000,0,0,,,,,462,,,,,,,{},No
+25/10/2025,11:00,Karines Salas,HotBoat Trip 6 people (32.990 per person),139990,105000,244990,18000,40980,58980,2,3,Victoria,Instagram,Nublado,,455,5a019b8d,,,,Familia,,"{""jugo_1_l"": 2, ""vino_merlot"": 1, ""tabla_2_personas"": 2, ""video_15_segundos"": 1}",Si
+25/10/2025,14:00,Maria Villavicencio,HotBoat Trip 5 people (38.990 per person),194950,53700,248650,18000,17740,35740,5,1,Victoria,Instagram,Nublado,Empresario,454,4a9715d0,,,,Familia,,"{""fanta"": 2, ""coca-cola"": 1, ""video_15_segundos"": 1, ""champaña_riccadonna_ruby"": 1}",Si
+30/10/2025,16:00,Evelyn Meza,HotBoat Trip 2 people (69.990 per person),139990,0,139990,18000,0,18000,0,0,,,,,470,,,,,,,{},No
+30/10/2025,19:00,Lindsay Valencia,HotBoat Trip 2 people (69.990 per person),139990,0,139990,18000,0,18000,2,0,quellon,Instagram,Sol,Trabajador,467,1fb76e9c,,,,Pareja,,{},Si
+31/10/2025,15:00,sandra añual,HotBoat Trip 6 people (32.990 per person),197940,0,197940,18000,0,18000,6,0,,Instagram,Sol,I’m,472,1631e0c8,,,,Familia,,{},Si
+01/11/2025,19:00,Javiera Carcamo barros,HotBoat Trip 2 people (69.990 per person),139990,12000,151990,18000,5400,23400,2,0,Concepcion,Instagram,Sol,Empresario,474,f75335df,,,,Pareja,,"{""cerveza_artesanal_ambar"": 1, ""cerveza_artesanal_negra"": 1}",Si
+03/11/2025,16:00,Caleb Reyes,HotBoat Trip 2 people (69.990 per person),139990,0,139990,18000,0,18000,2,0,Villarrica,Instagram,Sol,Trabajador,478,c9dcbf53,,,,Pareja,,{},Si
+04/11/2025,11:00,Benjamin Astorga Riveros,HotBoat Trip 2 people (69.990 per person),139990,0,139990,18000,0,18000,2,0,,Instagram,Sol,,482,ead5523f,,,,Pareja,,{},Si
+06/11/2025,19:00,greidys diaz,HotBoat Trip 2 people (69.990 per person),139990,0,139990,18000,0,18000,2,1,Concepcion,Instagram,Sol,Trabajador,465,4da7f360,,,,Familia,,{},Si
+10/11/2025,13:00,Sindy Cabrera,HotBoat Trip 2 people (69.990 per person),139990,0,139990,18000,0,18000,0,0,,,,,490,,,,,,,{},No
+15/11/2025,19:00,daniela espinoza,HotBoat Trip 2 people (69.990 per person),139990,0,139990,18000,0,18000,2,0,Villarrica,Instagram,Lluvia,Trabajador,493,06c95eff,,,,Pareja,,{},Si
+18/11/2025,12:00,Claudio Silva,HotBoat Trip 7 people (29.990 per person),179960,0,179960,18000,0,18000,4,2,Santiago,Instagram,Nublado,Trabajador,402,f9b762c5,,,,Familia,,"{""cumpleaños"": 1}",Si
+21/11/2025,14:00,ilia kachalin,HotBoat Trip 2 people (69.990 per person),139990,0,139990,18000,0,18000,0,0,,,,,494,,,,,,,{},No
+22/11/2025,19:00,Diana marcela Ocampo,HotBoat Trip 4 people (44.990 per person),179960,0,179960,18000,0,18000,0,0,,,,,497,,,,,,,{},No
+25/11/2025,19:00,Sergio Labarca,HotBoat Trip 2 people (69.990 per person),139990,59800,199790,18000,12100,30100,2,0,Pucon,Google,Sol,Empresario,501,c5e67ed0,,,,Pareja,,"{""toalla"": 2, ""tabla_2_personas"": 1, ""coca-cola"": 2, ""toalla_poncho"": 1, ""lemon_stone"": 2, ""modo_romantico"": 1}",Si
+26/11/2025,15:00,Joeri Onneweer,HotBoat Trip 2 people (69.990 per person),139990,0,139990,18000,0,18000,2,0,Holanda ,TripAdvisor,Sol,Trabajador,503,f93a3701,,,,Pareja de amigos,,{},Si
+26/11/2025,18:00,Evelyn Vargas,HotBoat Trip 3 people (54.990 per person),139990,0,139990,18000,0,18000,2,2,Osorno,"Tele, pancho Saavedra ",Nublado,Trabajador,495,2131bfd9,,,,Familia,,{},Si
+27/11/2025,21:00,Eduardo Van der meer,HotBoat Trip 3 people (54.990 per person),164970,0,164970,18000,0,18000,0,0,,,,,500,,,,,,,{},No
+28/11/2025,20:00,Alex Jeldres,HotBoat Trip 2 people (69.990 per person),0,0,0,18000,9000,27000,2,0,villarrica,,Noche,capitan,498,9e400547,,,,Pareja,,"{""tabla_2_personas"": 1}",Si
+29/11/2025,13:00,Karol Leal,HotBoat Trip 2 people (69.990 per person),139990,0,139990,18000,0,18000,2,0,Concepcion,Tele,Sol,,511,3e76cafe,,,,Pareja,,{},Si
+29/11/2025,19:00,Camila Noemi Parra,HotBoat Trip 4 people (44.990 per person),179960,21000,200960,18000,6900,24900,4,0,Concepcion,Instagram,Nublado,Trabajador,486,24680243,,,,Familia,,"{""lemon_stone"": 1, ""maracuya_stone_"": 1, ""cerveza_artesanal_ambar"": 1, ""cerveza_austral_calafate"": 1, ""cerveza_kunstman_torobayo"": 1}",Si
+30/11/2025,17:00,Marcelo Flores,HotBoat Trip 2 people (69.990 per person),139990,9000,148990,18000,0,18000,2,0,Temuco,,Lluvia,Empresario,515,991a2af9,,,,Pareja,,"{""toalla"": 1, ""hora_extra"": 2}",Si
+01/12/2025,13:00,Diego Astorga,HotBoat Trip 2 people (69.990 per person),139990,0,139990,18000,0,18000,2,0,,,Nublado,,520,c31dca53,,,,Pareja,,{},Si
+01/12/2025,17:00,Marcelo Flores datos,HotBoat Trip 2 people (69.990 per person),139990,0,139990,18000,0,18000,2,0,Temuco,,Sol,Empresario,532,49019690,,,,Pareja,,"{""hora_extra"": 2}",Si
+06/12/2025,17:00,Camila Fuentes sandoval,HotBoat Trip 6 people (32.990 per person),194950,0,194950,18000,0,18000,5,0,Chillan,Instagram,Sol,Trabajador,510,3c723e64,,,,Grupo de amigos,,{},Si
+07/12/2025,18:00,jhonatan carvajal,HotBoat Trip 2 people (69.990 per person),139990,0,139990,18000,0,18000,2,0,Concepcion,Instagram,Sol,,514,292fc783,,,,Pareja,,{},Si
+07/12/2025,21:00,Gabriel Pinochet,HotBoat Trip 2 people (69.990 per person),139990,0,139990,18000,0,18000,2,0,Concepcion,Instagram,Noche,Empresario,522,7aaacb28,,,,Pareja,,{},Si
+08/12/2025,10:00,constanza cortes,HotBoat Trip 6 people (32.990 per person),194950,0,194950,18000,0,18000,5,2,Caburgua,Instagram,Nublado,Trabajador,526,a6bc24d6,,,,Familia,,{},Si
+12/12/2025,16:00,Alphonse DeRose DeRose,HotBoat Trip 3 people (54.990 per person),194950,0,194950,18000,0,18000,5,1,"USA, Curacautin",Google,Lluvia,Empresario,527,8711fdc0,,,,Pareja de amigos,,{},Si
+14/12/2025,12:00,mario sandoval,HotBoat Trip 3 people (54.990 per person),139990,37900,177890,18000,15240,33240,2,2,Concepcion,Instagram,Nublado,Trabajador,531,40ee8c12,,,,Familia,,"{""tabla_2_personas"": 1, ""coca-cola"": 1, ""champaña_riccadonna_moscato_rose"": 1}",Si
+20/12/2025,17:00,Marcelo Flores,HotBoat Trip 2 people (69.990 per person),139990,0,139990,18000,0,18000,0,0,,,,,536,,,,,,,{},No
+21/12/2025,17:00,Marcelo Flores,HotBoat Trip 2 people (69.990 per person),139990,0,139990,18000,0,18000,0,0,,,,,538,,,,,,,{},No
+22/12/2025,15:00,valentina tralma,HotBoat Trip 5 people (38.990 per person),164970,0,164970,18000,0,18000,3,2,Pucon,Instagram,Sol,Empresario,537,9309baf4,,,,Pareja,,{},Si
+27/12/2025,19:00,Erika Pagani,HotBoat Trip 4 people (44.990 per person),139990,0,139990,18000,0,18000,2,2,Brasil,Google,Sol,,568,560859ed,,,,Familia,,{},Si
+28/12/2025,19:00,pablo inostroza valenzuela,HotBoat Trip 4 people (44.990 per person),179960,0,179960,18000,0,18000,0,0,,,,,564,,,,,,,{},No
+29/12/2025,10:00,Camila Santa María,HotBoat Trip 2 people (69.990 per person),139990,15000,154990,18000,5490,23490,2,0,Santiago,Tiktok,Sol,Trabajador,539,bd59bbcb,,,,,,"{""champaña_riccadonna_ruby"": 1}",Si
+29/12/2025,18:00,marian caicedo,HotBoat Trip 2 people (69.990 per person),139990,24000,163990,18000,10300,28300,2,0,Santiago,Instagram,Sol,Trabajador,523,928a4eeb,,,,Pareja,,"{""tabla_2_personas"": 1, ""cerveza_kunstman_torobayo"": 1}",Si
+30/12/2025,17:00,Jenny Araya,HotBoat Trip 2 people (69.990 per person),164970,0,164970,18000,0,18000,3,0,Antofagasta,,Sol,Trabajador,561,568df2d6,,,,Familia,,{},Si
+31/12/2025,15:00,Laura camila Peña,HotBoat Trip 2 people (69.990 per person),139990,0,139990,18000,0,18000,2,0,Concepcion,Instagram,Sol,Trabajador,535,39511cfa,,,,Pareja,,{},Si
+31/12/2025,18:00,Beatriz Scarlet Sanchez,HotBoat Trip 4 people (44.990 per person),179960,30000,209960,18000,10000,28000,4,0,talcahuano,tv,Sol,Trabajador,528,60cfde8a,,,,Familia,,"{""video_15_segundos"": 1}",Si
+01/01/2026,15:00,Rossana Balboa Soto,HotBoat Trip 5 people (38.990 per person),194950,14500,209450,18000,3750,21750,5,0,Concepcion,Instagram,Sol,Trabajador,578,0b14554e,,,,Familia,,"{""fanta"": 1, ""coca-cola"": 4}",Si
+01/01/2026,18:00,Florencia Crisoliti,HotBoat Trip 4 people (44.990 per person),179960,37000,216960,18000,15900,33900,4,0,argentina ,Instagram,,Empresario,517,f8d8ea33,,,,Familia,,"{""cerveza_royal"": 3, ""tabla_4_personas"": 1}",Si
+02/01/2026,12:00,MARYORI VARGAS,HotBoat Trip 4 people (44.990 per person),179960,5800,185760,18000,1500,19500,4,2,Concepcion,Instagram,Sol,Trabajador,581,235c194a,,,,Familia,,"{""coca-cola"": 2}",Si
+02/01/2026,20:00,Ignacio Vatel,HotBoat Trip 2 people (69.990 per person),139990,0,139990,18000,0,18000,2,0,Santiago,Instagram,Sol,Empresario,573,b2d22614,,,,Pareja,,{},Si
+03/01/2026,19:00,Angelica Muñoz,HotBoat Trip 2 people (69.990 per person),139990,0,139990,18000,0,18000,2,0,Concepcion,,Sol,,593,54279bde,,,,Pareja,,{},Si
+04/01/2026,18:00,Guillermo Rios,HotBoat Trip 5 people (38.990 per person),194950,0,194950,18000,0,18000,5,0,Santiago,tv,Sol,Trabajador,595,829da6e5,,,,Pareja de amigos,,{},Si
+06/01/2026,19:00,Nair Rocio Aragon,HotBoat Trip 6 people (32.990 per person),197940,0,197940,18000,0,18000,6,0,Argentina ,Instagram,Sol,Trabajador,590,8dc161cf,,,,Grupo de amigos,,{},Si
+07/01/2026,19:00,Catalina Vega,HotBoat Trip 5 people (38.990 per person),194950,10000,204950,18000,1000,19000,5,1,Santiago,Instagram,Sol,Trabajador,603,36fc9118,,,,Familia,,"{""velas"": 1}",Si
+07/01/2026,21:00,javiera Ceron Favio,HotBoat Trip 2 people (69.990 per person),139990,58400,198390,18000,24950,42950,2,0,Santiago,Instagram,Sol,Trabajador,605,857bd010,,,,Pareja,,"{""tabla_2_personas"": 2, ""coca-cola"": 1, ""maracuya_stone_"": 1, ""cerveza_artesanal_ambar"": 2}",Si
+08/01/2026,21:00,Sergio Navarro,HotBoat Trip 2 people (69.990 per person),139990,20000,159990,18000,3000,21000,2,0,Valdivia,Instagram,Sol,,575,863db485,,,,Pareja,,"{""pack_iluminacion_(velas_y_letras)"": 1}",Si
+09/01/2026,11:00,MARIELA GONZALEZ,HotBoat Trip 4 people (44.990 per person),179960,0,179960,18000,0,18000,0,0,,,,,540,,,,,,,{},No
+09/01/2026,15:00,Valeska Ramirez,HotBoat Trip 3 people (54.990 per person),164970,0,164970,18000,0,18000,0,0,,,,,612,,,,,,,{},No
+09/01/2026,21:00,Patricio Urzua,HotBoat Trip 2 people (69.990 per person),139990,50000,189990,18000,19980,37980,2,0,Concon,Instagram,Noche,Trabajador,615,38d980dd,,,,Pareja,,"{""tabla_2_personas"": 1, ""champaña_riccadonna_ruby"": 1, ""champaña_riccadonna_moscato_rose"": 1}",Si
+10/01/2026,17:00,Jaime Delgado Daroch,HotBoat Trip 4 people (44.990 per person),197940,38400,236340,18000,15950,33950,6,0,Santiago,Instagram,Sol,Trabajador,626,ec492652,,,,Familia,,"{""fanta"": 1, ""tabla_2_personas"": 1, ""lemon_stone"": 1, ""cerveza_artesanal_ambar"": 2}",Si
+10/01/2026,19:00,Claudia Alarcón,HotBoat Trip 2 people (69.990 per person),139990,32000,171990,18000,14400,32400,2,0,Concepcion,Instagram,Sol,Empresario,619,3c85965c,,,,Pareja,,"{""tabla_2_personas"": 1, ""cerveza_artesanal_ambar"": 1, ""cerveza_artesanal_negra"": 1}",Si
+10/01/2026,21:00,juan carlos morales ovalle,HotBoat Trip 2 people (69.990 per person),139990,0,139990,18000,0,18000,0,0,,,,,574,,,,,,,{},No
+11/01/2026,12:00,Roxana Opazo,HotBoat Trip 6 people (32.990 per person),197940,45000,242940,18000,18990,36990,6,1,Santiago,Visto en persona ,Sol,Trabajador,458,00531ef7,,,,Grupo de amigos,,"{""cerveza_artesanal_negra"": 5, ""champaña_riccadonna_ruby"": 1}",Si
+11/01/2026,12:00,Roxana Opazo,HotBoat Trip 5 people (38.990 per person),209930,69400,279330,18000,28640,46640,7,0,EE UU,Visto en persona ,Sol,Empresario,459,cc84c5ad,,,,Grupo de amigos,,"{""coca-cola"": 1, ""lemon_stone"": 1, ""cerveza_artesanal_negra"": 8, ""champaña_riccadonna_moscato_rose"": 1}",Si
+11/01/2026,19:00,Matias Levit,HotBoat Trip 2 people (69.990 per person),139990,0,139990,18000,0,18000,2,0,Chile ,Instagram,Sol,Trabajador,607,ae3356f6,,,,Pareja,,{},Si
+12/01/2026,12:00,ximena escobar,HotBoat Trip 4 people (44.990 per person),139990,0,139990,18000,0,18000,2,2,australia,Google,Sol,Trabajador,641,7d54312a,,,,Familia,,{},Si
+12/01/2026,16:00,vianca leon escobar,HotBoat Trip 6 people (32.990 per person),164970,0,164970,18000,0,18000,3,3,Santiago,Instagram,Sol,Trabajador,629,76f56bfb,,,,Familia,,{},Si
+12/01/2026,19:00,Angela Skornia,HotBoat Trip 4 people (44.990 per person),139990,47000,186990,18000,19400,37400,2,1,estados unidos ,get your guide,Sol,Trabajador,556,34062edf,,,,Familia,,"{""tabla_2_personas"": 1, ""vino_merlot"": 1, ""cerveza_artesanal_ambar"": 1, ""cerveza_artesanal_negra"": 1}",Si
+13/01/2026,19:00,adriana alejandra sobarzo saldaña,HotBoat Trip 7 people (29.990 per person),197940,55000,252940,18000,22000,40000,6,1,rancagua ,Instagram,Sol,Trabajador,616,39f5dec4,,,,Familia,,"{""tabla_4_personas"": 1, ""video_15_segundos"": 1}",Si
+14/01/2026,17:00,Jose luis Coya,HotBoat Trip 2 people (69.990 per person),139990,20000,159990,18000,9000,27000,2,1,barcelona ,ajencia ,Sol,Empresario,622,7a6efd00,,,,Familia,,"{""tabla_2_personas"": 1}",Si
+15/01/2026,11:00,Constanza Muñoz,HotBoat Trip 5 people (38.990 per person),179960,15000,194960,18000,2500,20500,4,1,Cunco,Instagram,Sol,Trabajador,635,f8b85211,,,,Familia,,"{""foto_con_marco"": 1}",Si
+15/01/2026,14:00,piera cacciuttolo,HotBoat Trip 2 people (69.990 per person),139990,35000,174990,18000,11500,29500,2,1,5ta región ,Google,Sol,Trabajador,642,36bd6839,,,,Familia,,"{""tabla_2_personas"": 1, ""foto_con_marco"": 1}",Si
+15/01/2026,16:00,Christian Ferreira,HotBoat Trip 6 people (32.990 per person),197940,55000,252940,18000,12500,30500,6,1,,Instagram,Sol,Trabajador,646,02f89b2c,,,,Familia,,"{""foto_con_marco"": 1, ""video_60_segundos"": 1}",Si
+15/01/2026,18:00,Mariela Risco,HotBoat Trip 2 people (69.990 per person),139990,35000,174990,18000,11500,29500,2,0,Arica,Instagram,Sol,Trabajador,630,aa6e3154,,,,Pareja,,"{""tabla_2_personas"": 1, ""foto_con_marco"": 1}",Si
+15/01/2026,20:00,Loring Soto,HotBoat Trip 2 people (69.990 per person),139990,0,139990,18000,0,18000,2,0,Concepción ,Instagram,Sol,Trabajador,602,6907303e,,,,Pareja,,{},Si
+15/01/2026,23:00,Marco Rodriguez,HotBoat Trip 2 people (69.990 per person),139990,20000,159990,18000,9000,27000,2,0,Puerto Montt ,Instagram,Noche,Trabajador,624,31358722,,,,Pareja,,"{""tabla_2_personas"": 1}",Si
+16/01/2026,11:00,patricia silva,HotBoat Trip 4 people (44.990 per person),179960,0,179960,18000,0,18000,4,0,Santiago,Instagram,Sol,Trabajador,649,4e07b717,,,,Familia,,{},Si
+16/01/2026,21:00,Bastian Zurita,HotBoat Trip 2 people (69.990 per person),139990,110000,249990,18000,32000,50000,2,0,,Instagram,Tarde,Trabajador,625,a2773d3e,,,,Pareja,,"{""tabla_2_personas"": 1, ""video_15_segundos"": 1, ""video_60_segundos"": 1, ""pack_iluminacion_(velas_y_letras)"": 1}",Si
+17/01/2026,19:00,karen caceres,HotBoat Trip 3 people (54.990 per person),139990,45000,184990,18000,12500,30500,2,2,Santiago,Google,Sol,Trabajador,653,99a2c382,,,,Familia,,"{""foto_con_marco"": 1, ""video_15_segundos"": 1}",Si
+18/01/2026,17:00,Juan pablo Hoyos,HotBoat Trip 5 people (38.990 per person),164970,52900,217870,18000,19750,37750,3,2,argentina,Google,Sol,Trabajador,631,a1f9ab5c,,,,Familia,,"{""fanta"": 1, ""tabla_2_personas"": 1, ""video_15_segundos"": 1}",Si
+19/01/2026,17:00,rodrigo sanhueza,HotBoat Trip 3 people (54.990 per person),139990,20000,159990,18000,9000,27000,2,2,calama,Instagram,Sol,Trabajador,657,d2404e90,,,,Familia,,"{""tabla_2_personas"": 1}",Si
+19/01/2026,19:00,Eduardo Fuentealba,HotBoat Trip 4 people (44.990 per person),139990,20000,159990,18000,9000,27000,2,2,Valdivia,Instagram,Sol,Trabajador,651,19738b96,,,,Familia,,"{""tabla_2_personas"": 1}",Si
+19/01/2026,21:00,luis ortega,HotBoat Trip 2 people (69.990 per person),139990,27000,166990,18000,10600,28600,2,0,Santiago,Instagram,Sol,Empresario,640,4bb9d364,,,,Pareja,,"{""tabla_2_personas"": 1, ""lemon_stone"": 2, ""modo_romantico"": 1}",Si
+20/01/2026,19:00,Enrique Ortiz,HotBoat Trip 2 people (69.990 per person),139990,42000,181990,18000,15400,33400,2,0,Santiago,Instagram,Sol,Trabajador,655,802812b5,,,,Pareja,,"{""video_15_segundos"": 1, ""cerveza_artesanal_negra"": 2}",Si
+21/01/2026,10:00,getyourguide getyourguide,HotBoat Trip 2 people (69.990 per person),139990,0,139990,18000,0,18000,2,0,Israel,getyourguide,Sol,,675,61647fce,,,,Pareja,,{},Si
+21/01/2026,14:00,Roberto Parada,HotBoat Trip 2 people (69.990 per person),139990,49000,188990,18000,22800,40800,2,0,taltal,Instagram,Sol,,661,66c6e7a4,,,,Pareja,,"{""tabla_4_personas"": 1, ""modo_romantico"": 1, ""cerveza_artesanal_negra"": 4}",Si
+21/01/2026,17:00,vivian zuñiga,HotBoat Trip 2 people (69.990 per person),139990,27000,166990,18000,7900,25900,2,0,Villarrica,open sky,Sol,Consultor,658,902256d5,,,,Pareja,,"{""foto_con_marco"": 1, ""cerveza_artesanal_ambar"": 2}",Si
+22/01/2026,15:00,camila grinstein,HotBoat Trip 4 people (44.990 per person),164970,50000,214970,18000,21990,39990,3,3,Concepcion,Instagram,Sol,Trabajador,664,a09b8ecc,,,,Familia,,"{""tabla_2_personas"": 2, ""jugo_naranja"": 1}",Si
+22/01/2026,17:00,Barbara Zeiser,HotBoat Trip 7 people (29.990 per person),179960,30000,209960,18000,10000,28000,4,3,Santiago,Instagram,Sol,,580,85e0e747,,,,Familia,,"{""video_15_segundos"": 1}",Si
+22/01/2026,19:00,Georgette Borges,HotBoat Trip 2 people (69.990 per person),119980,20000,139980,18000,9000,27000,1,1,Santiago,Tiktok,Sol,Trabajador,577,0b1860d9,,,,Familia,,"{""tabla_2_personas"": 1}",Si
+22/01/2026,21:00,Scarlet Muñoz,HotBoat Trip 2 people (69.990 per person),139990,0,139990,18000,0,18000,2,0,Santiago,Instagram,Noche,Trabajador,644,85063c59,,,,Pareja,,{},Si
+24/01/2026,19:00,Josselyn Siares,HotBoat Trip 2 people (69.990 per person),139990,12000,151990,18000,5400,23400,2,0,Concepcion,Instagram,Sol,Trabajador,549,922eceb1,,,,Pareja,,"{""cerveza_artesanal_ambar"": 1, ""cerveza_artesanal_negra"": 1}",Si
+25/01/2026,17:00,Dania Farias,HotBoat Trip 5 people (38.990 per person),164970,60000,224970,18000,25980,43980,3,2,Santiago,Instagram,Sol,Trabajador,672,ed679f13,,,,Familia,,"{""tabla_2_personas"": 2, ""jugo_natural_1lt"": 2}",Si
+25/01/2026,19:00,MACARENA ARIAS,HotBoat Trip 7 people (29.990 per person),179960,12000,191960,18000,5400,23400,4,3,Concepcion,Instagram,Sol,Empresario,659,6d022e97,,,,Familia,,"{""cerveza_artesanal_ambar"": 2}",Si
+26/01/2026,14:00,Tamara Sandoval Sanchez,HotBoat Trip 6 people (32.990 per person),197940,0,197940,18000,0,18000,6,0,Santiago,Avían venido antes eran clientes vip,Sol,Trabajador,676,575eac0e,,,,Familia,,{},Si
+26/01/2026,19:00,Ignacia Barrios,HotBoat Trip 2 people (69.990 per person),139990,20000,159990,18000,9000,27000,2,0,Parral,Instagram,Sol,Trabajador,650,8dcc36ec,,,,Pareja,,"{""tabla_2_personas"": 1}",Si
+26/01/2026,21:00,orlando valdivia,HotBoat Trip 4 people (44.990 per person),179960,50000,229960,18000,19000,37000,4,1,Santiago,Instagram,Entre atardecer,Trabajador,662,273b45fd,,,,Familia,,"{""tabla_2_personas"": 1, ""video_15_segundos"": 1}",Si
+27/01/2026,19:00,Yorcy Martel,HotBoat Trip 2 people (69.990 per person),139990,35000,174990,18000,7490,25490,2,0,tome ,Instagram,Nublado,Empresario,674,4676b65c,,,,Pareja,,"{""velas"": 1, ""foto_con_marco"": 1, ""jugo_natural_1lt"": 1}",Si
+28/01/2026,19:00,David Pedigo,HotBoat Trip 2 people (69.990 per person),139990,0,139990,18000,0,18000,2,0,USA,amigo jibus,Sol,Trabajador,613,4133b34e,,,,Pareja,,{},Si
+29/01/2026,20:00,Jennifer Basulto,HotBoat Trip 2 people (69.990 per person),139990,60000,199990,18000,8500,26500,2,0,Santiago,Instagram,Sol,Empresario,673,ba1054a6,,,,Pareja,,"{""velas"": 1, ""letras_te_amo"": 1, ""foto_con_marco"": 1, ""pack_iluminacion_(velas_y_letras)"": 1}",Si
+30/01/2026,19:00,Alejandro Carmach,HotBoat Trip 4 people (44.990 per person),179960,0,179960,18000,0,18000,4,0,Temuco,,,Trabajador,645,643b31dd,,,,Grupos de amigos,,{},Si
+30/01/2026,23:00,Marjorie Ferreira,HotBoat Trip 2 people (69.990 per person),139990,0,139990,18000,0,18000,2,0,Villarica,,Noche,Empresario,684,13b0fbab,,,,Pareja,,{},Si
+31/01/2026,18:00,Jorge Sanchez Valdes,HotBoat Trip 2 people (69.990 per person),139990,0,139990,18000,0,18000,0,0,,,,,690,,,,,,,{},No
+31/01/2026,20:00,belen bernucci,HotBoat Trip 6 people (32.990 per person),197940,0,197940,18000,0,18000,0,0,,,,,689,,,,,,,{},No
+01/02/2026,10:00,Gonzalo Solís cruz,HotBoat Trip 4 people (44.990 per person),179960,0,179960,18000,0,18000,4,1,Concepcion,Instagram,Sol,Trabajador,692,54b0221c,,,,Familia,,{},Si
+01/02/2026,13:00,Hugo Arratia,HotBoat Trip 2 people (69.990 per person),139990,25000,164990,18000,6490,24490,2,0,rancagua,Instagram,Sol,Empresario,691,9ba3ea5a,,,,Pareja,,"{""foto_con_marco"": 1, ""jugo_natural_1lt"": 1}",Si
+01/02/2026,18:00,Maximiliano Mansilla,HotBoat Trip 6 people (32.990 per person),197940,10000,207940,18000,4000,22000,6,0,argentina ,Instagram,Sol,Empresario,694,f80e5813,,,,Pareja de amigos,,"{""cerveza_artesanal_negra"": 1, ""cerveza_kunstman_valdivia"": 1}",Si
+01/02/2026,20:00,Patricia Ambrosi Ambrosi escobar,HotBoat Trip 4 people (44.990 per person),164970,45000,209970,18000,17990,35990,3,0,arica,Instagram,Sol,Empresario,688,90554310,,,,Familia,,"{""tabla_2_personas"": 1, ""vino_carmenere"": 1, ""jugo_natural_1lt"": 1}",Si
+02/02/2026,15:00,Carlos navarrete,HotBoat Trip 3 people (54.990 per person),164970,35000,199970,18000,14000,32000,3,0,viña del mar,booking,Lluvia,Empresario,695,c465f5f0,,,,Familia,,"{""tabla_2_personas"": 1, ""vino_carmenere"": 1}",Si
+02/02/2026,19:00,Jacqueline Carvajal,HotBoat Trip 4 people (44.990 per person),179960,0,179960,18000,0,18000,0,0,,,,,698,,,,,,,{},No
+03/02/2026,10:00,Johan Castillo,HotBoat Trip 2 people (69.990 per person),139990,40800,180790,18000,12500,30500,2,0,Concepcion,Instagram,Lluvia,Trabajador,686,320f22df,,,,Pareja,,"{""tabla_2_personas"": 1, ""coca-cola"": 2, ""letras_te_amo"": 1, ""modo_romantico"": 1}",Si
+03/02/2026,14:00,Ricardo Piel,HotBoat Trip 4 people (44.990 per person),139990,0,139990,18000,0,18000,2,2,Santiago,Instagram,Lluvia,Empresario,706,b74d725d,,,,Familia,,{},Si
+03/02/2026,23:00,Catalina Baez,HotBoat Trip 6 people (32.990 per person),197940,0,197940,18000,0,18000,6,0,Santiago,Google,Noche,Empresario,707,b92ccd28,,,,Grupo de amigos,,{},Si
+04/02/2026,10:00,Amalin Anich,HotBoat Trip 4 people (44.990 per person),179960,0,179960,18000,0,18000,4,0,rancagua,Tiktok,Lluvia,Trabajador,718,36708e72,,,,Grupo de amigos,,{},Si
+04/02/2026,12:00,paola rubilar,HotBoat Trip 7 people (29.990 per person),197940,25000,222940,18000,12000,30000,6,8,Argentinos y chilenos ,Google,Lluvia,Empresario,715,fb071e84,,,,Grupo de amigos,,"{""tabla_4_personas"": 1}",Si
+04/02/2026,12:00,paola rubilar,HotBoat Trip 7 people (29.990 per person),209930,0,209930,18000,0,18000,0,0,,,,,716,,,,,,,{},No
+04/02/2026,15:00,felipe zafe,HotBoat Trip 6 people (32.990 per person),197940,0,197940,18000,0,18000,6,0,Santiago,Instagram,,Trabajador,714,59c3bedd,,,,Familia,,{},Si
+04/02/2026,18:00,Eric Rodriguez,HotBoat Trip 2 people (69.990 per person),139990,0,139990,18000,0,18000,2,0,talcahuano,television,Lluvia,Trabajador,709,42b63277,,,,Pareja,,{},Si
+04/02/2026,20:00,Laura Hernandez,HotBoat Trip 2 people (69.990 per person),139990,0,139990,18000,0,18000,2,0,Viña,Instagram,Noche,Empresario,702,7e9f870b,,,,Pareja,,{},Si
+05/02/2026,12:00,sofia gutierrez,HotBoat Trip 5 people (38.990 per person),194950,41900,236850,18000,17040,35040,5,2,Santiago,Instagram,Sol,Empresario,720,dbd63bf6,,,,Familia,,"{""fanta"": 1, ""cerveza_artesanal_ambar"": 2, ""cerveza_artesanal_negra"": 2, ""champaña_riccadonna_asti"": 1}",Si
+05/02/2026,12:00,sofia gutierrez,HotBoat Trip 4 people (44.990 per person),179960,0,179960,18000,0,18000,0,0,,,,,721,,,,,,,{},No
+05/02/2026,15:00,Alexandra cigna,HotBoat Trip 4 people (44.990 per person),179960,0,179960,18000,0,18000,4,0,Concepcion,Instagram,Sol,Trabajador,701,570adce1,,,,Familia,,{},Si
+05/02/2026,17:00,Rubén Ormazabal,HotBoat Trip 4 people (44.990 per person),179960,0,179960,18000,0,18000,4,0,Valdivia,Instagram,Sol,Empresario,723,14f9fce5,,,,Grupo de amigos,,{},Si
+05/02/2026,20:00,Javier Megia,HotBoat Trip 2 people (69.990 per person),139990,0,139990,18000,0,18000,2,4,Temuco,Instagram,Sol,Empresario,727,3075ec95,,,,Familia,,{},Si
+05/02/2026,21:00,katherine arriagada,HotBoat Trip 4 people (44.990 per person),179960,0,179960,18000,0,18000,4,0,Santiago,Instagram,Sol,Trabajador,712,0619f086,,,,Familia,,{},Si
+06/02/2026,10:00,Maria Delfina Celedón,HotBoat Trip 2 people (69.990 per person),139990,0,139990,18000,0,18000,2,0,Temuco,Eran los papá de unos clientes ,Sol,,638,bbc2a705,,,,Pareja,,{},Si
+06/02/2026,12:00,Olivia Bravo,HotBoat Trip 4 people (44.990 per person),179960,0,179960,18000,0,18000,4,0,Valdivia,Instagram,Sol,Empresario,719,77ab49ac,,,,Grupo de amigos,,{},Si
+06/02/2026,17:00,Lisette Abarzúa,HotBoat Trip 3 people (54.990 per person),164970,0,164970,18000,0,18000,3,0,chillan,Instagram,Sol,Trabajador,730,df27c209,,,,Familia,,{},Si
+06/02/2026,19:00,Jaime Vargas,HotBoat Trip 2 people (69.990 per person),139990,30000,169990,18000,12990,30990,2,0,españa ,Google,Sol,Empresario,708,ffa7b4dc,,,,Pareja,,"{""tabla_2_personas"": 1, ""jugo_natural_1lt"": 1}",Si
+06/02/2026,21:00,José Fava,HotBoat Trip 2 people (69.990 per person),139990,20000,159990,18000,9000,27000,2,0,Santiago,Instagram,Noche,Trabajador,697,59a8c5eb,,,,Pareja,,"{""tabla_2_personas"": 1}",Si
+07/02/2026,10:00,Mariela Rabanal,HotBoat Trip 4 people (44.990 per person),179960,25000,204960,18000,12000,30000,4,0,Santiago,Instagram,Sol,Empresario,726,21a9a7c3,,,,Familia,,"{""tabla_4_personas"": 1}",Si
+07/02/2026,18:00,ximena cisternas vargas,HotBoat Trip 3 people (54.990 per person),164970,40000,204970,18000,10000,28000,3,0,Santiago,television ,Sol,Trabajador,453,16b4637d,,,,Familia,,"{""video_60_segundos"": 1}",Si
+07/02/2026,20:00,Mara Ibañez,HotBoat Trip 2 people (69.990 per person),139990,80000,219990,18000,22000,40000,2,0,Pucon,Instagram,Sol,Trabajador,710,3f471983,,,,Pareja,,"{""tabla_2_personas"": 1, ""video_60_segundos"": 1, ""pack_iluminacion_(velas_y_letras)"": 1}",Si
+08/02/2026,11:00,Jorge Urzua,HotBoat Trip 4 people (44.990 per person),179960,0,179960,18000,0,18000,4,0,Santiago,Instagram,Sol,Empresario,739,40792502,,,,Familia,,{},Si
+08/02/2026,18:00,Alejandro Alvear,HotBoat Trip 5 people (38.990 per person),194950,0,194950,18000,0,18000,5,0,Santiago,Instagram,Nublado,Empresario,729,118428b8,,,,Familia,,{},Si
+08/02/2026,20:00,Daniel Peredo,HotBoat Trip 3 people (54.990 per person),139990,68700,208690,18000,21250,39250,2,2,Santiago,Instagram,Entre yuvia y sol,Trabajador,738,8ce7e470,,,,Familia,,"{""fanta"": 1, ""tabla_2_personas"": 1, ""coca-cola"": 2, ""modo_romantico"": 1, ""video_60_segundos"": 1}",Si
+09/02/2026,14:00,Laura janet,HotBoat Trip 5 people (38.990 per person),194950,0,194950,18000,0,18000,5,2,valparaiso ,fasebook,Nublado,Empresario,737,db9e4c43,,,,Familia,,{},Si
+09/02/2026,17:00,Luis Venegas,HotBoat Trip 5 people (38.990 per person),194950,0,194950,18000,0,18000,0,0,,,,,731,,,,,,,{},No
+09/02/2026,17:00,Luis Venegas,HotBoat Trip 5 people (38.990 per person),194950,0,194950,18000,0,18000,0,0,,,,,732,,,,,,,{},No
+09/02/2026,20:00,Katherine Silva,HotBoat Trip 2 people (69.990 per person),139990,0,139990,18000,0,18000,0,0,,,,,756,,,,,,,{},No
+09/02/2026,22:00,williams peñaloza,HotBoat Trip 4 people (44.990 per person),179960,0,179960,18000,0,18000,4,0,Santiago,Instagram,Lluvia,Empresario,747,080577a0,,,,Grupo de amigos,,{},Si
+10/02/2026,11:00,Andrea flores caceres,HotBoat Trip 6 people (32.990 per person),197940,0,197940,18000,0,18000,0,0,,,,,748,,,,,,,{},No
+10/02/2026,14:00,celeste contreras arroyo,HotBoat Trip 7 people (29.990 per person),209930,0,209930,18000,0,18000,0,0,,,,,754,,,,,,,{},No
+10/02/2026,14:00,celeste contreras arroyo,HotBoat Trip 6 people (32.990 per person),197940,0,197940,18000,0,18000,0,0,,,,,760,,,,,,,{},No
+11/02/2026,09:00,javier figueroa,HotBoat Trip 5 people (38.990 per person),194950,0,194950,18000,0,18000,5,0,Santiago,Instagram,Lluvia,Trabajador,775,3b28c578,,,,Grupo de amigos,,{},Si
+11/02/2026,11:00,Sergio Godoy,HotBoat Trip 2 people (69.990 per person),139990,20000,159990,18000,9000,27000,2,0,Santiago,Instagram,,Empresario,761,c3929039,,,,Pareja,,"{""tabla_2_personas"": 1}",Si
+11/02/2026,14:00,carolina seebach,HotBoat Trip 2 people (69.990 per person),139990,0,139990,18000,0,18000,2,0,Santiago,Instagram,Lluvia,Empresario,762,005c40ad,,,,Pareja,,{},Si
+11/02/2026,17:00,karen seguell,HotBoat Trip 4 people (44.990 per person),179960,30000,209960,18000,10000,28000,4,0,Temuco,Instagram,Lluvia,Trabajador,768,458c50ab,,,,Familia,,"{""video_15_segundos"": 1}",Si
+11/02/2026,20:00,nestor arriagada,HotBoat Trip 6 people (32.990 per person),197940,0,197940,18000,0,18000,6,0,Santiago,Instagram,Noche,Trabajador,766,ffda7c18,,,,Familia,,{},Si
+12/02/2026,09:00,julio gallardo,HotBoat Trip 6 people (32.990 per person),197940,0,197940,18000,0,18000,6,0,Santiago,Instagram,Sol,Empresario,779,8b65da60,,,,Familia,,{},Si
+12/02/2026,11:00,carlos Carrasco,HotBoat Trip 4 people (44.990 per person),179960,0,179960,18000,0,18000,4,0,Concepcion,Instagram,Sol,Empresario,791,67c0d68f,,,,Familia,,{},Si
+12/02/2026,13:00,viviana cristina,HotBoat Trip 6 people (32.990 per person),179960,0,179960,18000,0,18000,4,2,Santiago,Instagram,Sol,Trabajador,780,822b1058,,,,Familia,,{},Si
+12/02/2026,15:00,sergio tapia,HotBoat Trip 4 people (44.990 per person),139990,0,139990,18000,0,18000,2,2,Temuco,Instagram,Sol,Empresario,771,3ad352c2,,,,Familia,,{},Si
+12/02/2026,17:00,miguel Villegas,HotBoat Trip 5 people (38.990 per person),194950,0,194950,18000,0,18000,5,0,Santiago,Instagram,Sol,,790,8d09e80a,,,,Familia,,{},Si
+12/02/2026,20:00,Francisca Tapia,HotBoat Trip 2 people (69.990 per person),139990,0,139990,18000,0,18000,0,0,,,,,741,,,,,,,{},No
+12/02/2026,22:00,Esteban Salazar,HotBoat Trip 2 people (69.990 per person),139990,0,139990,18000,0,18000,2,0,Santiago,Instagram,Noche,Empresario,792,ad0e85ee,,,,Pareja,,{},Si
+13/02/2026,10:00,gino silva,HotBoat Trip 4 people (44.990 per person),164970,0,164970,18000,0,18000,3,1,Temuco,Instagram,Sol,Trabajador,777,857d85ac,,,,Familia,,{},Si
+13/02/2026,15:00,Javiera Velasquez,HotBoat Trip 2 people (69.990 per person),139990,0,139990,18000,0,18000,0,0,,,,,734,,,,,,,{},No
+13/02/2026,17:00,Magaly González,HotBoat Trip 2 people (69.990 per person),139990,0,139990,18000,0,18000,0,0,,,,,733,,,,,,,{},No
+13/02/2026,19:00,andrea espejo,HotBoat Trip 2 people (69.990 per person),139990,0,139990,18000,0,18000,2,0,Concepcion,Google,Sol,Trabajador,685,bc4c8a4d,,,,Pareja,,{},Si
+13/02/2026,21:00,Javiera Pineda,HotBoat Trip 2 people (69.990 per person),139990,0,139990,18000,0,18000,2,0,Villarica ,Instagram,Noche,Trabajador,680,89dfe9c5,,,,Pareja,,{},Si
+14/02/2026,11:00,barbara arevalo,HotBoat Trip 5 people (38.990 per person),194950,15800,210750,18000,5490,23490,5,0,Santiago,Instagram,Sol,Empresario,773,0042ae58,,,,Familia,,"{""coca-cola"": 2, ""jugo_natural_1lt"": 1}",Si
+14/02/2026,11:00,barbara arevalo,HotBoat Trip 5 people (38.990 per person),194950,0,194950,18000,0,18000,5,0,Santiago,Instagram,Sol,Empresario,774,1b78cc6c,,,,Familia,,{},Si
+14/02/2026,15:00,jose antonio ramirez,HotBoat Trip 2 people (69.990 per person),139990,55000,194990,18000,15490,33490,2,0,Santiago,Instagram,Sol,Trabajador,783,913af7be,,,,Pareja,,"{""modo_romantico"": 1, ""video_60_segundos"": 1, ""champaña_riccadonna_ruby"": 1}",Si
+14/02/2026,19:00,Karina Burgos Carvajal,HotBoat Trip 2 people (69.990 per person),139990,58000,197990,18000,21600,39600,2,0,Concepcion,Instagram,Sol,Trabajador,704,314b697a,,,,Pareja,,"{""cerveza_royal"": 2, ""tabla_2_personas"": 1, ""video_15_segundos"": 1}",Si
+14/02/2026,21:00,Claudia Guarda,HotBoat Trip 2 people (69.990 per person),139990,0,139990,18000,0,18000,0,0,,,,,671,,,,,,,{},No
+15/02/2026,17:00,nicolas Hernandez,HotBoat Trip 2 people (69.990 per person),139990,0,139990,18000,0,18000,2,0,Santiago,Instagram,Sol,Trabajador,755,c2fcca11,,,,Pareja,,{},Si
+15/02/2026,19:00,Esli vega,HotBoat Trip 2 people (69.990 per person),139990,20000,159990,18000,9000,27000,2,0,Concepcion,Instagram,Sol,Trabajador,670,cb8e7f23,,,,Pareja,,"{""tabla_2_personas"": 1, ""modo_romantico"": 1}",Si
+15/02/2026,21:00,Rodrigo Contreras,HotBoat Trip 2 people (69.990 per person),139990,0,139990,18000,0,18000,2,1,Santiago,Instagram,Noche,Empresario,745,dd646020,,,,Familia,,{},Si
+16/02/2026,14:00,Maria Fernanda Guzman,HotBoat Trip 6 people (32.990 per person),197940,15000,212940,18000,2500,20500,6,2,Santiago,Instagram,,Empresario,820,ba31feac,,,,Familia,,"{""foto_con_marco"": 1}",Si
+16/02/2026,16:00,Cesar Barraza Cortés,HotBoat Trip 3 people (54.990 per person),139990,160000,299990,18000,72000,90000,2,1,Santiago,Instagram,Sol,Empresario,825,df839905,,,,Familia,,"{""tabla_2_personas"": 8}",Si
+16/02/2026,18:00,Javier Herrera,HotBoat Trip 2 people (69.990 per person),139990,0,139990,18000,0,18000,0,0,,,,,804,,,,,,,{},No
+17/02/2026,13:00,evans riveros,HotBoat Trip 7 people (29.990 per person),209930,0,209930,18000,0,18000,7,0,Concepcion,Instagram,Sol,Empresario,833,6b4fb0ca,,,,Grupo de amigos,,{},Si
+17/02/2026,15:00,andres ignacio vargas,HotBoat Trip 6 people (32.990 per person),197940,15000,212940,18000,2500,20500,6,0,Osorno ,Instagram,Sol,Trabajador,834,6966a089,,,,Familia,,"{""foto_con_marco"": 1}",Si
+17/02/2026,17:00,Juan Muñoz,HotBoat Trip 3 people (54.990 per person),164970,20000,184970,18000,9000,27000,3,0,Concepcion,Instagram,Sol,Trabajador,832,07579118,,,,Familia,,"{""tabla_2_personas"": 1}",Si
+17/02/2026,19:00,Ruben albornoz,HotBoat Trip 3 people (54.990 per person),164970,15000,179970,18000,2500,20500,3,1,Paillaco,Instagram,Sol,Empresario,830,407dab31,,,,Familia,,"{""foto_con_marco"": 1}",Si
+18/02/2026,06:00,Fernando Estrada,HotBoat Trip 4 people (44.990 per person),179960,15000,194960,18000,2500,20500,4,0,Santiago,Instagram,amanecer ,Empresario,845,e7286d90,,,,Familia,,"{""foto_con_marco"": 1}",Si
+18/02/2026,12:00,Jorge Provis,HotBoat Trip 3 people (54.990 per person),164970,20000,184970,18000,9000,27000,3,0,Concepcion,Instagram,Sol,Trabajador,821,7f818692,,,,Familia,,"{""tabla_2_personas"": 1}",Si
+18/02/2026,15:00,Daniela Almendras,HotBoat Trip 2 people (69.990 per person),139990,15000,154990,18000,2500,20500,2,0,Santiago,Instagram,Sol,Empresario,813,43fd319f,,,,Pareja,,"{""foto_con_marco"": 1}",Si
+18/02/2026,17:00,priscila lugaro,HotBoat Trip 3 people (54.990 per person),164970,0,164970,18000,0,18000,3,0,antofagasta ,Instagram,Sol,Empresario,782,4f230e72,,,,Familia,,{},Si
+18/02/2026,19:00,Rodrigo Feijoo Castillo,HotBoat Trip 4 people (44.990 per person),139990,25000,164990,18000,12000,30000,2,2,Concepcion,Instagram,atardecer,Empresario,807,2dacb824,,,,Familia,,"{""tabla_4_personas"": 1}",Si
+19/02/2026,11:00,Guillermo Valverde,HotBoat Trip 5 people (38.990 per person),194950,15000,209950,18000,2500,20500,5,0,Santiago,Tiktok,Sol,Trabajador,843,279bbbb0,,,,Familia,,"{""foto_con_marco"": 1}",Si
+19/02/2026,18:00,Claudio Uribe Planells,HotBoat Trip 2 people (69.990 per person),139990,15000,154990,18000,5490,23490,2,0,Santiago,Instagram,Sol,Empresario,805,9428e843,,,,Pareja,,"{""champaña_riccadonna_asti"": 1}",Si
+19/02/2026,21:00,Antonio Rubio,HotBoat Trip 2 people (69.990 per person),139990,48000,187990,18000,12990,30990,2,0,Santiago,Instagram,Noche,Empresario,816,406ac1c0,,,,Pareja,,"{""tabla_2_personas"": 1, ""toalla_poncho"": 2, ""jugo_natural_1lt"": 1}",Si
+20/02/2026,11:00,Nidia Rebeco,HotBoat Trip 2 people (69.990 per person),139990,20000,159990,18000,9000,27000,2,0,Santiago,Instagram,Sol,Empresario,836,431de888,,,,Pareja,,"{""tabla_2_personas"": 1}",Si
+20/02/2026,13:00,Natalia Riquelme,HotBoat Trip 5 people (38.990 per person),194950,0,194950,18000,0,18000,5,0,Chillan,Instagram,Sol,Trabajador,855,6c1f96bc,,,,Familia,,{},Si
+20/02/2026,15:00,Priscilla Alarcon Castro,HotBoat Trip 3 people (54.990 per person),164970,12000,176970,18000,5400,23400,3,0,Santiago,Instagram,Sol,Empresario,808,fa6723f7,,,,Familia,,"{""cerveza_artesanal_ambar"": 1, ""cerveza_artesanal_negra"": 1}",Si
+20/02/2026,17:00,Andrea Kauak,HotBoat Trip 2 people (69.990 per person),139990,32000,171990,18000,14400,32400,2,0,Santiago,Instagram,Sol,Trabajador,763,6aa2279e,,,,Pareja,,"{""tabla_2_personas"": 1, ""cerveza_artesanal_negra"": 2}",Si
+20/02/2026,21:00,giovanni carrillo hernandez,HotBoat Trip 2 people (69.990 per person),139990,20800,160790,18000,6990,24990,2,0,Antofagasta ,Instagram,Atardecer ,Empresario,852,c4a3c474,,,,Pareja,,"{""coca-cola"": 2, ""champaña_riccadonna_asti"": 1}",Si
+21/02/2026,09:00,Gonzalo Elgueta,HotBoat Trip 3 people (54.990 per person),164970,0,164970,18000,0,18000,0,0,,,,,853,,,,,,,{},No
+21/02/2026,16:00,Makarena Valdebenito,HotBoat Trip 3 people (54.990 per person),139990,20000,159990,18000,9000,27000,2,1,Concepcion,Instagram,Sol,Empresario,856,b67e6fb5,,,,Familia,,"{""tabla_2_personas"": 1}",Si
+21/02/2026,19:00,Cami Toro,HotBoat Trip 4 people (44.990 per person),164970,20000,184970,18000,9000,27000,3,1,,,,Empresario,736,7c36490f,,,,Familia,,"{""tabla_2_personas"": 1}",Si
+22/02/2026,12:00,Paola Salinas García,HotBoat Trip 4 people (44.990 per person),164970,20000,184970,18000,9000,27000,3,2,Coquimbo ,Instagram,Sol,Trabajador,857,b2e9dee0,,,,Familia,,"{""tabla_2_personas"": 1}",Si
+22/02/2026,16:00,erika martinez,HotBoat Trip 2 people (69.990 per person),139990,0,139990,18000,0,18000,2,0,Santiago,Instagram,Sol,Empresario,681,26bade09,,,,Pareja,,{},Si
+22/02/2026,22:00,Olga Marcela,HotBoat Trip 4 people (44.990 per person),139990,0,139990,18000,0,18000,2,2,Concepcion,Instagram,Noche,Empresario,862,9e26d0fd,,,,Familia,,{},Si
+23/02/2026,16:00,gabriela caceres,HotBoat Trip 4 people (44.990 per person),179960,0,179960,18000,0,18000,4,0,Santiago,Instagram,Sol,Empresario,859,697b809a,,,,Familia,,{},Si
+23/02/2026,19:00,yulimar rangel,HotBoat Trip 3 people (54.990 per person),139990,0,139990,18000,0,18000,2,1,Santiago,Instagram,Sol,Trabajador,872,bbd01862,,,,Familia,,{},Si
+23/02/2026,22:00,Paula Calbacho,HotBoat Trip 3 people (54.990 per person),164970,0,164970,18000,0,18000,0,0,,,,,865,,,,,,,{},No
+24/02/2026,12:00,Eileen Cartes Gallardo,HotBoat Trip 3 people (54.990 per person),164970,0,164970,18000,0,18000,0,0,,,,,870,,,,,,,{},No
+24/02/2026,17:00,Marco Johans,HotBoat Trip 2 people (69.990 per person),139990,0,139990,18000,0,18000,0,0,,,,,863,,,,,,,{},No
+25/02/2026,11:00,Betsabe Torres,HotBoat Trip 7 people (29.990 per person),209930,0,209930,18000,0,18000,0,0,,,,,877,,,,,,,{},No
+25/02/2026,16:00,erika moniz,HotBoat Trip 4 people (44.990 per person),179960,0,179960,18000,0,18000,0,0,,,,,849,,,,,,,{},No
+25/02/2026,21:00,Tamara Isabelle,HotBoat Trip 4 people (44.990 per person),179960,0,179960,18000,0,18000,0,0,,,,,868,,,,,,,{},No
+26/02/2026,00:00,Barbara Morales,HotBoat Trip 2 people (69.990 per person),139990,0,139990,18000,0,18000,0,0,,,,,879,,,,,,,{},No
+26/02/2026,09:00,luis fuler,HotBoat Trip 2 people (69.990 per person),139990,0,139990,18000,0,18000,2,0,Santiago,Instagram,Sol,Empresario,880,220c1aa4,,,,Pareja,,{},Si
+26/02/2026,14:00,Mariana Pastorini,HotBoat Trip 2 people (69.990 per person),139990,40000,179990,18000,10000,28000,2,0,Santiago,Instagram,Sol,Empresario,875,b44f0be1,,,,Pareja,,"{""video_60_segundos"": 1}",Si
+26/02/2026,17:00,nevenka zambrano,HotBoat Trip 7 people (29.990 per person),209930,0,209930,18000,0,18000,7,0,Temuco,Instagram,Sol,Trabajador,881,021448d4,,,,Familia,,{},Si
+26/02/2026,19:00,Gustavo Catalan,HotBoat Trip 2 people (69.990 per person),139990,60000,199990,18000,13000,31000,2,0,Santiago,Instagram,Noche,,873,ef95cb9b,,,,Pareja,,"{""modo_romantico"": 1, ""video_60_segundos"": 1, ""pack_iluminacion_(velas_y_letras)"": 1}",Si
+27/02/2026,11:00,carolina valverde,HotBoat Trip 8 people (29.990 per person),209930,45000,254930,18000,7500,25500,7,1,Santiago,Instagram,Sol,Empresario,840,ee26745b,,,,Grupo de amigos,,"{""foto_con_marco"": 3}",Si
+27/02/2026,14:00,natacha labra,HotBoat Trip 2 people (69.990 per person),139990,23000,162990,18000,5100,23100,2,0,Santiago,Instagram,Sol,Empresario,885,65deb01f,,,,Pareja,,"{""foto_con_marco"": 1, ""cerveza_austral_lager"": 1, ""cerveza_austral_calafate"": 1}",Si
+27/02/2026,16:00,Shaira minulen pacheco,HotBoat Trip 4 people (44.990 per person),179960,0,179960,18000,0,18000,4,0,Temuco,Instagram,Lluvia,Trabajador,884,41461249,,,,Grupo de amigos,,{},Si
+27/02/2026,20:00,natalie leyton,HotBoat Trip 2 people (69.990 per person),139990,14000,153990,18000,5290,23290,2,0,Concepcion,Instagram,Noche,Empresario,882,59aba827,,,,Pareja,,"{""jugo_natural_1lt"": 1, ""cerveza_austral_calafate"": 1}",Si
+28/02/2026,10:00,Ana Navarrete Pinto,HotBoat Trip 5 people (38.990 per person),194950,0,194950,18000,0,18000,5,0,Santiago,Instagram,Lluvia,Empresario,886,85c88431,,,,Familia,,{},Si
+28/02/2026,13:00,Lidia Azocar,HotBoat Trip 4 people (44.990 per person),179960,0,179960,18000,0,18000,4,0,Santiago,Instagram,Lluvia,Empresario,895,c2a8771d,,,,Familia,,{},Si
+28/02/2026,16:00,Florencia Muñoz,HotBoat Trip 6 people (32.990 per person),0,0,0,18000,0,18000,6,0,Santiago,Instagram,Lluvia,Empresario,869,9e197c50,,,,Grupo de amigos,,{},Si
+01/03/2026,12:00,Claudio Ramos,HotBoat Trip 4 people (44.990 per person),179960,0,179960,18000,0,18000,0,0,,,,,892,,,,,,,{},No
+01/03/2026,15:00,Ximena Zepeda,HotBoat Trip 3 people (54.990 per person),164970,0,164970,18000,0,18000,0,0,,,,,891,,,,,,,{},No
+01/03/2026,21:00,ismael elejandro banda,HotBoat Trip 2 people (69.990 per person),139990,0,139990,18000,0,18000,0,0,,,,,829,,,,,,,{},No
+02/03/2026,14:00,Carolina chirinos,HotBoat Trip 4 people (44.990 per person),179960,101000,280960,18000,22000,40000,4,0,Santiago,Google,Lluvia,Empresario,897,a2f96b32,,,,Familia,,"{""toalla"": 2, ""tabla_4_personas"": 1, ""toalla_poncho"": 2, ""modo_romantico"": 1, ""video_60_segundos"": 1}",Si
+02/03/2026,20:00,jonathan aranguiz,HotBoat Trip 2 people (69.990 per person),139990,0,139990,18000,0,18000,2,0,Santiago,Instagram,Noche,Trabajador,904,8d99a88b,,,,Pareja,,{},Si
+03/03/2026,14:00,Tatiana Méndez,HotBoat Trip 4 people (44.990 per person),179960,0,179960,18000,0,18000,4,0,chillan,Instagram,Sol,Empresario,905,39498245,,,,Familia,,{},Si
+03/03/2026,17:00,pablo snowpark,HotBoat Trip 2 people (69.990 per person),139990,35000,174990,18000,11000,29000,2,0,Pucon,Amigo de tomi,Lluvia,Empresario,900,4424a33d,,,,Pareja,,"{""tabla_2_personas"": 1, ""letras_te_amo"": 1}",Si
+03/03/2026,20:00,william noetzel,HotBoat Trip 2 people (69.990 per person),139990,0,139990,18000,0,18000,2,0,Australia ,Instagram,Lluvia,Empresario,809,3bbc9f5b,,,,Pareja,,{},Si
+04/03/2026,13:00,Romina torres,HotBoat Trip 4 people (44.990 per person),179960,0,179960,18000,0,18000,0,0,,,,,906,,,,,,,{},No
+06/03/2026,14:00,Vanessa francisca,HotBoat Trip 2 people (69.990 per person),139990,0,139990,18000,0,18000,2,0,Temuco,Instagram,Sol,Trabajador,894,71123baf,,,,Pareja de amigos,,{},Si
+07/03/2026,18:00,Jhon Burgos,HotBoat Trip 2 people (69.990 per person),139990,35000,174990,18000,14490,32490,2,0,antofagasta,Instagram,Sol,Trabajador,876,7739a9da,,,,Pareja,,"{""tabla_2_personas"": 1, ""champaña_riccadonna_ruby"": 1}",Si
+08/03/2026,00:00,Julian Nicolas Faundez Aguila,HotBoat Trip 5 people (38.990 per person),194950,0,194950,18000,0,18000,0,0,,,,,903,,,,,,,{},No
+08/03/2026,20:00,joaquin jimenez,HotBoat Trip 2 people (69.990 per person),139990,0,139990,18000,0,18000,2,0,Concon,Instagram,Noche,Trabajador,920,ee26dc10,,,,Pareja,,{},Si

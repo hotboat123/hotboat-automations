@@ -103,18 +103,34 @@ En el proyecto `hotboat-etl`, configura la sincronización de la tabla `Reservas
 
 ## 🔄 Funcionamiento
 
+### Estructura de Datos
+
+La tabla `Reservas_Con_Extras_Sheets` ahora tiene **columnas individuales** (formato tabular) en vez de un JSON gigante:
+
+- **IDs**: `appointment_id`, `reservation_id`
+- **Fecha/Hora**: `fecha`, `hora`
+- **Cliente**: `nombre_cliente`, `email`, `telefono`
+- **Servicio**: `servicio`, `num_personas`, `num_adultos`, `num_ninos`
+- **Ingresos**: `ingreso_reserva`, `ingreso_extras`, `ingreso_total`
+- **Costos**: `costo_operativo_fijo`, `costo_operativo_variable`, `costo_operativo_total`
+- **Metadata**: `ciudad_origen`, `como_supieron`, `clima_del_dia`, `categoria_clientes`, `tipo_clientes`
+- **Estado**: `status`, `tiene_cruce`
+- **Extras**: `extras_json` (único campo JSON, opcional)
+
+Esto hace que sea **mucho más fácil** consultar y analizar los datos directamente en la base de datos o en Google Sheets.
+
 ### Sincronización Automática
 
 El monitor `ReservasSheetsSyncMonitor`:
 1. Se ejecuta cada 10 minutos
-2. Lee los datos de `reservas_con_extras` (últimos 90 días por defecto)
-3. Los inserta/actualiza en `Reservas_Con_Extras_Sheets`
+2. Lee los datos de `reservas_con_extras` 
+3. Los inserta/actualiza en `Reservas_Con_Extras_Sheets` con columnas individuales
 4. `hotboat-etl` detecta los cambios y los sube a Google Sheets
 
-### Limpieza Automática
+### Sincronización Inteligente
 
-- Los datos más antiguos que `sync_days_back` (90 días) se eliminan automáticamente
-- Esto mantiene la tabla ligera y rápida
+- **Solo sincroniza fechas >= HOY** por defecto (preserva ediciones manuales en fechas pasadas)
+- Para cambiar este comportamiento: `sync_from_today: false` en `config.yaml`
 
 ## 📊 Uso en Looker Studio
 

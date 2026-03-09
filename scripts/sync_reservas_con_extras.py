@@ -385,31 +385,36 @@ def sync_reservas_con_extras(start_date: str = None, end_date: str = None, force
                 ingreso_base = 0
                 costo_base = 0
                 
-                # Intentar obtener número de personas
-                # Prioridad: 1) adultos, 2) num_personas, 3) extraer del nombre del servicio
-                num_personas_calculado = 2  # default
-                
-                if adultos > 0:
-                    num_personas_calculado = adultos
-                elif num_personas and str(num_personas).isdigit():
-                    num_personas_calculado = int(num_personas)
+                # EXCEPCIÓN: Si payment_amount es 0, no hay ingreso
+                if not payment_amount or payment_amount == 0:
+                    ingreso_base = 0
+                    ingreso_extras = 0  # Tampoco cobrar extras si no hay pago
                 else:
-                    # Intentar extraer del nombre del servicio: "HotBoat Trip 5 people"
-                    import re
-                    if service_name:
-                        match = re.search(r'(\d+)\s*people', service_name, re.IGNORECASE)
-                        if match:
-                            num_personas_calculado = int(match.group(1))
-                
-                # Buscar en tabla de precios HotBoat
-                if num_personas_calculado in hotboat_prices:
-                    ingreso_base, costo_base = hotboat_prices[num_personas_calculado]
-                else:
-                    # Si no está en la tabla, usar el payment como fallback
-                    ingreso_base = float(payment_amount) if payment_amount else 0
-                    # Y restar los extras para no duplicar
-                    if ingreso_base > ingreso_extras:
-                        ingreso_base -= ingreso_extras
+                    # Intentar obtener número de personas
+                    # Prioridad: 1) adultos, 2) num_personas, 3) extraer del nombre del servicio
+                    num_personas_calculado = 2  # default
+                    
+                    if adultos > 0:
+                        num_personas_calculado = adultos
+                    elif num_personas and str(num_personas).isdigit():
+                        num_personas_calculado = int(num_personas)
+                    else:
+                        # Intentar extraer del nombre del servicio: "HotBoat Trip 5 people"
+                        import re
+                        if service_name:
+                            match = re.search(r'(\d+)\s*people', service_name, re.IGNORECASE)
+                            if match:
+                                num_personas_calculado = int(match.group(1))
+                    
+                    # Buscar en tabla de precios HotBoat
+                    if num_personas_calculado in hotboat_prices:
+                        ingreso_base, costo_base = hotboat_prices[num_personas_calculado]
+                    else:
+                        # Si no está en la tabla, usar el payment como fallback
+                        ingreso_base = float(payment_amount) if payment_amount else 0
+                        # Y restar los extras para no duplicar
+                        if ingreso_base > ingreso_extras:
+                            ingreso_base -= ingreso_extras
                 
                 ingreso_total = float(ingreso_base) + ingreso_extras
                 costo_total = COSTO_FIJO_POR_RESERVA + costo_variable

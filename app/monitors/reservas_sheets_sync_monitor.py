@@ -132,71 +132,105 @@ class ReservasSheetsSyncMonitor(BaseMonitor):
     async def _upsert_reserva_to_sheets(self, reserva: Dict[str, Any]) -> None:
         """
         Inserta o actualiza una reserva en la tabla intermedia de Google Sheets
+        Ahora usa columnas individuales en vez de un JSON gigante
         """
-        # Construir el objeto JSON para Google Sheets
-        sheets_data = {
-            'id': str(reserva.get('id', '')),
-            'appointment_id': str(reserva.get('appointment_id', '')),
-            'reservation_id': str(reserva.get('reservation_id', '')),
-            'fecha': reserva.get('fecha').strftime('%Y-%m-%d') if reserva.get('fecha') else '',
-            'hora': reserva.get('hora').strftime('%H:%M:%S') if reserva.get('hora') else '',
-            'nombre_cliente': reserva.get('nombre_cliente', ''),
-            'email': reserva.get('email', ''),
-            'telefono': reserva.get('telefono', ''),
-            'servicio': reserva.get('servicio', ''),
-            'num_personas': int(reserva.get('num_personas') or 0),
-            'ingreso_reserva': float(reserva.get('ingreso_reserva') or 0),
-            'ingreso_extras': float(reserva.get('ingreso_extras') or 0),
-            'ingreso_total': float(reserva.get('ingreso_total') or 0),
-            'costo_operativo_fijo': float(reserva.get('costo_operativo_fijo') or 0),
-            'costo_operativo_variable': float(reserva.get('costo_operativo_variable') or 0),
-            'costo_operativo_total': float(reserva.get('costo_operativo_total') or 0),
-            'num_adultos': int(reserva.get('num_adultos') or 0),
-            'num_ninos': int(reserva.get('num_ninos') or 0),
-            'ciudad_origen': reserva.get('ciudad_origen', ''),
-            'como_supieron': reserva.get('como_supieron', ''),
-            'clima_del_dia': reserva.get('clima_del_dia', ''),
-            'categoria_clientes': reserva.get('categoria_clientes', ''),
-            'tipo_clientes': reserva.get('tipo_clientes', ''),
-            'status': reserva.get('status', ''),
-            'tiene_cruce': bool(reserva.get('tiene_cruce', False)),
-            'extras_json': reserva.get('extras_json') or {},
-        }
-        
-        # Upsert en la tabla de Google Sheets
-        # Nota: Como usamos un índice único en lugar de constraint, 
-        # necesitamos hacer insert y capturar el error de duplicado
         import json
         
+        # Preparar los datos (convertir tipos correctamente)
+        appointment_id = str(reserva.get('appointment_id', ''))
+        reservation_id = str(reserva.get('reservation_id', '')) if reserva.get('reservation_id') else None
+        fecha = reserva.get('fecha')
+        hora = reserva.get('hora')
+        nombre_cliente = reserva.get('nombre_cliente', '')
+        email = reserva.get('email', '')
+        telefono = reserva.get('telefono', '')
+        servicio = reserva.get('servicio', '')
+        num_personas = str(reserva.get('num_personas', '')) if reserva.get('num_personas') else None
+        
+        ingreso_reserva = float(reserva.get('ingreso_reserva') or 0)
+        ingreso_extras = float(reserva.get('ingreso_extras') or 0)
+        ingreso_total = float(reserva.get('ingreso_total') or 0)
+        
+        costo_operativo_fijo = float(reserva.get('costo_operativo_fijo') or 0)
+        costo_operativo_variable = float(reserva.get('costo_operativo_variable') or 0)
+        costo_operativo_total = float(reserva.get('costo_operativo_total') or 0)
+        
+        num_adultos = int(reserva.get('num_adultos') or 0)
+        num_ninos = int(reserva.get('num_ninos') or 0)
+        
+        ciudad_origen = reserva.get('ciudad_origen', '')
+        como_supieron = reserva.get('como_supieron', '')
+        clima_del_dia = reserva.get('clima_del_dia', '')
+        categoria_clientes = reserva.get('categoria_clientes', '')
+        tipo_clientes = reserva.get('tipo_clientes', '')
+        
+        status = reserva.get('status', '')
+        tiene_cruce = bool(reserva.get('tiene_cruce', False))
+        
+        # Extras como JSON
+        extras_json = reserva.get('extras_json') or {}
+        extras_json_str = json.dumps(extras_json) if extras_json else '{}'
+        
+        # Upsert query con columnas individuales
         upsert_query = """
-            INSERT INTO "Reservas_Con_Extras_Sheets" (raw, source, created_at, updated_at)
-            VALUES (%s::jsonb, 'reservas_con_extras', NOW(), NOW())
-            ON CONFLICT ON CONSTRAINT unique_reserva_sheets DO UPDATE SET
-                raw = EXCLUDED.raw,
+            INSERT INTO "Reservas_Con_Extras_Sheets" (
+                appointment_id, reservation_id, fecha, hora,
+                nombre_cliente, email, telefono,
+                servicio, num_personas,
+                ingreso_reserva, ingreso_extras, ingreso_total,
+                costo_operativo_fijo, costo_operativo_variable, costo_operativo_total,
+                num_adultos, num_ninos,
+                ciudad_origen, como_supieron, clima_del_dia,
+                categoria_clientes, tipo_clientes,
+                status, tiene_cruce, extras_json,
+                source, created_at, updated_at
+            ) VALUES (
+                %s, %s, %s, %s,
+                %s, %s, %s,
+                %s, %s,
+                %s, %s, %s,
+                %s, %s, %s,
+                %s, %s,
+                %s, %s, %s,
+                %s, %s,
+                %s, %s, %s::jsonb,
+                'reservas_con_extras', NOW(), NOW()
+            )
+            ON CONFLICT (appointment_id, fecha) DO UPDATE SET
+                reservation_id = EXCLUDED.reservation_id,
+                hora = EXCLUDED.hora,
+                nombre_cliente = EXCLUDED.nombre_cliente,
+                email = EXCLUDED.email,
+                telefono = EXCLUDED.telefono,
+                servicio = EXCLUDED.servicio,
+                num_personas = EXCLUDED.num_personas,
+                ingreso_reserva = EXCLUDED.ingreso_reserva,
+                ingreso_extras = EXCLUDED.ingreso_extras,
+                ingreso_total = EXCLUDED.ingreso_total,
+                costo_operativo_fijo = EXCLUDED.costo_operativo_fijo,
+                costo_operativo_variable = EXCLUDED.costo_operativo_variable,
+                costo_operativo_total = EXCLUDED.costo_operativo_total,
+                num_adultos = EXCLUDED.num_adultos,
+                num_ninos = EXCLUDED.num_ninos,
+                ciudad_origen = EXCLUDED.ciudad_origen,
+                como_supieron = EXCLUDED.como_supieron,
+                clima_del_dia = EXCLUDED.clima_del_dia,
+                categoria_clientes = EXCLUDED.categoria_clientes,
+                tipo_clientes = EXCLUDED.tipo_clientes,
+                status = EXCLUDED.status,
+                tiene_cruce = EXCLUDED.tiene_cruce,
+                extras_json = EXCLUDED.extras_json,
                 updated_at = NOW()
         """
         
-        try:
-            await self.db.execute_non_query(upsert_query, (json.dumps(sheets_data),))
-        except Exception as e:
-            # Si falla por el constraint, intentar update directo
-            if 'unique' in str(e).lower() or 'duplicate' in str(e).lower():
-                update_query = """
-                    UPDATE "Reservas_Con_Extras_Sheets"
-                    SET raw = %s::jsonb, updated_at = NOW()
-                    WHERE raw->>'appointment_id' = %s AND raw->>'fecha' = %s
-                """
-                rows_affected = await self.db.execute_non_query(
-                    update_query, 
-                    (json.dumps(sheets_data), sheets_data['appointment_id'], sheets_data['fecha'])
-                )
-                
-                # Si no existe, insertar
-                if rows_affected == 0:
-                    insert_query = """
-                        INSERT INTO "Reservas_Con_Extras_Sheets" (raw, source, created_at, updated_at)
-                        VALUES (%s::jsonb, 'reservas_con_extras', NOW(), NOW())
-                    """
-                    await self.db.execute_non_query(insert_query, (json.dumps(sheets_data),))
-            else:
-                raise
+        await self.db.execute_non_query(upsert_query, (
+            appointment_id, reservation_id, fecha, hora,
+            nombre_cliente, email, telefono,
+            servicio, num_personas,
+            ingreso_reserva, ingreso_extras, ingreso_total,
+            costo_operativo_fijo, costo_operativo_variable, costo_operativo_total,
+            num_adultos, num_ninos,
+            ciudad_origen, como_supieron, clima_del_dia,
+            categoria_clientes, tipo_clientes,
+            status, tiene_cruce, extras_json_str
+        ))
