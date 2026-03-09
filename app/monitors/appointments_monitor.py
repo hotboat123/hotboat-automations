@@ -322,6 +322,18 @@ class AppointmentsMonitor(BaseMonitor):
         if email:
             contact_line += f" | {email}"
         lines.append(contact_line)
+        
+        # Agregar link de WhatsApp con mensaje personalizado
+        if phone_number and phone_number != 'N/A':
+            # Limpiar el número (solo dígitos, mantener el +)
+            clean_phone = ''.join(ch for ch in phone_number if ch.isdigit() or ch == '+')
+            # Mensaje personalizado con la fecha de la reserva
+            whatsapp_message = f"Hola! como estas? Tomás de HotBoat por aquí, me aparece que intentaste hacer una reserva para el día {date_str} y tuviste problemas para realizar el pago, te ayudo por aquí?"
+            # Encode URL
+            import urllib.parse
+            encoded_message = urllib.parse.quote(whatsapp_message)
+            whatsapp_link = f"https://wa.me/{clean_phone.lstrip('+')}?text={encoded_message}"
+            lines.append(f"💬 WhatsApp: {whatsapp_link}")
 
         lines.append(f"📅 Fecha: {date_str} a las {time_str}")
         lines.append(f"🛥️ Servicio: {service_label}")

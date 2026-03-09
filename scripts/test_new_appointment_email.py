@@ -23,10 +23,21 @@ from app.logger import logger
 
 def create_sample_appointment_message():
     """Crea un mensaje de ejemplo idéntico al que se envía con una nueva reserva"""
+    # Número de teléfono para el link de WhatsApp
+    phone = "+56912345678"
+    fecha = "16/01/2026"
+    
+    # Mensaje personalizado para WhatsApp
+    import urllib.parse
+    whatsapp_message = f"Hola! como estas? Tomás de HotBoat por aquí, me aparece que intentaste hacer una reserva para el día {fecha} y tuviste problemas para realizar el pago, te ayudo por aquí?"
+    encoded_message = urllib.parse.quote(whatsapp_message)
+    whatsapp_link = f"https://wa.me/{phone.lstrip('+')}?text={encoded_message}"
+    
     message = """🎉 *Nueva Reserva HotBoat*
 
 👤 Cliente: Juan Pérez (PRUEBA)
 📞 Contacto: +56912345678 | juan@example.com
+💬 WhatsApp: {whatsapp_link}
 📅 Fecha: 16/01/2026 a las 14:00
 🛥️ Servicio: Lancha Deportiva - 8 personas
 👥 Personas: 8
@@ -39,7 +50,7 @@ def create_sample_appointment_message():
 🕒 Creada: {created_at}
 
 📝 Notas: Esta es una reserva de prueba para verificar el envío de emails.
-""".format(created_at=datetime.now().strftime('%d/%m/%Y %H:%M'))
+""".format(created_at=datetime.now().strftime('%d/%m/%Y %H:%M'), whatsapp_link=whatsapp_link)
     
     return message
 
