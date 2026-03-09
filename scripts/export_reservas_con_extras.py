@@ -54,6 +54,11 @@ def find_cost_for_extra(extra_name: str, costs_dict: Dict[str, float]) -> float:
         'jugo_berries': 'jugo_1l',
         'jugo_natural_1lt': 'jugo_1l',
         'foto_con_marco': 'foto_con_marco',
+        # Champañas - mapear riccadonna (doble n) a riccadona (una n)
+        'champana_riccadonna_ruby': 'champana_riccadona',
+        'champana_riccadonna_asti': 'champana_riccadona',
+        'champana_riccadonna_moscato_rose': 'champana_riccadona',
+        'champana_riccadonna': 'champana_riccadona',
     }
     
     if extra_normalized in mappings:
@@ -114,8 +119,17 @@ def load_costs_and_prices_from_db(conn) -> tuple[Dict[str, float], Dict[str, flo
                 precio = 0
             
             normalized = normalize_text(extra_name)
-            costs[normalized] = costo
-            prices[normalized] = precio
+            
+            # Si hay duplicados, quedarnos con el precio/costo más alto (más actual)
+            if normalized in costs:
+                costs[normalized] = max(costs[normalized], costo)
+            else:
+                costs[normalized] = costo
+            
+            if normalized in prices:
+                prices[normalized] = max(prices[normalized], precio)
+            else:
+                prices[normalized] = precio
             
             # Detectar precios base de HotBoat
             if 'hotboat' in extra_name.lower():
