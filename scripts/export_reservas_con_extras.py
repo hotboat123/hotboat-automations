@@ -343,8 +343,21 @@ def get_reservations_with_extras(conn, start_date: str, end_date: str, costs_dic
             # CALCULAR INGRESO BASE SEGÚN NÚMERO DE PERSONAS
             ingreso_base = 0
             
-            # Intentar obtener número de personas (adultos)
-            num_personas_calculado = adultos if adultos > 0 else (int(num_personas) if num_personas and str(num_personas).isdigit() else 2)
+            # Intentar obtener número de personas
+            # Prioridad: 1) adultos, 2) num_personas, 3) extraer del nombre del servicio
+            num_personas_calculado = 2  # default
+            
+            if adultos > 0:
+                num_personas_calculado = adultos
+            elif num_personas and str(num_personas).isdigit():
+                num_personas_calculado = int(num_personas)
+            else:
+                # Intentar extraer del nombre del servicio: "HotBoat Trip 5 people"
+                import re
+                if service_name:
+                    match = re.search(r'(\d+)\s*people', service_name, re.IGNORECASE)
+                    if match:
+                        num_personas_calculado = int(match.group(1))
             
             # Buscar en tabla de precios HotBoat
             if num_personas_calculado in hotboat_prices:
