@@ -62,6 +62,12 @@ class BaseMonitor(ABC):
                 # Detectar cambios
                 if self.last_state is not None:
                     await self.detect_changes(current_state)
+                elif current_state and getattr(
+                    self, "process_first_cycle_when_state_nonempty", False
+                ):
+                    # P. ej. DailySummaryMonitor: si el proceso arranca justo después de las 9:00,
+                    # la primera iteración debe poder enviar el reporte (antes se saltaba detect_changes).
+                    await self.detect_changes(current_state)
                 else:
                     logger.info(f"📸 {self.name}: Estado inicial capturado")
                 

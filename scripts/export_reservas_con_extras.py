@@ -59,6 +59,10 @@ def find_cost_for_extra(extra_name: str, costs_dict: Dict[str, float]) -> float:
         'champana_riccadonna_asti': 'champana_riccadona',
         'champana_riccadonna_moscato_rose': 'champana_riccadona',
         'champana_riccadonna': 'champana_riccadona',
+        # Hora extra - variantes del formulario
+        'hora_extra': 'hora_extra',
+        'hora_adicional': 'hora_extra',
+        'hora_extra_de_navegacion': 'hora_extra',
     }
     
     if extra_normalized in mappings:

@@ -111,6 +111,10 @@ def find_cost_for_extra(extra_name: str, costs_dict: Dict[str, float]) -> float:
         'champana_riccadonna_asti': 'champana_riccadona',
         'champana_riccadonna_moscato_rose': 'champana_riccadona',
         'champana_riccadonna': 'champana_riccadona',
+        # Hora extra - variantes del formulario
+        'hora_extra': 'hora_extra',
+        'hora_adicional': 'hora_extra',
+        'hora_extra_de_navegacion': 'hora_extra',
     }
     
     if extra_normalized in mappings:
@@ -247,9 +251,19 @@ def sync_reservas_con_extras(start_date: str = None, end_date: str = None, force
                     ba.id::text as appointment_id,
                     DATE(TO_TIMESTAMP(ba.raw->>'start_date', 'DD/MM/YYYY HH24:MI')) as appointment_date,
                     TO_CHAR(TO_TIMESTAMP(ba.raw->>'start_date', 'DD/MM/YYYY HH24:MI'), 'HH24:MI:SS') as appointment_time,
-                    ba.raw->>'customer_name' as customer_name,
-                    ba.raw->>'customer_email' as customer_email,
-                    ba.raw->>'customer_phone_number' as customer_phone,
+                    -- Booknetic guarda el nombre en raw->>'customer' (igual que export_reservas_con_extras.py)
+                    COALESCE(
+                        NULLIF(TRIM(ba.raw->>'customer'), ''),
+                        NULLIF(TRIM(ba.raw->>'customer_name'), '')
+                    ) as customer_name,
+                    COALESCE(
+                        NULLIF(TRIM(ba.raw->>'email'), ''),
+                        NULLIF(TRIM(ba.raw->>'customer_email'), '')
+                    ) as customer_email,
+                    COALESCE(
+                        NULLIF(TRIM(ba.raw->>'phone'), ''),
+                        NULLIF(TRIM(ba.raw->>'customer_phone_number'), '')
+                    ) as customer_phone,
                     ba.raw->>'service' as service_name,
                     CAST(
                         REGEXP_REPLACE(

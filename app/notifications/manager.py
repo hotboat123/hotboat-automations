@@ -44,7 +44,7 @@ class NotificationManager:
                 self.notifiers["email"] = email
                 logger.info("📧 Notificador de Email activado")
             except Exception as e:
-                logger.error(f"❌ Error al inicializar Email: {e}")
+                logger.error(f"❌ Error al inicializar Email: {e}", exc_info=True)
         
         # WhatsApp
         if notifications_config.get("whatsapp", {}).get("enabled", False):

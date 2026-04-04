@@ -84,57 +84,67 @@ class WeeklyMonthlySummaryMonitor(BaseMonitor):
         for report_request in current_state:
             report_type = report_request.get("type")
             report_date = report_request.get("date")
+            start_date = report_request.get("start_date")
+            end_date = report_request.get("end_date")
             
             if report_type == "weekly":
-                await self._generate_weekly_report(report_date)
-                self.last_weekly_report_date = report_date
+                if start_date and end_date:
+                    await self._generate_weekly_report_with_dates(start_date, end_date)
+                elif report_date:
+                    await self._generate_weekly_report(report_date)
+                else:
+                    logger.error("Reporte semanal: falta 'date' o 'start_date'/'end_date'")
+                    continue
+                self.last_weekly_report_date = report_date or end_date
             elif report_type == "monthly":
-                await self._generate_monthly_report(report_date)
-                self.last_monthly_report_date = report_date
+                if start_date and end_date:
+                    await self._generate_monthly_report_with_dates(start_date, end_date)
+                elif report_date:
+                    await self._generate_monthly_report(report_date)
+                else:
+                    logger.error("Reporte mensual: falta 'date' o 'start_date'/'end_date'")
+                    continue
+                self.last_monthly_report_date = report_date or end_date
     
     async def _generate_weekly_report(self, current_date: date):
-        """Genera reporte semanal"""
+        """Genera reporte semanal (usa current_date para calcular rango)"""
         logger.info("📊 Generando reporte semanal...")
-        
         try:
-            # Calcular rango de la semana pasada (lunes a domingo)
             last_monday = current_date - timedelta(days=7)
             last_sunday = last_monday + timedelta(days=6)
-            
-            # Obtener datos
-            summary = await self._get_period_summary(last_monday, last_sunday)
-            daily_data = await self._get_daily_breakdown(last_monday, last_sunday)
-            
-            # Enviar reporte
-            await self._send_weekly_report(last_monday, last_sunday, summary, daily_data)
-            
+            await self._generate_weekly_report_with_dates(last_monday, last_sunday)
+        except Exception as e:
+            logger.error(f"❌ Error generando reporte semanal: {e}", exc_info=True)
+    
+    async def _generate_weekly_report_with_dates(self, start_date: date, end_date: date):
+        """Genera reporte semanal con rango de fechas dado"""
+        try:
+            summary = await self._get_period_summary(start_date, end_date)
+            daily_data = await self._get_daily_breakdown(start_date, end_date)
+            await self._send_weekly_report(start_date, end_date, summary, daily_data)
         except Exception as e:
             logger.error(f"❌ Error generando reporte semanal: {e}", exc_info=True)
     
     async def _generate_monthly_report(self, current_date: date):
-        """Genera reporte mensual"""
+        """Genera reporte mensual (usa current_date para calcular rango)"""
         logger.info("📊 Generando reporte mensual...")
-        
         try:
-            # Calcular rango del mes pasado
             first_day_current = current_date.replace(day=1)
             last_day_previous = first_day_current - timedelta(days=1)
             first_day_previous = last_day_previous.replace(day=1)
-            
-            # Obtener datos
-            summary = await self._get_period_summary(first_day_previous, last_day_previous)
-            daily_data = await self._get_daily_breakdown(first_day_previous, last_day_previous)
-            weekly_data = await self._get_weekly_breakdown(first_day_previous, last_day_previous)
-            
-            # Enviar reporte
+            await self._generate_monthly_report_with_dates(first_day_previous, last_day_previous)
+        except Exception as e:
+            logger.error(f"❌ Error generando reporte mensual: {e}", exc_info=True)
+    
+    async def _generate_monthly_report_with_dates(self, start_date: date, end_date: date):
+        """Genera reporte mensual con rango de fechas dado"""
+        try:
+            summary = await self._get_period_summary(start_date, end_date)
+            daily_data = await self._get_daily_breakdown(start_date, end_date)
+            weekly_data = await self._get_weekly_breakdown(start_date, end_date)
             await self._send_monthly_report(
-                first_day_previous, 
-                last_day_previous, 
-                summary, 
-                daily_data,
-                weekly_data
+                start_date, end_date, summary, daily_data, weekly_data
             )
-            
         except Exception as e:
             logger.error(f"❌ Error generando reporte mensual: {e}", exc_info=True)
     

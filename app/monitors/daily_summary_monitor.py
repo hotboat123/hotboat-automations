@@ -14,6 +14,9 @@ from app.logger import logger
 class DailySummaryMonitor(BaseMonitor):
     """Envía resumen diario leyendo de reservas_con_extras"""
     
+    # Ver BaseMonitor.start: permitir enviar en la primera iteración si ya es hora de reporte
+    process_first_cycle_when_state_nonempty = True
+    
     def __init__(self, settings, config, notification_manager):
         super().__init__(settings, config, notification_manager)
         self.check_interval = config.get("check_interval", 300)
@@ -59,6 +62,15 @@ class DailySummaryMonitor(BaseMonitor):
             return True
         return False
     
+    def _yesterday_in_report_timezone(self):
+        """
+        Fecha del día que debe reportarse (ayer en la misma zona que report_time).
+        Debe coincidir con lo que harías con: review_date_report.py YYYY-MM-DD
+        para ese mismo "ayer" en Chile.
+        """
+        now_local = datetime.now(pytz.UTC).astimezone(self.timezone)
+        return now_local.date() - timedelta(days=1)
+    
     async def detect_changes(self, current_state: List[Dict[str, Any]]) -> None:
         """Genera y envía el reporte diario"""
         if not current_state or not current_state[0].get("generate_report"):
@@ -67,8 +79,8 @@ class DailySummaryMonitor(BaseMonitor):
         logger.info("📊 Generando reporte diario...")
         
         try:
-            # Obtener datos de ayer
-            yesterday = datetime.now().date() - timedelta(days=1)
+            # Ayer en America/Santiago (no usar datetime.now().date() del servidor: suele ser UTC en Railway)
+            yesterday = self._yesterday_in_report_timezone()
             
             # Obtener datos desde la tabla reservas_con_extras
             summary_data = await self._get_daily_summary(yesterday)
