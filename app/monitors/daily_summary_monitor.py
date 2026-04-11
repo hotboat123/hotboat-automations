@@ -1,18 +1,24 @@
 """
 Monitor de Resumen Diario - Versión Simplificada
-Lee de la tabla materializada reservas_con_extras
+Lee de la tabla all_appointments (solo status = confirmed).
+Desglose extras vs alojamiento por claves aloj* en extras_json.
 """
 from typing import Dict, Any, List
 from datetime import datetime, timedelta, time as dt_time
-from decimal import Decimal
 import pytz
 
 from app.monitors.base_monitor import BaseMonitor
+from app.monitors.extras_json_split import (
+    aggregate_financial_rows,
+    split_row_extras_income,
+)
+from app.utils.extras_pricing import fetch_precios_extras_costs_dict
+from app.utils.marketing_costs import fetch_marketing_for_date
 from app.logger import logger
 
 
 class DailySummaryMonitor(BaseMonitor):
-    """Envía resumen diario leyendo de reservas_con_extras"""
+    """Envía resumen diario leyendo de all_appointments"""
     
     # Ver BaseMonitor.start: permitir enviar en la primera iteración si ya es hora de reporte
     process_first_cycle_when_state_nonempty = True
@@ -24,11 +30,14 @@ class DailySummaryMonitor(BaseMonitor):
         hour, minute = map(int, report_time.split(":"))
         self.report_time = dt_time(hour, minute)
         self.last_report_date = None
+        self.costo_fijo_diario_prorrateado = float(config.get("costo_fijo_diario_prorrateado", 650_000))
+        self.costo_operativo_fijo_por_reserva = float(config.get("costo_operativo_fijo_por_reserva", 18_000))
+        self._precios_costs_cache = None
         
         timezone_str = config.get("timezone", "America/Santiago")
         try:
             self.timezone = pytz.timezone(timezone_str)
-        except:
+        except Exception:
             self.timezone = pytz.UTC
             logger.warning(f"⚠️ Zona horaria '{timezone_str}' no válida, usando UTC")
     
@@ -79,89 +88,40 @@ class DailySummaryMonitor(BaseMonitor):
         logger.info("📊 Generando reporte diario...")
         
         try:
-            # Ayer en America/Santiago (no usar datetime.now().date() del servidor: suele ser UTC en Railway)
+            # Misma base que semanal/mensual: recargar costos desde "Precios Extras" en cada envío
+            self._precios_costs_cache = None
             yesterday = self._yesterday_in_report_timezone()
             
-            # Obtener datos desde la tabla reservas_con_extras
             summary_data = await self._get_daily_summary(yesterday)
+            marketing_cost = await fetch_marketing_for_date(self.db, yesterday)
             
-            # Obtener costos de marketing
-            marketing_cost = await self._get_marketing_cost(yesterday)
-            
-            # Generar y enviar el reporte
             await self._send_daily_report(yesterday, summary_data, marketing_cost)
             
         except Exception as e:
             logger.error(f"❌ Error generando reporte diario: {e}", exc_info=True)
     
     async def _get_daily_summary(self, date) -> Dict[str, Any]:
-        """Obtiene resumen del día desde reservas_con_extras"""
+        """Agrega ingresos y costos variables (extras vs aloj) desde all_appointments."""
         query = """
             SELECT 
-                COUNT(*) as total_reservas,
-                COUNT(CASE WHEN tiene_cruce THEN 1 END) as reservas_con_info,
-                COUNT(CASE WHEN NOT tiene_cruce THEN 1 END) as reservas_sin_info,
-                COALESCE(SUM(ingreso_reserva), 0) as total_ingreso_reservas,
-                COALESCE(SUM(ingreso_extras), 0) as total_ingreso_extras,
-                COALESCE(SUM(ingreso_total), 0) as total_ingresos,
-                COALESCE(SUM(costo_operativo_fijo), 0) as total_costo_fijo,
-                COALESCE(SUM(costo_operativo_variable), 0) as total_costo_variable,
-                COALESCE(SUM(costo_operativo_total), 0) as total_costos_operativos,
-                COALESCE(AVG(ingreso_total), 0) as promedio_por_reserva
-            FROM reservas_con_extras
-            WHERE fecha = %s
+                fecha,
+                ingreso_reserva,
+                ingreso_extras,
+                ingreso_total,
+                extras_json,
+                costo_operativo_variable
+            FROM all_appointments
+            WHERE fecha = %s AND status = 'confirmed'
         """
         
-        result = await self.db.execute_single(query, (date,))
-        
-        if not result:
-            return {
-                'total_reservas': 0,
-                'reservas_con_info': 0,
-                'reservas_sin_info': 0,
-                'total_ingreso_reservas': 0,
-                'total_ingreso_extras': 0,
-                'total_ingresos': 0,
-                'total_costo_fijo': 0,
-                'total_costo_variable': 0,
-                'total_costos_operativos': 0,
-                'promedio_por_reserva': 0
-            }
-        
-        return {
-            'total_reservas': result['total_reservas'] or 0,
-            'reservas_con_info': result['reservas_con_info'] or 0,
-            'reservas_sin_info': result['reservas_sin_info'] or 0,
-            'total_ingreso_reservas': float(result['total_ingreso_reservas'] or 0),
-            'total_ingreso_extras': float(result['total_ingreso_extras'] or 0),
-            'total_ingresos': float(result['total_ingresos'] or 0),
-            'total_costo_fijo': float(result['total_costo_fijo'] or 0),
-            'total_costo_variable': float(result['total_costo_variable'] or 0),
-            'total_costos_operativos': float(result['total_costos_operativos'] or 0),
-            'promedio_por_reserva': float(result['promedio_por_reserva'] or 0)
-        }
+        rows = await self.db.execute_query(query, (date,)) or []
+        if self._precios_costs_cache is None:
+            self._precios_costs_cache = await fetch_precios_extras_costs_dict(self.db)
+        return aggregate_financial_rows(rows, costs_dict=self._precios_costs_cache)
     
     async def _get_marketing_cost(self, date) -> Dict[str, Any]:
-        """Obtiene costos de marketing del día"""
-        query = """
-            SELECT 
-                COALESCE(SUM(amount_spent), 0) as total_marketing,
-                COUNT(*) as num_ads
-            FROM marketing_costs
-            WHERE cost_date = %s
-        """
-        
-        try:
-            result = await self.db.execute_single(query, (date,))
-            if result:
-                return {
-                    'total_marketing': float(result['total_marketing'] or 0),
-                    'num_ads': result['num_ads'] or 0
-                }
-        except Exception as e:
-            logger.warning(f"⚠️ No se pudieron obtener costos de marketing: {e}")
-        
-        return {'total_marketing': 0, 'num_ads': 0}
+        """Costos de marketing del día (vista marketing_costs_daily). Scripts legacy."""
+        return await fetch_marketing_for_date(self.db, date)
     
     async def _get_reservas_detalle(self, date, limit=8) -> List[Dict[str, Any]]:
         """Obtiene detalle de reservas del día"""
@@ -174,10 +134,9 @@ class DailySummaryMonitor(BaseMonitor):
                 ingreso_reserva,
                 ingreso_extras,
                 ingreso_total,
-                extras_json,
-                tiene_cruce
-            FROM reservas_con_extras
-            WHERE fecha = %s
+                extras_json
+            FROM all_appointments
+            WHERE fecha = %s AND status = 'confirmed'
             ORDER BY hora
             LIMIT %s
         """
@@ -187,28 +146,6 @@ class DailySummaryMonitor(BaseMonitor):
             return rows or []
         except Exception as e:
             logger.error(f"❌ Error obteniendo detalle de reservas: {e}")
-            return []
-    
-    async def _get_reservas_sin_info(self, date, limit=10) -> List[Dict[str, Any]]:
-        """Obtiene reservas sin información completada"""
-        query = """
-            SELECT 
-                hora,
-                nombre_cliente,
-                telefono,
-                servicio
-            FROM reservas_con_extras
-            WHERE fecha = %s
-              AND tiene_cruce = FALSE
-            ORDER BY hora
-            LIMIT %s
-        """
-        
-        try:
-            rows = await self.db.execute_query(query, (date, limit))
-            return rows or []
-        except Exception as e:
-            logger.error(f"❌ Error obteniendo reservas sin info: {e}")
             return []
     
     async def _send_daily_report(
@@ -221,44 +158,30 @@ class DailySummaryMonitor(BaseMonitor):
         
         date_str = date.strftime("%d/%m/%Y")
         
-        total_reservas = summary['total_reservas']
-        reservas_con_info = summary['reservas_con_info']
-        reservas_sin_info = summary['reservas_sin_info']
-        
-        # Determinar el estado
-        if reservas_sin_info == 0:
-            status_emoji = "✅"
-            status_text = "TODAS COMPLETAS"
-        elif reservas_sin_info < total_reservas / 2:
-            status_emoji = "⚠️"
-            status_text = "ALGUNAS FALTANTES"
-        else:
-            status_emoji = "🔴"
-            status_text = "MUCHAS FALTANTES"
-        
-        # Calcular utilidades
+        total_reservas = summary['total_reservas_count']
         total_ingresos = summary['total_ingresos']
-        total_costos_operativos = summary['total_costos_operativos']
+        
+        fijo = self.costo_fijo_diario_prorrateado
+        cop_fijo_reservas = self.costo_operativo_fijo_por_reserva * total_reservas
         total_marketing = marketing['total_marketing']
-        total_costos = total_costos_operativos + total_marketing
+        cv_extras = summary['total_costo_variable_extras']
+        cv_aloj = summary['total_costo_variable_aloj']
+        
+        total_costos = fijo + cop_fijo_reservas + total_marketing + cv_extras + cv_aloj
         utilidad_neta = total_ingresos - total_costos
         margen_neto = (utilidad_neta / total_ingresos * 100) if total_ingresos > 0 else 0
         
-        # Construir mensaje
         message = f"""
-{status_emoji} REPORTE DIARIO - {date_str}
+📊 REPORTE DIARIO - {date_str}
 
 📅 Reservas del día: {total_reservas}
-📝 Información completada: {reservas_con_info}
-{status_emoji} Faltantes: {reservas_sin_info}
-
-Estado: {status_text}
 
 {'='*40}
 💰 INGRESOS DEL DÍA
 
-💵 Total Reservas: ${summary['total_ingreso_reservas']:,.0f}
-🍾 Total Extras: ${summary['total_ingreso_extras']:,.0f}
+💵 Total reservas: ${summary['total_ingreso_reservas']:,.0f}
+🍾 Total extras: ${summary['total_ingreso_extras']:,.0f}
+🏠 Total alojamientos: ${summary['total_ingreso_aloj']:,.0f}
 ━━━━━━━━━━━━━━━━━━━━━
 💰 TOTAL INGRESOS: ${total_ingresos:,.0f}
 
@@ -270,12 +193,12 @@ Estado: {status_text}
 
 📢 Marketing: ${total_marketing:,.0f} ({marketing['num_ads']} anuncios)
 
-🏭 Costos Operativos: ${total_costos_operativos:,.0f}
-   Fijos ({total_reservas} reservas × $18,000):
-     • Total: ${summary['total_costo_fijo']:,.0f}
-   
-   Variables (extras):
-     • Total: ${summary['total_costo_variable']:,.0f}
+🏭 Costo fijo diario prorrateado: ${fijo:,.0f}
+
+🏭 Costos operativos fijos ({total_reservas} reservas × ${self.costo_operativo_fijo_por_reserva:,.0f}): ${cop_fijo_reservas:,.0f}
+
+   Variables — extras: ${cv_extras:,.0f}
+   Variables — alojamientos: ${cv_aloj:,.0f}
 ━━━━━━━━━━━━━━━━━━━━━
 💵 COSTOS TOTALES: ${total_costos:,.0f}
 
@@ -289,7 +212,6 @@ Estado: {status_text}
 📊 Margen Neto: {margen_neto:.1f}%
 """
         
-        # Agregar detalle de reservas
         detalle = await self._get_reservas_detalle(date)
         if detalle:
             message += f"\n{'='*40}\n"
@@ -302,51 +224,28 @@ Estado: {status_text}
                 if res['num_personas']:
                     message += f"   👥 {res['num_personas']} personas\n"
                 
-                message += f"   💵 Subtotal Reserva: ${res['ingreso_reserva']:,.0f}\n"
+                message += f"   💵 Subtotal reserva: ${float(res['ingreso_reserva'] or 0):,.0f}\n"
                 
-                if res['ingreso_extras'] and res['ingreso_extras'] > 0:
-                    message += f"   🍾 Extras: ${res['ingreso_extras']:,.0f}\n"
-                    
-                    # Mostrar algunos extras
-                    if res['extras_json']:
-                        extras_list = []
-                        for nombre, cantidad in res['extras_json'].items():
-                            extras_list.append(f"{cantidad}x {nombre}")
-                        if extras_list:
-                            message += f"      ({', '.join(extras_list[:3])})\n"
+                ie = float(res['ingreso_extras'] or 0)
+                e_inc, a_inc = split_row_extras_income(res.get('extras_json'), ie)
+                if ie > 0 or e_inc > 0 or a_inc > 0:
+                    message += f"   🍾 Extras: ${e_inc:,.0f}\n"
+                    message += f"   🏠 Alojamientos: ${a_inc:,.0f}\n"
+                    if res.get('extras_json') and isinstance(res['extras_json'], dict):
+                        lineas = []
+                        for k, v in list(res['extras_json'].items())[:5]:
+                            pref = "🏠" if str(k).lower().startswith("aloj") else "•"
+                            lineas.append(f"{pref} {k}")
+                        if lineas:
+                            message += f"      ({', '.join(lineas)})\n"
                 
-                message += f"   💰 Total: ${res['ingreso_total']:,.0f}\n\n"
+                message += f"   💰 Total: ${float(res['ingreso_total'] or 0):,.0f}\n\n"
             
             if total_reservas > len(detalle):
                 message += f"... y {total_reservas - len(detalle)} reservas más.\n\n"
         
-        # Agregar reservas sin información
-        if reservas_sin_info > 0:
-            faltantes = await self._get_reservas_sin_info(date)
-            
-            message += f"\n{'='*40}\n"
-            message += "⚠️ RESERVAS SIN COMPLETAR:\n\n"
-            
-            for i, reserva in enumerate(faltantes, 1):
-                time_str = reserva['hora'].strftime("%H:%M") if reserva['hora'] else "N/A"
-                message += f"{i}. {time_str} - {reserva['nombre_cliente'] or 'Sin nombre'}\n"
-                if reserva['telefono']:
-                    message += f"   📞 {reserva['telefono']}\n"
-                if reserva['servicio']:
-                    message += f"   🚤 {reserva['servicio']}\n"
-                message += "\n"
-            
-            if reservas_sin_info > len(faltantes):
-                message += f"... y {reservas_sin_info - len(faltantes)} más.\n\n"
-            
-            message += "="*40 + "\n"
-            message += "👉 Por favor, completar la información de estas reservas en el formulario."
-        else:
-            message += "\n🎉 ¡Excelente! Toda la información está completa."
+        message += f"\n📊 Generado el {datetime.now().strftime('%d/%m/%Y a las %H:%M')}"
         
-        message += f"\n\n📊 Generado el {datetime.now().strftime('%d/%m/%Y a las %H:%M')}"
-        
-        # Enviar por Email
         try:
             sent = await self.send_notification(
                 message=message,

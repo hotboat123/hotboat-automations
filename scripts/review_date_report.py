@@ -55,15 +55,19 @@ async def review_date(target_date_str: str = None):
     await monitor.initialize()
     
     try:
-        # Obtener datos desde reservas_con_extras
+        # Obtener datos desde all_appointments (confirmed)
         logger.info("Obteniendo datos del dia...")
         summary_data = await monitor._get_daily_summary(target_date)
         marketing_cost = await monitor._get_marketing_cost(target_date)
         
-        logger.info("Reservas del dia: %d", summary_data['total_reservas'])
-        logger.info("  - Con info: %d", summary_data['reservas_con_info'])
-        logger.info("  - Sin info: %d", summary_data['reservas_sin_info'])
-        logger.info("Total ingresos: $%s", f"{summary_data['total_ingresos']:,.0f}")
+        logger.info("Reservas del dia: %d", summary_data['total_reservas_count'])
+        logger.info(
+            "Ingresos — reservas: $%s | extras: $%s | aloj: $%s | total: $%s",
+            f"{summary_data['total_ingreso_reservas']:,.0f}",
+            f"{summary_data['total_ingreso_extras']:,.0f}",
+            f"{summary_data['total_ingreso_aloj']:,.0f}",
+            f"{summary_data['total_ingresos']:,.0f}",
+        )
         
         # Enviar reporte
         await monitor._send_daily_report(target_date, summary_data, marketing_cost)

@@ -1,39 +1,7 @@
 # HotBoat Automations Configuration
 
 # Monitors Configuration
-monitors:
-  appointments:
-    enabled: true
-    name: "Monitor de Reservas"
-    check_interval: 60  # segundos
-    table_name: "booknetic_appointments"
-    query: |
-      SELECT
-        id::text AS id,
-        customer_name,
-        customer_email,
-        service_name,
-        raw->>'service' AS service_label,
-        raw->>'customer_phone_number' AS phone_number,
-        raw->>'payment' AS payment,
-        raw->>'duration' AS duration,
-        raw->>'staff' AS staff_member,
-        raw->>'extras' AS extras,
-        raw,
-        starts_at,
-        status,
-        created_at,
-        updated_at
-      FROM booknetic_appointments
-      WHERE created_at >= NOW() - INTERVAL '30 days'
-      ORDER BY created_at DESC
-    notifications:
-      new_appointment: true
-      cancelled_appointment: true
-      modified_appointment: true
-      upcoming_reminder: true
-      reminder_hours_before: 24  # horas antes de la reserva
-  
+monitors: 
   stock:
     enabled: true
     name: "Monitor de Stock"
@@ -69,36 +37,22 @@ monitors:
     check_interval: 300  # segundos (chequea cada 5 minutos si es hora de enviar)
     report_time: "09:00"  # hora para enviar el reporte (formato 24h)
     timezone: "America/Santiago"  # zona horaria para el reporte
+    costo_fijo_diario_prorrateado: 21700  # costo fijo diario en informes (CLP)
+    costo_operativo_fijo_por_reserva: 18000  # Gas + Leña + Agua + Hielo por cita (CLP)
   
   weekly_monthly_summary:
     enabled: true
     name: "Monitor de Resumen Semanal/Mensual"
-    check_interval: 300  # segundos (chequea cada 5 minutos si es lunes y hora de enviar)
+    check_interval: 3600  # segundos (chequea cada 5 minutos si es lunes y hora de enviar)
     report_time: "09:00"  # hora para enviar el reporte (formato 24h)
     timezone: "America/Santiago"  # zona horaria para el reporte
+    costo_fijo_diario_prorrateado: 21700  # mismo criterio que el resumen diario (× días del periodo)
+    costo_operativo_fijo_por_reserva: 18000  # por cita confirmada en el periodo (CLP)
   
-  reservas_sync:
-    enabled: true
-    name: "Monitor de Sincronización de Reservas"
-    check_interval: 600  # segundos (cada 10 minutos)
-    lookback_days: 7  # sincronizar últimos 7 días
-  
-  reservas_sheets_sync:
-    enabled: true
-    name: "Monitor de Sincronización Reservas → Google Sheets"
-    check_interval: 600  # segundos (cada 10 minutos)
-    sync_from_today: true  # Solo sincronizar desde HOY en adelante (no modifica fechas pasadas)
 
 # Notification Channels
 notifications:
-  telegram:
-    enabled: false
-    priority_levels:
-      critical: true  # stock crítico, errores
-      high: true      # nuevas reservas, stock bajo
-      medium: true    # cambios en reservas
-      low: false      # info general
-  
+
   email:
     enabled: true
     send_summary: true
@@ -110,13 +64,6 @@ notifications:
       medium: false
       low: false
   
-  whatsapp:
-    enabled: false
-    priority_levels:
-      critical: true
-      high: true
-      medium: true
-      low: false
 
 # Database Configuration
 database:

@@ -65,10 +65,8 @@ async def send_report_for_date(target_date: date):
         print(f"\nObteniendo datos de {target_date.strftime('%d/%m/%Y')}...")
         summary_data = await monitor._get_daily_summary(target_date)
         
-        print(f"Total reservas: {summary_data['total_reservas']}")
-        print(f"  - Con info: {summary_data['reservas_con_info']}")
-        print(f"  - Sin info: {summary_data['reservas_sin_info']}")
-        print(f"Total ingresos: ${summary_data['total_ingresos']:,.0f}")
+        print(f"Citas: {summary_data['total_reservas_count']}")
+        print(f"Ingresos — reservas / extras / aloj / total: ${summary_data['total_ingreso_reservas']:,.0f} / ${summary_data['total_ingreso_extras']:,.0f} / ${summary_data['total_ingreso_aloj']:,.0f} / ${summary_data['total_ingresos']:,.0f}")
         
         # Obtener costos de marketing
         marketing_cost = await monitor._get_marketing_cost(target_date)

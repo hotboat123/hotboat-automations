@@ -51,15 +51,17 @@ async def test_report_generation():
     try:
         summary_data = await monitor._get_daily_summary(yesterday)
         print(f"\nDatos del resumen:")
-        print(f"  - Total reservas: {summary_data.get('total_reservas', 0)}")
-        print(f"  - Con info: {summary_data.get('reservas_con_info', 0)}")
-        print(f"  - Sin info: {summary_data.get('reservas_sin_info', 0)}")
+        print(f"  - Citas: {summary_data.get('total_reservas_count', 0)}")
+        print(f"  - Ingreso reservas / extras / aloj: ${summary_data.get('total_ingreso_reservas', 0):,.0f} / ${summary_data.get('total_ingreso_extras', 0):,.0f} / ${summary_data.get('total_ingreso_aloj', 0):,.0f}")
         print(f"  - Total ingresos: ${summary_data.get('total_ingresos', 0):,.0f}")
-        print(f"  - Total costos: ${summary_data.get('total_costos_operativos', 0):,.0f}")
+        fijo = monitor.costo_fijo_diario_prorrateado
+        cop = monitor.costo_operativo_fijo_por_reserva * summary_data.get('total_reservas_count', 0)
+        tc = fijo + cop + summary_data.get('total_costo_variable_extras', 0) + summary_data.get('total_costo_variable_aloj', 0)
+        print(f"  - Costos (fijo día {fijo:,.0f} + op/reserva {cop:,.0f} + var extras/aloj): ${tc:,.0f}")
         
         # Obtener costo de marketing
         marketing_cost = await monitor._get_marketing_cost(yesterday)
-        print(f"  - Costo marketing: ${marketing_cost:,.0f}")
+        print(f"  - Costo marketing: ${marketing_cost.get('total_marketing', 0):,.0f}")
         
         # Intentar enviar reporte
         print(f"\nIntentando enviar reporte...")

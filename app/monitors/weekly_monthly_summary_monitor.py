@@ -1,13 +1,18 @@
 """
 Monitor de Resumen Semanal y Mensual - Versión Simplificada
-Lee de la tabla materializada reservas_con_extras
+Lee de la tabla all_appointments (solo status = confirmed)
 """
-from typing import Dict, Any, List
+from collections import defaultdict
+from typing import Dict, Any, List, Optional
 from datetime import datetime, timedelta, time as dt_time, date
 import pytz
 import calendar
 
 from app.monitors.base_monitor import BaseMonitor
+from app.monitors.extras_json_split import aggregate_financial_rows
+from app.utils.extras_pricing import fetch_precios_extras_costs_dict
+from app.utils.marketing_costs import fetch_marketing_for_period
+from app.utils.meta_ads_analysis import fetch_and_analyze as fetch_meta_analysis
 from app.logger import logger
 
 
@@ -22,11 +27,14 @@ class WeeklyMonthlySummaryMonitor(BaseMonitor):
         self.report_time = dt_time(hour, minute)
         self.last_weekly_report_date = None
         self.last_monthly_report_date = None
+        self.costo_fijo_diario_prorrateado = float(config.get("costo_fijo_diario_prorrateado", 650_000))
+        self.costo_operativo_fijo_por_reserva = float(config.get("costo_operativo_fijo_por_reserva", 18_000))
+        self._precios_costs_cache = None
         
         timezone_str = config.get("timezone", "America/Santiago")
         try:
             self.timezone = pytz.timezone(timezone_str)
-        except:
+        except Exception:
             self.timezone = pytz.UTC
             logger.warning(f"⚠️ Zona horaria '{timezone_str}' no válida, usando UTC")
     
@@ -81,6 +89,9 @@ class WeeklyMonthlySummaryMonitor(BaseMonitor):
         if not current_state:
             return
         
+        # Mismo criterio que el diario: leer de nuevo "Precios Extras" en cada ciclo de informes
+        self._precios_costs_cache = None
+        
         for report_request in current_state:
             report_type = report_request.get("type")
             report_date = report_request.get("date")
@@ -119,9 +130,20 @@ class WeeklyMonthlySummaryMonitor(BaseMonitor):
     async def _generate_weekly_report_with_dates(self, start_date: date, end_date: date):
         """Genera reporte semanal con rango de fechas dado"""
         try:
-            summary = await self._get_period_summary(start_date, end_date)
-            daily_data = await self._get_daily_breakdown(start_date, end_date)
-            await self._send_weekly_report(start_date, end_date, summary, daily_data)
+            rows = await self._fetch_appointment_rows(start_date, end_date)
+            if self._precios_costs_cache is None:
+                self._precios_costs_cache = await fetch_precios_extras_costs_dict(self.db)
+            costs = self._precios_costs_cache
+            summary = aggregate_financial_rows(rows, costs_dict=costs)
+            daily_data = self._breakdown_by_day(rows, costs)
+            marketing = await fetch_marketing_for_period(self.db, start_date, end_date)
+            meta_analysis = await fetch_meta_analysis(
+                self.db, start_date, end_date,
+                total_ventas=summary["total_reservas_count"],
+            )
+            await self._send_weekly_report(
+                start_date, end_date, summary, daily_data, marketing, meta_analysis
+            )
         except Exception as e:
             logger.error(f"❌ Error generando reporte semanal: {e}", exc_info=True)
     
@@ -139,118 +161,110 @@ class WeeklyMonthlySummaryMonitor(BaseMonitor):
     async def _generate_monthly_report_with_dates(self, start_date: date, end_date: date):
         """Genera reporte mensual con rango de fechas dado"""
         try:
-            summary = await self._get_period_summary(start_date, end_date)
-            daily_data = await self._get_daily_breakdown(start_date, end_date)
-            weekly_data = await self._get_weekly_breakdown(start_date, end_date)
+            rows = await self._fetch_appointment_rows(start_date, end_date)
+            if self._precios_costs_cache is None:
+                self._precios_costs_cache = await fetch_precios_extras_costs_dict(self.db)
+            costs = self._precios_costs_cache
+            summary = aggregate_financial_rows(rows, costs_dict=costs)
+            daily_data = self._breakdown_by_day(rows, costs)
+            weekly_data = self._breakdown_by_week(rows, costs)
+            marketing = await fetch_marketing_for_period(self.db, start_date, end_date)
             await self._send_monthly_report(
-                start_date, end_date, summary, daily_data, weekly_data
+                start_date, end_date, summary, daily_data, weekly_data, marketing
             )
         except Exception as e:
             logger.error(f"❌ Error generando reporte mensual: {e}", exc_info=True)
     
-    async def _get_period_summary(self, start_date: date, end_date: date) -> Dict[str, Any]:
-        """Obtiene resumen de un periodo desde reservas_con_extras"""
-        query = """
-            SELECT 
-                COUNT(*) as total_reservas,
-                COUNT(CASE WHEN tiene_cruce THEN 1 END) as reservas_con_info,
-                COUNT(CASE WHEN NOT tiene_cruce THEN 1 END) as reservas_sin_info,
-                COALESCE(SUM(ingreso_reserva), 0) as total_ingreso_reservas,
-                COALESCE(SUM(ingreso_extras), 0) as total_ingreso_extras,
-                COALESCE(SUM(ingreso_total), 0) as total_ingresos,
-                COALESCE(SUM(costo_operativo_total), 0) as total_costos_operativos,
-                COALESCE(AVG(ingreso_total), 0) as promedio_por_reserva,
-                COUNT(DISTINCT fecha) as dias_con_reservas
-            FROM reservas_con_extras
-            WHERE fecha BETWEEN %s AND %s
-        """
-        
-        result = await self.db.execute_single(query, (start_date, end_date))
-        
-        if not result:
-            return self._empty_summary()
-        
-        return {
-            'total_reservas': result['total_reservas'] or 0,
-            'reservas_con_info': result['reservas_con_info'] or 0,
-            'reservas_sin_info': result['reservas_sin_info'] or 0,
-            'total_ingreso_reservas': float(result['total_ingreso_reservas'] or 0),
-            'total_ingreso_extras': float(result['total_ingreso_extras'] or 0),
-            'total_ingresos': float(result['total_ingresos'] or 0),
-            'total_costos_operativos': float(result['total_costos_operativos'] or 0),
-            'promedio_por_reserva': float(result['promedio_por_reserva'] or 0),
-            'dias_con_reservas': result['dias_con_reservas'] or 0
-        }
-    
-    async def _get_daily_breakdown(self, start_date: date, end_date: date) -> List[Dict[str, Any]]:
-        """Obtiene desglose diario"""
+    async def _fetch_appointment_rows(self, start_date: date, end_date: date) -> List[Dict[str, Any]]:
+        """Mismas filas que el resumen diario: all_appointments + columnas para aggregate_financial_rows."""
         query = """
             SELECT 
                 fecha,
-                COUNT(*) as num_reservas,
-                COALESCE(SUM(ingreso_total), 0) as ingresos,
-                COALESCE(SUM(costo_operativo_total), 0) as costos
-            FROM reservas_con_extras
-            WHERE fecha BETWEEN %s AND %s
-            GROUP BY fecha
-            ORDER BY fecha
+                ingreso_reserva,
+                ingreso_extras,
+                ingreso_total,
+                extras_json,
+                costo_operativo_variable
+            FROM all_appointments
+            WHERE fecha BETWEEN %s AND %s AND status = 'confirmed'
         """
-        
-        try:
-            rows = await self.db.execute_query(query, (start_date, end_date))
-            return rows or []
-        except Exception as e:
-            logger.error(f"❌ Error obteniendo desglose diario: {e}")
-            return []
+        return await self.db.execute_query(query, (start_date, end_date)) or []
     
-    async def _get_weekly_breakdown(self, start_date: date, end_date: date) -> List[Dict[str, Any]]:
-        """Obtiene desglose semanal para reporte mensual"""
-        query = """
-            SELECT 
-                DATE_TRUNC('week', fecha) as semana,
-                COUNT(*) as num_reservas,
-                COALESCE(SUM(ingreso_total), 0) as ingresos,
-                COALESCE(SUM(costo_operativo_total), 0) as costos
-            FROM reservas_con_extras
-            WHERE fecha BETWEEN %s AND %s
-            GROUP BY DATE_TRUNC('week', fecha)
-            ORDER BY semana
-        """
-        
-        try:
-            rows = await self.db.execute_query(query, (start_date, end_date))
-            return rows or []
-        except Exception as e:
-            logger.error(f"❌ Error obteniendo desglose semanal: {e}")
-            return []
+    @staticmethod
+    def _as_date(d: Any) -> Optional[date]:
+        if d is None:
+            return None
+        if hasattr(d, "date") and not isinstance(d, date):
+            return d.date()
+        return d
     
-    def _empty_summary(self) -> Dict[str, Any]:
-        """Retorna resumen vacío"""
-        return {
-            'total_reservas': 0,
-            'reservas_con_info': 0,
-            'reservas_sin_info': 0,
-            'total_ingreso_reservas': 0,
-            'total_ingreso_extras': 0,
-            'total_ingresos': 0,
-            'total_costos_operativos': 0,
-            'promedio_por_reserva': 0,
-            'dias_con_reservas': 0
-        }
+    def _breakdown_by_day(self, rows: List[Dict[str, Any]], costs_dict: Dict[str, float]) -> List[Dict[str, Any]]:
+        """Desglose diario con la misma agregación que el resumen (Precios Extras + extras_json)."""
+        by_date: Dict[date, List[Dict[str, Any]]] = defaultdict(list)
+        for r in rows:
+            fe = self._as_date(r.get("fecha"))
+            if fe is not None:
+                by_date[fe].append(r)
+        out: List[Dict[str, Any]] = []
+        for fe in sorted(by_date.keys()):
+            agg = aggregate_financial_rows(by_date[fe], costs_dict=costs_dict)
+            out.append({
+                "fecha": fe,
+                "num_reservas": agg["total_reservas_count"],
+                "ingresos": agg["total_ingresos"],
+                "costo_variable_extras": agg["total_costo_variable_extras"],
+                "costo_variable_aloj": agg["total_costo_variable_aloj"],
+            })
+        return out
+    
+    def _breakdown_by_week(self, rows: List[Dict[str, Any]], costs_dict: Dict[str, float]) -> List[Dict[str, Any]]:
+        """Desglose por semana (lunes inicio), misma agregación que el resumen."""
+        by_week: Dict[date, List[Dict[str, Any]]] = defaultdict(list)
+        for r in rows:
+            d = self._as_date(r.get("fecha"))
+            if d is None:
+                continue
+            week_start = d - timedelta(days=d.weekday())
+            by_week[week_start].append(r)
+        out: List[Dict[str, Any]] = []
+        for ws in sorted(by_week.keys()):
+            agg = aggregate_financial_rows(by_week[ws], costs_dict=costs_dict)
+            out.append({
+                "semana": ws,
+                "num_reservas": agg["total_reservas_count"],
+                "ingresos": agg["total_ingresos"],
+                "costo_variable_extras": agg["total_costo_variable_extras"],
+                "costo_variable_aloj": agg["total_costo_variable_aloj"],
+            })
+        return out
     
     async def _send_weekly_report(
         self,
         start_date: date,
         end_date: date,
         summary: Dict[str, Any],
-        daily_data: List[Dict[str, Any]]
+        daily_data: List[Dict[str, Any]],
+        marketing: Dict[str, Any],
+        meta_analysis: str = "",
     ):
         """Envía reporte semanal por email"""
         
         start_str = start_date.strftime("%d/%m/%Y")
         end_str = end_date.strftime("%d/%m/%Y")
-        
-        utilidad = summary['total_ingresos'] - summary['total_costos_operativos']
+        num_dias = (end_date - start_date).days + 1
+        fijo_periodo = self.costo_fijo_diario_prorrateado * num_dias
+        n_res = summary['total_reservas_count']
+        cop_fijo_reservas = self.costo_operativo_fijo_por_reserva * n_res
+        total_marketing = float(marketing.get("total_marketing") or 0)
+        num_ads_mkt = int(marketing.get("num_ads") or 0)
+        total_costos = (
+            fijo_periodo
+            + cop_fijo_reservas
+            + total_marketing
+            + summary['total_costo_variable_extras']
+            + summary['total_costo_variable_aloj']
+        )
+        utilidad = summary['total_ingresos'] - total_costos
         margen = (utilidad / summary['total_ingresos'] * 100) if summary['total_ingresos'] > 0 else 0
         
         message = f"""
@@ -259,26 +273,30 @@ class WeeklyMonthlySummaryMonitor(BaseMonitor):
 {'='*40}
 📊 RESUMEN GENERAL
 
-📅 Total Reservas: {summary['total_reservas']}
-📝 Con Información: {summary['reservas_con_info']}
-⚠️ Sin Información: {summary['reservas_sin_info']}
-🗓️ Días con reservas: {summary['dias_con_reservas']}/7
+📅 Citas confirmadas: {summary['total_reservas_count']}
+🗓️ Días con reservas: {summary['dias_con_reservas']}/{num_dias}
 
 {'='*40}
 💰 INGRESOS
 
-💵 Reservas: ${summary['total_ingreso_reservas']:,.0f}
-🍾 Extras: ${summary['total_ingreso_extras']:,.0f}
+💵 Total reservas: ${summary['total_ingreso_reservas']:,.0f}
+🍾 Total extras: ${summary['total_ingreso_extras']:,.0f}
+🏠 Total alojamientos: ${summary['total_ingreso_aloj']:,.0f}
 ━━━━━━━━━━━━━━━━━━━━━
-💰 TOTAL: ${summary['total_ingresos']:,.0f}
+💰 TOTAL INGRESOS: ${summary['total_ingresos']:,.0f}
 
 📊 Promedio/reserva: ${summary['promedio_por_reserva']:,.0f}
 
 {'='*40}
 💸 COSTOS Y UTILIDAD
 
-💸 Costos Operativos: ${summary['total_costos_operativos']:,.0f}
+🏭 Costo fijo prorrateado ({num_dias} días × ${self.costo_fijo_diario_prorrateado:,.0f}): ${fijo_periodo:,.0f}
+🏭 Costos operativos fijos ({n_res} reservas × ${self.costo_operativo_fijo_por_reserva:,.0f}): ${cop_fijo_reservas:,.0f}
+📢 Marketing: ${total_marketing:,.0f} ({num_ads_mkt} anuncios)
+   Variables — extras: ${summary['total_costo_variable_extras']:,.0f}
+   Variables — alojamientos: ${summary['total_costo_variable_aloj']:,.0f}
 ━━━━━━━━━━━━━━━━━━━━━
+💵 COSTOS TOTALES: ${total_costos:,.0f}
 💵 UTILIDAD: ${utilidad:,.0f}
 📊 Margen: {margen:.1f}%
 
@@ -292,7 +310,11 @@ class WeeklyMonthlySummaryMonitor(BaseMonitor):
             fecha_str = day_data['fecha'].strftime("%d/%m")
             dia_semana = calendar.day_name[day_data['fecha'].weekday()]
             message += f"{fecha_str} ({dia_semana}): {day_data['num_reservas']} reservas - ${day_data['ingresos']:,.0f}\n"
-        
+
+        # Bloque de analisis Meta Ads (hallazgos + recomendaciones)
+        if meta_analysis:
+            message += f"\n{meta_analysis}\n"
+
         message += f"\n📊 Generado el {datetime.now().strftime('%d/%m/%Y a las %H:%M')}"
         
         # Enviar
@@ -315,17 +337,30 @@ class WeeklyMonthlySummaryMonitor(BaseMonitor):
         end_date: date,
         summary: Dict[str, Any],
         daily_data: List[Dict[str, Any]],
-        weekly_data: List[Dict[str, Any]]
+        weekly_data: List[Dict[str, Any]],
+        marketing: Dict[str, Any],
     ):
         """Envía reporte mensual por email"""
         
         mes_nombre = calendar.month_name[start_date.month]
         year = start_date.year
         
-        utilidad = summary['total_ingresos'] - summary['total_costos_operativos']
+        num_dias = (end_date - start_date).days + 1
+        fijo_periodo = self.costo_fijo_diario_prorrateado * num_dias
+        n_res = summary['total_reservas_count']
+        cop_fijo_reservas = self.costo_operativo_fijo_por_reserva * n_res
+        total_marketing = float(marketing.get("total_marketing") or 0)
+        num_ads_mkt = int(marketing.get("num_ads") or 0)
+        total_costos = (
+            fijo_periodo
+            + cop_fijo_reservas
+            + total_marketing
+            + summary['total_costo_variable_extras']
+            + summary['total_costo_variable_aloj']
+        )
+        utilidad = summary['total_ingresos'] - total_costos
         margen = (utilidad / summary['total_ingresos'] * 100) if summary['total_ingresos'] > 0 else 0
         
-        num_dias = (end_date - start_date).days + 1
         promedio_dia = summary['total_ingresos'] / num_dias if num_dias > 0 else 0
         
         message = f"""
@@ -334,18 +369,17 @@ class WeeklyMonthlySummaryMonitor(BaseMonitor):
 {'='*40}
 📊 RESUMEN GENERAL
 
-📅 Total Reservas: {summary['total_reservas']}
-📝 Con Información: {summary['reservas_con_info']}
-⚠️ Sin Información: {summary['reservas_sin_info']}
+📅 Citas confirmadas: {summary['total_reservas_count']}
 🗓️ Días con reservas: {summary['dias_con_reservas']}/{num_dias}
 
 {'='*40}
 💰 INGRESOS
 
-💵 Reservas: ${summary['total_ingreso_reservas']:,.0f}
-🍾 Extras: ${summary['total_ingreso_extras']:,.0f}
+💵 Total reservas: ${summary['total_ingreso_reservas']:,.0f}
+🍾 Total extras: ${summary['total_ingreso_extras']:,.0f}
+🏠 Total alojamientos: ${summary['total_ingreso_aloj']:,.0f}
 ━━━━━━━━━━━━━━━━━━━━━
-💰 TOTAL: ${summary['total_ingresos']:,.0f}
+💰 TOTAL INGRESOS: ${summary['total_ingresos']:,.0f}
 
 📊 Promedio/reserva: ${summary['promedio_por_reserva']:,.0f}
 📅 Promedio/día: ${promedio_dia:,.0f}
@@ -353,8 +387,13 @@ class WeeklyMonthlySummaryMonitor(BaseMonitor):
 {'='*40}
 💸 COSTOS Y UTILIDAD
 
-💸 Costos Operativos: ${summary['total_costos_operativos']:,.0f}
+🏭 Costo fijo prorrateado ({num_dias} días × ${self.costo_fijo_diario_prorrateado:,.0f}): ${fijo_periodo:,.0f}
+🏭 Costos operativos fijos ({n_res} reservas × ${self.costo_operativo_fijo_por_reserva:,.0f}): ${cop_fijo_reservas:,.0f}
+📢 Marketing: ${total_marketing:,.0f} ({num_ads_mkt} anuncios)
+   Variables — extras: ${summary['total_costo_variable_extras']:,.0f}
+   Variables — alojamientos: ${summary['total_costo_variable_aloj']:,.0f}
 ━━━━━━━━━━━━━━━━━━━━━
+💵 COSTOS TOTALES: ${total_costos:,.0f}
 💵 UTILIDAD: ${utilidad:,.0f}
 📊 Margen: {margen:.1f}%
 
@@ -365,7 +404,6 @@ class WeeklyMonthlySummaryMonitor(BaseMonitor):
         
         # Agregar datos semanales
         for idx, week_data in enumerate(weekly_data, 1):
-            semana_start = week_data['semana']
             message += f"Semana {idx}: {week_data['num_reservas']} reservas - ${week_data['ingresos']:,.0f}\n"
         
         message += f"\n{'='*40}\n"
