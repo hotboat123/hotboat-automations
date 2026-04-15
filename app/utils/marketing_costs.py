@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from datetime import date
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Tuple, Optional
 
 from app.logger import logger
 
@@ -80,6 +80,41 @@ async def fetch_marketing_for_date(db, target_date: date) -> Dict[str, Any]:
         ),
     ]
     return await _try_queries(db, queries, f"día {target_date}")
+
+
+async def fetch_marketing_by_day(db, start_date: date, end_date: date) -> Dict[date, float]:
+    """
+    Gasto de marketing por día en el rango (clave = date, valor = float CLP).
+    Prueba las dos migraciones posibles; devuelve {} si no hay datos o la tabla no existe.
+    """
+    queries_multi: List[Tuple[str, tuple]] = [
+        (
+            """
+            SELECT cost_date AS dia, COALESCE(SUM(amount_spent), 0) AS spend
+            FROM marketing_costs
+            WHERE cost_date BETWEEN %s AND %s
+            GROUP BY cost_date
+            """,
+            (start_date, end_date),
+        ),
+        (
+            """
+            SELECT dia, COALESCE(SUM(importe_gastado), 0) AS spend
+            FROM marketing_costs
+            WHERE dia BETWEEN %s AND %s
+            GROUP BY dia
+            """,
+            (start_date, end_date),
+        ),
+    ]
+    for sql, params in queries_multi:
+        try:
+            rows = await db.execute_query(sql, params)
+            if rows:
+                return {r["dia"]: float(r["spend"] or 0) for r in rows}
+        except Exception as e:
+            logger.debug("marketing_by_day: omitiendo consulta (%s)", e)
+    return {}
 
 
 async def fetch_marketing_for_period(db, start_date: date, end_date: date) -> Dict[str, Any]:

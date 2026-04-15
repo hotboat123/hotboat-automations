@@ -3,7 +3,7 @@ Monitor de Resumen Semanal y Mensual - Versión Simplificada
 Lee de la tabla all_appointments (solo status = confirmed)
 """
 from collections import defaultdict
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, List, Optional, Tuple
 from datetime import datetime, timedelta, time as dt_time, date
 import pytz
 import calendar
@@ -11,7 +11,7 @@ import calendar
 from app.monitors.base_monitor import BaseMonitor
 from app.monitors.extras_json_split import aggregate_financial_rows
 from app.utils.extras_pricing import fetch_precios_extras_costs_dict
-from app.utils.marketing_costs import fetch_marketing_for_period
+from app.utils.marketing_costs import fetch_marketing_for_period, fetch_marketing_by_day
 from app.utils.meta_ads_analysis import fetch_and_analyze as fetch_meta_analysis
 from app.logger import logger
 
@@ -137,12 +137,14 @@ class WeeklyMonthlySummaryMonitor(BaseMonitor):
             summary = aggregate_financial_rows(rows, costs_dict=costs)
             daily_data = self._breakdown_by_day(rows, costs)
             marketing = await fetch_marketing_for_period(self.db, start_date, end_date)
+            daily_marketing = await fetch_marketing_by_day(self.db, start_date, end_date)
             meta_analysis = await fetch_meta_analysis(
                 self.db, start_date, end_date,
                 total_ventas=summary["total_reservas_count"],
             )
             await self._send_weekly_report(
-                start_date, end_date, summary, daily_data, marketing, meta_analysis
+                start_date, end_date, summary, daily_data, marketing,
+                meta_analysis, daily_marketing
             )
         except Exception as e:
             logger.error(f"❌ Error generando reporte semanal: {e}", exc_info=True)
@@ -211,11 +213,136 @@ class WeeklyMonthlySummaryMonitor(BaseMonitor):
             out.append({
                 "fecha": fe,
                 "num_reservas": agg["total_reservas_count"],
+                # Alias legacy
                 "ingresos": agg["total_ingresos"],
-                "costo_variable_extras": agg["total_costo_variable_extras"],
-                "costo_variable_aloj": agg["total_costo_variable_aloj"],
+                # Desglose completo
+                "ingreso_reservas":        agg["total_ingreso_reservas"],
+                "ingreso_extras":          agg["total_ingreso_extras"],
+                "ingreso_aloj":            agg["total_ingreso_aloj"],
+                "total_ingresos":          agg["total_ingresos"],
+                "costo_variable_extras":   agg["total_costo_variable_extras"],
+                "costo_variable_aloj":     agg["total_costo_variable_aloj"],
             })
         return out
+
+    # ── Tabla transpuesta días×métricas ───────────────────────────────────────
+    def _format_daily_table(
+        self,
+        start_date: date,
+        end_date: date,
+        daily_data: List[Dict[str, Any]],
+        daily_marketing: Optional[Dict[date, float]] = None,
+    ) -> str:
+        """
+        Tabla de texto: columnas = todos los días del rango, filas = métricas.
+        Incluye ingresos desglosados, costos variables/fijos, marketing y margen.
+        """
+        if daily_marketing is None:
+            daily_marketing = {}
+
+        # Todos los días del periodo
+        all_dates: List[date] = []
+        d = start_date
+        while d <= end_date:
+            all_dates.append(d)
+            d += timedelta(days=1)
+
+        day_abbr = ["Lun", "Mar", "Mie", "Jue", "Vie", "Sab", "Dom"]
+        day_map: Dict[date, Dict[str, Any]] = {dd["fecha"]: dd for dd in daily_data}
+
+        def empty(fe: date) -> Dict[str, Any]:
+            return {
+                "fecha": fe, "num_reservas": 0,
+                "ingreso_reservas": 0.0, "ingreso_extras": 0.0,
+                "ingreso_aloj": 0.0, "total_ingresos": 0.0,
+                "costo_variable_extras": 0.0, "costo_variable_aloj": 0.0,
+            }
+
+        data = [day_map.get(fe, empty(fe)) for fe in all_dates]
+        N = len(all_dates)
+
+        cfijo = self.costo_fijo_diario_prorrateado
+        cop   = self.costo_operativo_fijo_por_reserva
+
+        # Valores derivados por día
+        cop_vals      = [d["num_reservas"] * cop for d in data]
+        cfijo_vals    = [cfijo for _ in data]
+        mkt_vals      = [daily_marketing.get(fe, 0.0) for fe in all_dates]
+        total_costos_vals = [
+            data[i]["costo_variable_extras"]
+            + data[i]["costo_variable_aloj"]
+            + cop_vals[i]
+            + cfijo_vals[i]
+            + mkt_vals[i]
+            for i in range(N)
+        ]
+        utilidad_vals = [
+            data[i]["total_ingresos"] - total_costos_vals[i]
+            for i in range(N)
+        ]
+
+        # Ancho de columnas
+        LW = 24   # etiqueta
+        CW = 10   # cada día
+        TW = 11   # columna TOTAL
+
+        def fv(v: float) -> str:
+            if abs(v) < 0.5:
+                return "—"
+            if v < 0:
+                return f"-{int(round(-v)):,}"
+            return f"{int(round(v)):,}"
+
+        def fp(v_ing: float, v_util: float) -> str:
+            """Margen porcentaje."""
+            if v_ing < 0.5:
+                return "—"
+            return f"{v_util / v_ing * 100:.1f}%"
+
+        def build_row(label: str, vals: List[float]) -> str:
+            total = sum(vals)
+            cells = "".join(f"{fv(v):>{CW}}" for v in vals)
+            return f"{label:<{LW}}{cells}  {fv(total):>{TW-2}}"
+
+        def build_pct_row(label: str, ing_vals: List[float], util_vals: List[float]) -> str:
+            total_ing  = sum(ing_vals)
+            total_util = sum(util_vals)
+            cells = "".join(f"{fp(ing_vals[i], util_vals[i]):>{CW}}" for i in range(N))
+            return f"{label:<{LW}}{cells}  {fp(total_ing, total_util):>{TW-2}}"
+
+        sep = "=" * (LW + N * CW + TW)
+
+        # Cabecera: dos líneas (abreviatura + día/mes)
+        hdr1 = " " * LW + "".join(f"{day_abbr[fe.weekday()]:>{CW}}" for fe in all_dates) + f"  {'TOTAL':>{TW-2}}"
+        hdr2 = " " * LW + "".join(f"{fe.strftime('%d/%m'):>{CW}}" for fe in all_dates)
+
+        ing_vals = [d["total_ingresos"] for d in data]
+
+        lines = [
+            hdr1,
+            hdr2,
+            sep,
+            build_row("Reservas (n)",              [d["num_reservas"]          for d in data]),
+            sep,
+            build_row("Ing. reservas",              [d["ingreso_reservas"]      for d in data]),
+            build_row("Ing. extras",                [d["ingreso_extras"]        for d in data]),
+            build_row("Ing. alojamientos",          [d["ingreso_aloj"]          for d in data]),
+            sep,
+            build_row("TOTAL INGRESOS",             ing_vals),
+            sep,
+            build_row("Var. extras",                [d["costo_variable_extras"] for d in data]),
+            build_row("Var. alojamientos",          [d["costo_variable_aloj"]   for d in data]),
+            build_row(f"C.op.fijo ({cop:,.0f}/res)", cop_vals),
+            build_row(f"C.fijo ({cfijo:,.0f}/dia)",  cfijo_vals),
+            build_row("Marketing",                  mkt_vals),
+            sep,
+            build_row("TOTAL COSTOS",               total_costos_vals),
+            sep,
+            build_row("UTILIDAD",                   utilidad_vals),
+            build_pct_row("Margen %",               ing_vals, utilidad_vals),
+            sep,
+        ]
+        return "\n".join(lines)
     
     def _breakdown_by_week(self, rows: List[Dict[str, Any]], costs_dict: Dict[str, float]) -> List[Dict[str, Any]]:
         """Desglose por semana (lunes inicio), misma agregación que el resumen."""
@@ -246,6 +373,7 @@ class WeeklyMonthlySummaryMonitor(BaseMonitor):
         daily_data: List[Dict[str, Any]],
         marketing: Dict[str, Any],
         meta_analysis: str = "",
+        daily_marketing: Optional[Dict[date, float]] = None,
     ):
         """Envía reporte semanal por email"""
         
@@ -305,11 +433,9 @@ class WeeklyMonthlySummaryMonitor(BaseMonitor):
 
 """
         
-        # Agregar datos diarios
-        for day_data in daily_data:
-            fecha_str = day_data['fecha'].strftime("%d/%m")
-            dia_semana = calendar.day_name[day_data['fecha'].weekday()]
-            message += f"{fecha_str} ({dia_semana}): {day_data['num_reservas']} reservas - ${day_data['ingresos']:,.0f}\n"
+        # Tabla diaria transpuesta (días × métricas)
+        tabla = self._format_daily_table(start_date, end_date, daily_data, daily_marketing or {})
+        message += tabla + "\n"
 
         # Bloque de analisis Meta Ads (hallazgos + recomendaciones)
         if meta_analysis:
@@ -410,10 +536,10 @@ class WeeklyMonthlySummaryMonitor(BaseMonitor):
         message += f"📈 TOP 5 DÍAS DEL MES\n\n"
         
         # Top 5 días
-        sorted_days = sorted(daily_data, key=lambda x: x['ingresos'], reverse=True)[:5]
+        sorted_days = sorted(daily_data, key=lambda x: x['total_ingresos'], reverse=True)[:5]
         for idx, day_data in enumerate(sorted_days, 1):
             fecha_str = day_data['fecha'].strftime("%d/%m")
-            message += f"{idx}. {fecha_str}: ${day_data['ingresos']:,.0f} ({day_data['num_reservas']} reservas)\n"
+            message += f"{idx}. {fecha_str}: ${day_data['total_ingresos']:,.0f} ({day_data['num_reservas']} reservas)\n"
         
         message += f"\n📊 Generado el {datetime.now().strftime('%d/%m/%Y a las %H:%M')}"
         

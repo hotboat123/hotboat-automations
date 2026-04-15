@@ -148,68 +148,87 @@ class DailySummaryMonitor(BaseMonitor):
             logger.error(f"❌ Error obteniendo detalle de reservas: {e}")
             return []
     
+    def _format_day_table(
+        self,
+        summary: Dict[str, Any],
+        total_marketing: float,
+        num_ads: int,
+    ) -> str:
+        """Tabla vertical para el reporte diario: metrica | valor."""
+        n   = summary['total_reservas_count']
+        fijo = self.costo_fijo_diario_prorrateado
+        cop  = self.costo_operativo_fijo_por_reserva * n
+        cv_e = summary['total_costo_variable_extras']
+        cv_a = summary['total_costo_variable_aloj']
+        t_ing = summary['total_ingresos']
+        t_cos = fijo + cop + total_marketing + cv_e + cv_a
+        util  = t_ing - t_cos
+        margen = util / t_ing * 100 if t_ing > 0 else 0
+
+        LW, VW = 32, 13
+
+        def fv(v: float) -> str:
+            if abs(v) < 0.5:
+                return "—"
+            if v < 0:
+                return f"-{int(round(-v)):,}"
+            return f"{int(round(v)):,}"
+
+        sep = "=" * (LW + VW + 1)
+
+        def row(label: str, val: float) -> str:
+            return f"{label:<{LW}} {fv(val):>{VW}}"
+
+        mkt_label = f"Marketing ({num_ads} anuncios)"
+        cop_label = f"C.op.fijo ({n} res x {self.costo_operativo_fijo_por_reserva:,.0f})"
+
+        lines = [
+            sep,
+            row("Reservas",                        n),
+            row("Promedio por reserva",             summary['promedio_por_reserva']),
+            sep,
+            row("Ing. reservas",                   summary['total_ingreso_reservas']),
+            row("Ing. extras",                     summary['total_ingreso_extras']),
+            row("Ing. alojamientos",               summary['total_ingreso_aloj']),
+            sep,
+            row("TOTAL INGRESOS",                  t_ing),
+            sep,
+            row("Var. extras",                     cv_e),
+            row("Var. alojamientos",               cv_a),
+            row(cop_label,                         cop),
+            row(f"C.fijo prorrateado",             fijo),
+            row(mkt_label,                         total_marketing),
+            sep,
+            row("TOTAL COSTOS",                    t_cos),
+            sep,
+            row("UTILIDAD",                        util),
+            f"{'Margen %':<{LW}} {margen:>{VW-1}.1f}%",
+            sep,
+        ]
+        return "\n".join(lines)
+
     async def _send_daily_report(
-        self, 
-        date, 
+        self,
+        date,
         summary: Dict[str, Any],
         marketing: Dict[str, Any]
     ) -> None:
         """Envía el reporte diario por Email"""
-        
+
         date_str = date.strftime("%d/%m/%Y")
-        
         total_reservas = summary['total_reservas_count']
-        total_ingresos = summary['total_ingresos']
-        
-        fijo = self.costo_fijo_diario_prorrateado
-        cop_fijo_reservas = self.costo_operativo_fijo_por_reserva * total_reservas
         total_marketing = marketing['total_marketing']
-        cv_extras = summary['total_costo_variable_extras']
-        cv_aloj = summary['total_costo_variable_aloj']
-        
-        total_costos = fijo + cop_fijo_reservas + total_marketing + cv_extras + cv_aloj
-        utilidad_neta = total_ingresos - total_costos
-        margen_neto = (utilidad_neta / total_ingresos * 100) if total_ingresos > 0 else 0
-        
+        num_ads = marketing['num_ads']
+
+        tabla = self._format_day_table(summary, total_marketing, num_ads)
+
         message = f"""
-📊 REPORTE DIARIO - {date_str}
+REPORTE DIARIO - {date_str}
 
-📅 Reservas del día: {total_reservas}
+{'='*47}
+RESUMEN FINANCIERO
 
-{'='*40}
-💰 INGRESOS DEL DÍA
-
-💵 Total reservas: ${summary['total_ingreso_reservas']:,.0f}
-🍾 Total extras: ${summary['total_ingreso_extras']:,.0f}
-🏠 Total alojamientos: ${summary['total_ingreso_aloj']:,.0f}
-━━━━━━━━━━━━━━━━━━━━━
-💰 TOTAL INGRESOS: ${total_ingresos:,.0f}
-
-📊 Promedio por reserva: ${summary['promedio_por_reserva']:,.0f}
-🧾 Pagos registrados: {total_reservas}
-
-{'='*40}
-💸 COSTOS DEL DÍA
-
-📢 Marketing: ${total_marketing:,.0f} ({marketing['num_ads']} anuncios)
-
-🏭 Costo fijo diario prorrateado: ${fijo:,.0f}
-
-🏭 Costos operativos fijos ({total_reservas} reservas × ${self.costo_operativo_fijo_por_reserva:,.0f}): ${cop_fijo_reservas:,.0f}
-
-   Variables — extras: ${cv_extras:,.0f}
-   Variables — alojamientos: ${cv_aloj:,.0f}
-━━━━━━━━━━━━━━━━━━━━━
-💵 COSTOS TOTALES: ${total_costos:,.0f}
-
-{'='*40}
-📈 UTILIDAD NETA
-
-💰 Ingresos: ${total_ingresos:,.0f}
-💸 Costos Totales: -${total_costos:,.0f}
-━━━━━━━━━━━━━━━━━━━━━
-💵 UTILIDAD NETA: ${utilidad_neta:,.0f}
-📊 Margen Neto: {margen_neto:.1f}%
+{tabla}
 """
         
         detalle = await self._get_reservas_detalle(date)
