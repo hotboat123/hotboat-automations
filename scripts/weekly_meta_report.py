@@ -64,7 +64,7 @@ def query_all(conn, start: str, end: str):
               SUM("Impresiones")                                    AS impressions,
               SUM("Clics en el enlace")                             AS link_clicks,
               SUM("Conversaciones con mensajes iniciadas")          AS conversations,
-              SUM("Artículos agregados al carrito")                 AS add_to_cart,
+              SUM("Compras")                                        AS purchases,
               SUM("Alcance")                                        AS reach
             FROM v_meta_ads_analytics
             WHERE "Día" BETWEEN %s AND %s
@@ -82,7 +82,7 @@ def query_all(conn, start: str, end: str):
               SUM("Impresiones")                                    AS impressions,
               SUM("Clics en el enlace")                             AS link_clicks,
               SUM("Conversaciones con mensajes iniciadas")          AS conversations,
-              SUM("Artículos agregados al carrito")                 AS add_to_cart,
+              SUM("Compras")                                        AS purchases,
               SUM("Alcance")                                        AS reach
             FROM v_meta_ads_analytics
             WHERE "Día" BETWEEN %s AND %s
@@ -190,7 +190,12 @@ def make_section_figure(rows, title: str, out_path: Path, start: str, end: str):
     cpcs    = [r["cpc"] for r in rows]
     cpms    = [r["cpm"] for r in rows]
     convs   = [float(r["conversations"] or 0) for r in rows]
-    carts   = [float(r.get("add_to_cart") or 0) for r in rows]
+    # "Compras" en v_meta_ads_analytics = reserva_app_3 (conversión
+    # personalizada real de HotBoat) desde 2026-08-12 — antes esta columna
+    # era "add_to_cart" (Artículos agregados al carrito), un evento de
+    # e-commerce/Meta Pixel que nunca se dispara para HotBoat (no es una
+    # tienda online con checkout de Meta Pixel) y siempre daba 0.
+    purchases = [float(r.get("purchases") or 0) for r in rows]
     cost_msg = [r["cost_per_msg"] if r["cost_per_msg"] is not None else 0 for r in rows]
 
     fig = plt.figure(figsize=(17, 13))
@@ -216,12 +221,12 @@ def make_section_figure(rows, title: str, out_path: Path, start: str, end: str):
                      "CTR %", "CPM", PURPLE, ORANGE)
     ax2.yaxis.set_major_formatter(mticker.FuncFormatter(lambda x, _: f"{x:.2f}"))
 
-    # Panel 3 (abajo izq): Conversaciones en mensajes + artículos al carrito
+    # Panel 3 (abajo izq): Conversaciones en mensajes + compras (reserva_app_3)
     ax3  = fig.add_subplot(gs[1, 0])
     ax3b = ax3.twinx()
-    ax3.set_title("Conversaciones de mensajes  vs  Artículos al carrito", fontsize=10, pad=6)
-    grouped_dual_bar(ax3, ax3b, labels, convs, carts,
-                     "Conversaciones", "Al carrito", GREEN, ORANGE)
+    ax3.set_title("Conversaciones de mensajes  vs  Compras", fontsize=10, pad=6)
+    grouped_dual_bar(ax3, ax3b, labels, convs, purchases,
+                     "Conversaciones", "Compras", GREEN, ORANGE)
     ax3.yaxis.set_major_formatter(mticker.FuncFormatter(lambda x, _: f"{x:.0f}"))
     ax3b.yaxis.set_major_formatter(mticker.FuncFormatter(lambda x, _: f"{x:.0f}"))
 
