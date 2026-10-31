@@ -48,7 +48,15 @@ monitors:
     timezone: "America/Santiago"  # zona horaria para el reporte
     costo_fijo_diario_prorrateado: 21700  # mismo criterio que el resumen diario (× días del periodo)
     costo_operativo_fijo_por_reserva: 18000  # por cita confirmada en el periodo (CLP)
-  
+
+  weekly_reconciliation:
+    enabled: true
+    name: "Monitor de Cuadratura Semanal Banco vs App"
+    check_interval: 1800  # segundos
+    report_time: "08:00"  # miércoles (el flujo de caja se actualiza a mano los martes)
+    weekday: 2  # 0=lunes ... 2=miércoles
+    timezone: "America/Santiago"
+
 
 # Notification Channels
 notifications:
