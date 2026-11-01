@@ -54,7 +54,9 @@ def reconcile(bank_rows: List[Dict], app_rows: List[Dict], start: date, end: dat
     for r in bank_rows:
         method = BANK_METHOD.get((r["categor_a_2"] or "").lower())
         bank.append({**r, "fecha": _to_date(r["fecha"]), "abonos": float(r["abonos"]), "method": method})
-    app = [{**r, "pdate": _to_date(r["pdate"]), "amount": float(r["amount"]), "method": (r["method"] or "").lower(), "used": False}
+    app = [{**r, "pdate": _to_date(r["pdate"]), "amount": float(r["amount"]), "method": (r["method"] or "").lower(), "used": False,
+            # Segundo pago hecho el día del paseo (se paga al volver, con la máquina presencial): nunca es Transbank.
+            "final": int(r.get("idx") or 1) >= 2 and _to_date(r["pdate"]) == _to_date(r["paseo"])}
            for r in app_rows]
     in_week = lambda d: start <= d <= end  # noqa: E731
 
@@ -63,6 +65,7 @@ def reconcile(bank_rows: List[Dict], app_rows: List[Dict], start: date, end: dat
         lo, hi = RATIO[b["method"]]
         pool = sorted(
             (p for p in app if not p["used"] and p["method"] == b["method"]
+             and not (p["final"] and b["method"] == "transbank")
              and -LAG_AFTER <= (b["fecha"] - p["pdate"]).days <= LAG_BEFORE),
             key=lambda p: abs((b["fecha"] - p["pdate"]).days))[:12]
         best = None
@@ -88,13 +91,14 @@ def reconcile(bank_rows: List[Dict], app_rows: List[Dict], start: date, end: dat
     for b in unmatched_bank:
         lo, hi = RATIO[b["method"]]
         near = [p for p in app if not p["used"] and p["method"] != b["method"]
+                and not (p["final"] and b["method"] == "transbank")
                 and -LAG_AFTER <= (b["fecha"] - p["pdate"]).days <= LAG_BEFORE]
         cands = []
         for p in near:
             ratio = b["abonos"] / p["amount"] if p["amount"] > 0 else 0
             if lo <= ratio <= hi:
                 wrong = "app"  # el banco está bien, la app tiene mal el método
-            elif p["method"] in RATIO and RATIO[p["method"]][0] <= ratio <= RATIO[p["method"]][1]:
+            elif p["method"] in RATIO and not (p["final"] and p["method"] == "transbank")                     and RATIO[p["method"]][0] <= ratio <= RATIO[p["method"]][1]:
                 wrong = "banco"  # la app está bien, el banco tiene mal la categoría
             else:
                 continue
@@ -149,7 +153,9 @@ def reconcile(bank_rows: List[Dict], app_rows: List[Dict], start: date, end: dat
             if p["method"] not in METHOD_LABEL and st == "falta_banco":
                 st = "efectivo"
             days.setdefault(p["pdate"], {"bank": [], "app": []})["app"].append({**p, "status": st})
+    final_tbk = [p for p in app if p["final"] and p["method"] == "transbank" and in_week(p["pdate"])]
     return {
+        "final_tbk": final_tbk,
         "start": start, "end": end, "by_method": by_method, "matches": w_matches, "mismatches": w_mismatches, "days": dict(sorted(days.items())),
         "unmatched_bank": w_unmatched_bank, "unmatched_app": unmatched_app,
         "other_bank": [b for b in bank if not b["method"] and in_week(b["fecha"])],
@@ -160,7 +166,7 @@ def render_html(r: Dict[str, Any]) -> str:
     # Sin saltos de línea: EmailNotifier._format_html convierte "\n" en <br>.
     td = "padding:6px 10px;border-bottom:1px solid #eee;"
     th = "padding:6px 10px;text-align:left;background:#f4f6f8;"
-    ok = not r["unmatched_bank"] and not r["unmatched_app"] and not r["mismatches"]
+    ok = not r["unmatched_bank"] and not r["unmatched_app"] and not r["mismatches"] and not r["final_tbk"]
     head = (f"<h2>Cuadratura semanal {r['start']:%d-%m} al {r['end']:%d-%m-%Y}</h2>"
             + ("<p style='color:#198754'><b>Todo calza.</b></p>" if ok else
                f"<p style='color:#dc3545'><b>{len(r['unmatched_bank'])} abono(s) del banco sin pago en la app y "
@@ -183,7 +189,9 @@ def render_html(r: Dict[str, Any]) -> str:
         who = "la app tiene mal el método" if m["wrong"] == "app" else "la categoría del banco está mal"
         txt = (f"<li>{m['bank']['fecha']:%d-%m} · el banco recibió <b>{_clp(m['bank']['abonos'])}</b> como <b>{METHOD_LABEL[m['bank']['method']]}</b>; "
                "en la app calza con " + " + ".join(f"{p['method']} {_clp(p['amount'])} ({p['nombre_cliente']}, reserva {p['booking_id']}, {p['pdate']:%d-%m})" for p in m["payments"])
-               + f" (banco/app {m['ratio'] * 100:.1f}%) → probable: {who}.")
+               + f" (banco/app {m['ratio'] * 100:.1f}%) → probable: {who}."
+               + (" Es el pago del día del paseo: no puede ser Transbank, probablemente MercadoPago (máquina presencial)."
+                  if any(p["final"] and p["method"] == "transbank" for p in m["payments"]) else ""))
         if m["alternatives"]:
             alts = "; ".join(" + ".join(f"{p['method']} {_clp(p['amount'])} ({p['nombre_cliente']})" for p in a["payments"])
                              + f" ({a['ratio'] * 100:.1f}%)" for a in m["alternatives"])
@@ -195,9 +203,12 @@ def render_html(r: Dict[str, Any]) -> str:
     for d, ev in r["days"].items():
         items = "".join(f"<li>{icon[x['status']]} Banco · {x['categor_a_2']} · {_clp(x['abonos'])} · {x['descripci_n']}</li>" for x in ev["bank"])             + "".join(f"<li>{icon[x['status']]} App · {x['method']} · {_clp(x['amount'])} · {x['nombre_cliente']}</li>" for x in ev["app"])
         day_html += f"<p style='margin:10px 0 2px'><b>{DIAS[d.weekday()]} {d:%d-%m}</b></p><ul style='margin:0;font-size:13px'>{items}</ul>"
+    ft = "".join(f"<li>{p['pdate']:%d-%m} · <b>{_clp(p['amount'])}</b> · {p['nombre_cliente']} (reserva {p['booking_id']}) · el segundo pago del día del paseo "
+                 "no puede ser Transbank: cambiar a MercadoPago (máquina) o transferencia</li>" for p in r["final_tbk"])
     legend = "<p style='font-size:12px;color:#666'>✅ calza · 🔁 método distinto · ❌ banco sin app · ⏳ app sin banco (aún) · 💵 efectivo/otro · ➖ no se cuadra (ej. GetYourGuide)</p>"
     return (head + summary
             + (f"<h3>Posible método equivocado en la app</h3><ul>{mm}</ul>" if mm else "")
+            + (f"<h3>Segundo pago anotado como Transbank</h3><ul>{ft}</ul>" if ft else "")
             + "<h3>Abonos en el banco sin pago en la app</h3><p style='font-size:13px;color:#666'>Registra el pago en la app o corrige el método/fecha.</p><ul>" + ub + "</ul>"
             + "<h3>Pagos de la app sin abono en el banco</h3><p style='font-size:13px;color:#666'>Puede llegar la próxima semana (Transbank) o estar mal anotado.</p><ul>" + ua + "</ul>"
             + "<h3>Emparejados</h3><ul style='font-size:13px'>" + mt + "</ul>"
@@ -238,8 +249,8 @@ class WeeklyReconciliationMonitor(BaseMonitor):
             (monday - timedelta(days=LOOKBACK), sunday + timedelta(days=LAG_AFTER)))
         app = await self.db.execute_query(
             """SELECT a.id AS booking_id, a.nombre_cliente, a.fecha AS paseo, lower(x.value->>'method') AS method,
-                      (x.value->>'amount')::numeric AS amount, (x.value->>'date')::date AS pdate
-               FROM all_appointments a, jsonb_array_elements(coalesce(a.pagos, '[]'::jsonb)) x
+                      (x.value->>'amount')::numeric AS amount, (x.value->>'date')::date AS pdate, x.idx AS idx
+               FROM all_appointments a, jsonb_array_elements(coalesce(a.pagos, '[]'::jsonb)) WITH ORDINALITY x(value, idx)
                WHERE (x.value->>'date')::date BETWEEN %s AND %s
                  AND coalesce(a.status, '') NOT ILIKE '%%cancel%%' AND (x.value->>'amount')::numeric > 0""",
             (monday - timedelta(days=LOOKBACK + LAG_BEFORE), sunday + timedelta(days=LAG_AFTER)))
