@@ -34,6 +34,7 @@ RATIO = {
 # débito/prepago $858 sobre $131.067. Con el medio de pago de cada venta, el abono se explica al peso.
 TBK_RATE = {"credito": 0.015834, "debito": 0.007378, "prepago": 0.007378}
 TBK_NET_TOL = 3  # pesos
+TBK_ADJ_MAX = 3000  # ajustes menores sin comisión que el portal suma a un abono
 TBK_SALE_WINDOW_BEFORE = 12  # días entre la venta Transbank y su abono (no hay abonos fin de semana)
 TBK_BOOKING_BEFORE = timedelta(minutes=45)  # la reserva web se crea justo antes de pagar
 TBK_BOOKING_AFTER = timedelta(minutes=5)
@@ -76,46 +77,81 @@ def _tbk_net(sale: Dict) -> Optional[float]:
 
 
 def _tbk_pass(bank: List[Dict], app: List[Dict], sales: List[Dict], bookings: List[Dict]) -> List[Dict]:
-    """Cruce Transbank con el portal: abono -> ventas (monto bruto exacto) -> pago/reserva de la app.
+    """Cruce Transbank con el portal: abono -> ventas -> pago/reserva de la app.
 
-    Cada venta se resuelve por, en orden: (1) código de autorización guardado en la app, (2) monto exacto de un pago
-    Transbank de la app con fecha cercana, (3) la reserva creada a la hora de la venta (la reserva web se crea justo antes de
-    pagar) y su pago de ese monto registrado con otro método o en otra reserva, (4) reserva sin pago registrado.
+    Un abono se explica, en este orden, por: (1) ventas pagadas de una vez (suma de netos por medio de pago, exacta),
+    (2) lo anterior más ajustes menores del portal (cuotas de $1.000-$2.000 sin comisión), (3) cuotas de ventas
+    en 2 a 12 cuotas: la venta se paga en N abonos de monto/N, aproximadamente uno por mes.
+    Cada venta se resuelve (ver _resolve_sale) una sola vez; sus otras cuotas reutilizan ese resultado.
     """
     lo, hi = RATIO["transbank"]
     for sale in sales:
         sale["used"] = False
+        sale["n_cuotas"] = None
+        sale["ks"] = set()
+        sale["res"] = None
     links = []
-    for b in sorted((x for x in bank if x["method"] in ("transbank", "transferencia", "mercadopago")), key=lambda x: (x["fecha"], x["abonos"])):
+    rows = sorted((x for x in bank if x["method"] in ("transbank", "transferencia", "mercadopago")),
+                  key=lambda x: (x["fecha"], x["abonos"]))
+    for b in rows:
         other_cat = b["method"] != "transbank"
-        pool = [x for x in sales if not x["used"] and 1 <= (b["fecha"] - x["dt"].date()).days <= TBK_SALE_WINDOW_BEFORE]
-        pool.sort(key=lambda x: (b["fecha"] - x["dt"].date()).days)
-        best = None
+        days = lambda x: (b["fecha"] - x["dt"].date()).days  # noqa: E731
+        pool = sorted((x for x in sales if not x["used"] and 1 <= days(x) <= TBK_SALE_WINDOW_BEFORE), key=days)[:10]
+        best = None  # (score, [(sale, k, n, net)], note)
+
+        def consider(score, parts, note=""):
+            nonlocal best
+            if best is None or score < best[0]:
+                best = (score, parts, note)
+
         for size in range(1, 5):
-            for sub in combinations(pool[:10], size):
+            for sub in combinations(pool, size):
                 nets = [_tbk_net(x) for x in sub]
-                if all(n is not None for n in nets):
-                    # exacto: suma de netos por medio de pago == abono (±$3)
-                    if abs(sum(nets) - b["abonos"]) <= TBK_NET_TOL:
-                        score = size * 1000 + sum((b["fecha"] - x["dt"].date()).days for x in sub)
-                        if best is None or score < best[0]:
-                            best = (score, sub)
-        if not best and not other_cat:  # sin medio de pago: banda de razón
-            for size in range(1, 5):
-                for sub in combinations(pool[:10], size):
-                    gross = sum(x["amount"] for x in sub)
-                    if lo <= b["abonos"] / gross <= hi:
-                        score = size * 1000 + sum((b["fecha"] - x["dt"].date()).days for x in sub)
-                        if best is None or score < best[0]:
-                            best = (score, sub)
+                if all(n is not None for n in nets) and abs(sum(nets) - b["abonos"]) <= TBK_NET_TOL:
+                    consider(size * 1000 + sum(days(x) for x in sub), [(x, 1, 1, n) for x, n in zip(sub, nets)])
+        if not best and not other_cat:
+            for x in pool:  # (2) una venta + ajustes menores (solo abonos que el banco ya marca como Transbank)
+                n = _tbk_net(x)
+                if n is not None and 0 < b["abonos"] - n <= TBK_ADJ_MAX:
+                    consider(5000 + days(x), [(x, 1, 1, n)], f"incluye ${round(b['abonos'] - n):,} de ajustes menores del portal".replace(",", "."))
+        if not best and not other_cat:  # (3) cuotas de ventas a plazo
+            pieces = []
+            for x in sales:
+                if x["used"] or _medio(x) != "credito":
+                    continue
+                for n in ([x["n_cuotas"]] if x["n_cuotas"] else range(2, 13)):
+                    gross = x["amount"] / n
+                    for k in range(1, n + 1):
+                        if k in x["ks"]:
+                            continue
+                        if (k - 1) * 28 + 1 <= days(x) <= (k - 1) * 33 + TBK_SALE_WINDOW_BEFORE:
+                            pieces.append((x, k, n, gross * (1 - TBK_RATE["credito"])))
+            for size in (1, 2):
+                for sub in combinations(pieces, size):
+                    if len({id(p[0]) for p in sub}) < size:
+                        continue
+                    if abs(sum(p[3] for p in sub) - b["abonos"]) <= TBK_NET_TOL:
+                        consider(8000 + size * 100 + sum(p[2] + 5 * (p[1] - 1) for p in sub), list(sub))
         if not best:
             if not other_cat:
                 links.append({"bank": b, "sales": []})
             continue
-        for x in best[1]:
-            x["used"] = True
-        links.append({"bank": b, "cat_wrong": other_cat, "sales": [_resolve_sale(x, app, bookings) for x in best[1]]})
+        res = []
+        for x, k, n, net in best[1]:
+            if n > 1:
+                x["n_cuotas"] = n
+                x["ks"].add(k)
+            else:
+                x["used"] = True
+            if x["res"] is None:
+                x["res"] = _resolve_sale(x, app, bookings)
+            res.append({**x["res"], "cuota": (k, n) if n > 1 else None})
+        links.append({"bank": b, "cat_wrong": other_cat, "note": best[2], "sales": res})
     return links
+
+
+def _medio(sale: Dict) -> str:
+    return unicodedata.normalize("NFKD", str(sale.get("medio") or "")).encode("ascii", "ignore").decode().lower()
 
 
 def _resolve_sale(sale: Dict, app: List[Dict], bookings: List[Dict]) -> Dict:
@@ -320,7 +356,8 @@ def render_html(r: Dict[str, Any]) -> str:
         parts = []
         for x in l["sales"]:
             sl, pay, bk = x["sale"], x["payment"], x["booking"]
-            when = f"venta {sl['dt']:%d-%m %H:%M} {_clp(sl['amount'])}"
+            when = (f"venta {sl['dt']:%d-%m %H:%M} {_clp(sl['amount'])}"
+                    + (f" (cuota {x['cuota'][0]}/{x['cuota'][1]})" if x.get("cuota") else ""))
             if x["status"] == "ok":
                 parts.append(f"✅ {when} ← {pay['nombre_cliente']} (reserva {pay['booking_id']})")
             elif x["status"] == "metodo":
@@ -331,7 +368,7 @@ def render_html(r: Dict[str, Any]) -> str:
             else:
                 parts.append(f"❌ {when} (código {sl['code']}): <b>no hay reserva ni pago en la app</b> → buscar al cliente en el portal y registrarlo")
         cw = (f" · <b>el banco lo tiene como {METHOD_LABEL[b['method']]}: es Transbank, cambiar la categoría</b>" if l.get("cat_wrong") else "")
-        tb += f"<li>Abono {b['fecha']:%d-%m} · <b>{_clp(b['abonos'])}</b>{cw}<ul>" + "".join(f"<li>{x}</li>" for x in parts) + "</ul></li>"
+        tb += f"<li>Abono {b['fecha']:%d-%m} · <b>{_clp(b['abonos'])}</b>{cw}{(' · ' + l['note']) if l.get('note') else ''}<ul>" + "".join(f"<li>{x}</li>" for x in parts) + "</ul></li>"
     legend = "<p style='font-size:12px;color:#666'>✅ calza · 🔁 método distinto · ❌ banco sin app · ⏳ app sin banco (aún) · 💵 efectivo/otro · ➖ no se cuadra (ej. GetYourGuide)</p>"
     return (head + summary
             + (f"<h3>Posible método equivocado en la app</h3><ul>{mm}</ul>" if mm else "")
@@ -382,7 +419,7 @@ class WeeklyReconciliationMonitor(BaseMonitor):
                WHERE (x.value->>'date')::date BETWEEN %s AND %s
                  AND coalesce(a.status, '') NOT ILIKE '%%cancel%%' AND (x.value->>'amount')::numeric > 0""",
             (monday - timedelta(days=LOOKBACK + LAG_BEFORE), sunday + timedelta(days=LAG_AFTER)))
-        sales = await self._load_tbk_sales(monday - timedelta(days=LOOKBACK), sunday + timedelta(days=LAG_AFTER))
+        sales = await self._load_tbk_sales(monday - timedelta(days=400), sunday + timedelta(days=LAG_AFTER))
         bookings = []
         if sales:
             first = min(x["dt"] for x in sales) - TBK_BOOKING_BEFORE
