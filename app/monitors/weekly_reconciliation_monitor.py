@@ -9,6 +9,8 @@ from datetime import date, datetime, time as dt_time, timedelta
 from itertools import combinations
 from typing import Any, Dict, List, Optional
 
+import unicodedata
+
 import pytz
 
 from app.logger import logger
@@ -28,6 +30,14 @@ RATIO = {
     "mercadopago": (0.93, 0.972),
     "transbank": (0.975, 0.995),
 }
+# Comisión + IVA que descuenta Transbank, medida contra el portal (oct-2026): crédito $1.219 sobre $76.990;
+# débito/prepago $858 sobre $131.067. Con el medio de pago de cada venta, el abono se explica al peso.
+TBK_RATE = {"credito": 0.015834, "debito": 0.007378, "prepago": 0.007378}
+TBK_NET_TOL = 3  # pesos
+TBK_SALE_WINDOW_BEFORE = 12  # días entre la venta Transbank y su abono (no hay abonos fin de semana)
+TBK_BOOKING_BEFORE = timedelta(minutes=45)  # la reserva web se crea justo antes de pagar
+TBK_BOOKING_AFTER = timedelta(minutes=5)
+TBK_AMOUNT_TOL_DAYS = 3
 DIAS = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"]
 METHOD_LABEL = {"mercadopago": "MercadoPago", "transferencia": "Transferencia", "transbank": "Transbank"}
 MAX_SUBSET = 5
@@ -48,20 +58,110 @@ def _clp(n: float) -> str:
     return "$" + f"{round(n):,}".replace(",", ".")
 
 
-def reconcile(bank_rows: List[Dict], app_rows: List[Dict], start: date, end: date) -> Dict[str, Any]:
+
+def _norm_name(v: Any) -> str:
+    t = unicodedata.normalize("NFKD", str(v or "")).encode("ascii", "ignore").decode().lower()
+    return " ".join(t.split())
+
+
+def _same_person(a: Any, b: Any) -> bool:
+    ta, tb = set(_norm_name(a).split()), set(_norm_name(b).split())
+    return bool(ta and tb) and len(ta & tb) >= min(2, len(ta), len(tb))
+
+
+def _tbk_net(sale: Dict) -> Optional[float]:
+    medio = unicodedata.normalize("NFKD", str(sale.get("medio") or "")).encode("ascii", "ignore").decode().lower()
+    rate = TBK_RATE.get(medio)
+    return sale["amount"] * (1 - rate) if rate is not None else None
+
+
+def _tbk_pass(bank: List[Dict], app: List[Dict], sales: List[Dict], bookings: List[Dict]) -> List[Dict]:
+    """Cruce Transbank con el portal: abono -> ventas (monto bruto exacto) -> pago/reserva de la app.
+
+    Cada venta se resuelve por, en orden: (1) código de autorización guardado en la app, (2) monto exacto de un pago
+    Transbank de la app con fecha cercana, (3) la reserva creada a la hora de la venta (la reserva web se crea justo antes de
+    pagar) y su pago de ese monto registrado con otro método o en otra reserva, (4) reserva sin pago registrado.
+    """
+    lo, hi = RATIO["transbank"]
+    for sale in sales:
+        sale["used"] = False
+    links = []
+    for b in sorted((x for x in bank if x["method"] in ("transbank", "transferencia", "mercadopago")), key=lambda x: (x["fecha"], x["abonos"])):
+        other_cat = b["method"] != "transbank"
+        pool = [x for x in sales if not x["used"] and 1 <= (b["fecha"] - x["dt"].date()).days <= TBK_SALE_WINDOW_BEFORE]
+        pool.sort(key=lambda x: (b["fecha"] - x["dt"].date()).days)
+        best = None
+        for size in range(1, 5):
+            for sub in combinations(pool[:10], size):
+                nets = [_tbk_net(x) for x in sub]
+                if all(n is not None for n in nets):
+                    # exacto: suma de netos por medio de pago == abono (±$3)
+                    if abs(sum(nets) - b["abonos"]) <= TBK_NET_TOL:
+                        score = size * 1000 + sum((b["fecha"] - x["dt"].date()).days for x in sub)
+                        if best is None or score < best[0]:
+                            best = (score, sub)
+        if not best and not other_cat:  # sin medio de pago: banda de razón
+            for size in range(1, 5):
+                for sub in combinations(pool[:10], size):
+                    gross = sum(x["amount"] for x in sub)
+                    if lo <= b["abonos"] / gross <= hi:
+                        score = size * 1000 + sum((b["fecha"] - x["dt"].date()).days for x in sub)
+                        if best is None or score < best[0]:
+                            best = (score, sub)
+        if not best:
+            if not other_cat:
+                links.append({"bank": b, "sales": []})
+            continue
+        for x in best[1]:
+            x["used"] = True
+        links.append({"bank": b, "cat_wrong": other_cat, "sales": [_resolve_sale(x, app, bookings) for x in best[1]]})
+    return links
+
+
+def _resolve_sale(sale: Dict, app: List[Dict], bookings: List[Dict]) -> Dict:
+    day = sale["dt"].date()
+    res = {"sale": sale, "status": "sin_reserva", "payment": None, "booking": None}
+    free = [p for p in app if not p["used"]]
+    hit = next((p for p in free if p.get("auth") and p["auth"] == sale["code"]), None)         or next((p for p in free if p["method"] == "transbank" and p["amount"] == sale["amount"]
+                 and abs((p["pdate"] - day).days) <= TBK_AMOUNT_TOL_DAYS and not p["final"]), None)
+    if hit:
+        hit["used"] = True
+        res.update(status="ok", payment=hit)
+        return res
+    near = [b for b in bookings if -TBK_BOOKING_AFTER <= (sale["dt"] - b["created"]) <= TBK_BOOKING_BEFORE]
+    near.sort(key=lambda b: sale["dt"] - b["created"])
+    res["booking"] = near[0] if near else None
+    for p in free:
+        if p["amount"] != sale["amount"] or abs((p["pdate"] - day).days) > 30 or p["final"]:
+            continue
+        # pago del mismo monto en otro método: la misma persona de la reserva creada a esa hora, o la misma reserva
+        if near and (p["booking_id"] in {b["id"] for b in near} or _same_person(p["nombre_cliente"], near[0]["nombre_cliente"])):
+            p["used"] = True
+            res.update(status="metodo", payment=p)
+            return res
+    if near:
+        res["status"] = "sin_pago"
+    return res
+
+
+def reconcile(bank_rows: List[Dict], app_rows: List[Dict], start: date, end: date,
+              tbk_sales: Optional[List[Dict]] = None, bookings: Optional[List[Dict]] = None) -> Dict[str, Any]:
     """bank_rows: fecha, abonos, descripci_n, categor_a_2. app_rows: booking_id, nombre_cliente, paseo, method, amount, pdate."""
     bank = []
     for r in bank_rows:
         method = BANK_METHOD.get((r["categor_a_2"] or "").lower())
         bank.append({**r, "fecha": _to_date(r["fecha"]), "abonos": float(r["abonos"]), "method": method})
-    app = [{**r, "pdate": _to_date(r["pdate"]), "amount": float(r["amount"]), "method": (r["method"] or "").lower(), "used": False,
+    app = [{**r, "pdate": _to_date(r["pdate"]), "amount": float(r["amount"]), "method": (r["method"] or "").lower(), "used": False, "auth": (r.get("auth") or "").strip(),
             # Segundo pago hecho el día del paseo (se paga al volver, con la máquina presencial): nunca es Transbank.
             "final": int(r.get("idx") or 1) >= 2 and _to_date(r["pdate"]) == _to_date(r["paseo"])}
            for r in app_rows]
     in_week = lambda d: start <= d <= end  # noqa: E731
 
+    tbk_links = _tbk_pass(bank, app, tbk_sales, bookings or []) if tbk_sales else []
+    tbk_done = {id(l["bank"]) for l in tbk_links if l["sales"]}
+
     matches, unmatched_bank = [], []
-    for b in sorted((x for x in bank if x["method"]), key=lambda x: (x["fecha"], x["abonos"])):
+    for b in sorted((x for x in bank if x["method"] and id(x) not in tbk_done), key=lambda x: (x["fecha"], x["abonos"])):
         lo, hi = RATIO[b["method"]]
         pool = sorted(
             (p for p in app if not p["used"] and p["method"] == b["method"]
@@ -124,6 +224,7 @@ def reconcile(bank_rows: List[Dict], app_rows: List[Dict], start: date, end: dat
             still_unmatched.append(b)
     unmatched_bank = still_unmatched
 
+    w_tbk = [l for l in tbk_links if l["sales"] and in_week(l["bank"]["fecha"])]
     w_matches = [m for m in matches if in_week(m["bank"]["fecha"])]
     w_mismatches = [m for m in mismatches if in_week(m["bank"]["fecha"])]
     w_unmatched_bank = [b for b in unmatched_bank if in_week(b["fecha"])]
@@ -133,20 +234,28 @@ def reconcile(bank_rows: List[Dict], app_rows: List[Dict], start: date, end: dat
         by_method[m] = {
             "bank": sum(b["abonos"] for b in bank if b["method"] == m and in_week(b["fecha"])),
             "app": sum(p["amount"] for p in app if p["method"] == m and in_week(p["pdate"])),
-            "unmatched_bank": sum(b["abonos"] for b in w_unmatched_bank if b["method"] == m),
+            "unmatched_bank": sum(b["abonos"] for b in w_unmatched_bank if b["method"] == m)
+            + (sum(l["bank"]["abonos"] for l in w_tbk if m == "transbank" and any(x["status"] != "ok" for x in l["sales"])) if tbk_sales else 0),
             "unmatched_app": sum(p["amount"] for p in unmatched_app if p["method"] == m),
         }
 
     # Detalle día a día: cada movimiento del banco y de la app con su estado.
     status_bank = {id(m["bank"]): "ok" for m in matches}
     status_bank.update({id(m["bank"]): "metodo" for m in mismatches})
+    for l in tbk_links:
+        sts = {x["status"] for x in l["sales"]}
+        if sts:
+            status_bank[id(l["bank"])] = "metodo" if l.get("cat_wrong") else "ok" if sts == {"ok"} else "metodo" if "metodo" in sts and sts <= {"ok", "metodo"} else "falta_app"
+    tbk_ok_ids = {id(x["payment"]) for l in tbk_links for x in l["sales"] if x["status"] == "ok"}
+    tbk_mm_ids = {id(x["payment"]) for l in tbk_links for x in l["sales"] if x["status"] == "metodo"}
     days: Dict[date, Dict[str, list]] = {}
     for b in bank:
         if in_week(b["fecha"]):
             st = "otro" if not b["method"] else status_bank.get(id(b), "falta_app")
             days.setdefault(b["fecha"], {"bank": [], "app": []})["bank"].append({**b, "status": st})
     mismatch_ids = {id(p) for m in mismatches for p in m["payments"]}
-    matched_ids = {id(p) for m in matches for p in m["payments"]}
+    matched_ids = {id(p) for m in matches for p in m["payments"]} | tbk_ok_ids
+    mismatch_ids |= tbk_mm_ids
     for p in app:
         if in_week(p["pdate"]):
             st = "ok" if id(p) in matched_ids else "metodo" if id(p) in mismatch_ids else "falta_banco"
@@ -155,7 +264,7 @@ def reconcile(bank_rows: List[Dict], app_rows: List[Dict], start: date, end: dat
             days.setdefault(p["pdate"], {"bank": [], "app": []})["app"].append({**p, "status": st})
     final_tbk = [p for p in app if p["final"] and p["method"] == "transbank" and in_week(p["pdate"])]
     return {
-        "final_tbk": final_tbk,
+        "final_tbk": final_tbk, "tbk": w_tbk,
         "start": start, "end": end, "by_method": by_method, "matches": w_matches, "mismatches": w_mismatches, "days": dict(sorted(days.items())),
         "unmatched_bank": w_unmatched_bank, "unmatched_app": unmatched_app,
         "other_bank": [b for b in bank if not b["method"] and in_week(b["fecha"])],
@@ -166,7 +275,7 @@ def render_html(r: Dict[str, Any]) -> str:
     # Sin saltos de línea: EmailNotifier._format_html convierte "\n" en <br>.
     td = "padding:6px 10px;border-bottom:1px solid #eee;"
     th = "padding:6px 10px;text-align:left;background:#f4f6f8;"
-    ok = not r["unmatched_bank"] and not r["unmatched_app"] and not r["mismatches"] and not r["final_tbk"]
+    ok = not r["unmatched_bank"] and not r["unmatched_app"] and not r["mismatches"] and not r["final_tbk"] and all(x["status"] == "ok" for l in r.get("tbk", []) for x in l["sales"])
     head = (f"<h2>Cuadratura semanal {r['start']:%d-%m} al {r['end']:%d-%m-%Y}</h2>"
             + ("<p style='color:#198754'><b>Todo calza.</b></p>" if ok else
                f"<p style='color:#dc3545'><b>{len(r['unmatched_bank'])} abono(s) del banco sin pago en la app y "
@@ -205,9 +314,28 @@ def render_html(r: Dict[str, Any]) -> str:
         day_html += f"<p style='margin:10px 0 2px'><b>{DIAS[d.weekday()]} {d:%d-%m}</b></p><ul style='margin:0;font-size:13px'>{items}</ul>"
     ft = "".join(f"<li>{p['pdate']:%d-%m} · <b>{_clp(p['amount'])}</b> · {p['nombre_cliente']} (reserva {p['booking_id']}) · el segundo pago del día del paseo "
                  "no puede ser Transbank: cambiar a MercadoPago (máquina) o transferencia</li>" for p in r["final_tbk"])
+    tb = ""
+    for l in r.get("tbk", []):
+        b = l["bank"]
+        parts = []
+        for x in l["sales"]:
+            sl, pay, bk = x["sale"], x["payment"], x["booking"]
+            when = f"venta {sl['dt']:%d-%m %H:%M} {_clp(sl['amount'])}"
+            if x["status"] == "ok":
+                parts.append(f"✅ {when} ← {pay['nombre_cliente']} (reserva {pay['booking_id']})")
+            elif x["status"] == "metodo":
+                parts.append(f"🔁 {when}: la reserva creada a esa hora es <b>{bk['nombre_cliente']}</b> (reserva {bk['id']}, {bk['status']}, creada {bk['created']:%H:%M}). "
+                             f"Su pago está en la reserva {pay['booking_id']} como <b>{pay['method']}</b> ({pay['pdate']:%d-%m}) → <b>cambiar el método a Transbank</b>")
+            elif x["status"] == "sin_pago":
+                parts.append(f"❌ {when}: la reserva creada a esa hora es <b>{bk['nombre_cliente']}</b> (reserva {bk['id']}, {bk['status']}) pero <b>no tiene este pago registrado</b> → registrarlo como Transbank")
+            else:
+                parts.append(f"❌ {when} (código {sl['code']}): <b>no hay reserva ni pago en la app</b> → buscar al cliente en el portal y registrarlo")
+        cw = (f" · <b>el banco lo tiene como {METHOD_LABEL[b['method']]}: es Transbank, cambiar la categoría</b>" if l.get("cat_wrong") else "")
+        tb += f"<li>Abono {b['fecha']:%d-%m} · <b>{_clp(b['abonos'])}</b>{cw}<ul>" + "".join(f"<li>{x}</li>" for x in parts) + "</ul></li>"
     legend = "<p style='font-size:12px;color:#666'>✅ calza · 🔁 método distinto · ❌ banco sin app · ⏳ app sin banco (aún) · 💵 efectivo/otro · ➖ no se cuadra (ej. GetYourGuide)</p>"
     return (head + summary
             + (f"<h3>Posible método equivocado en la app</h3><ul>{mm}</ul>" if mm else "")
+            + (f"<h3>Transbank: cruce con el portal (hora de la venta ↔ hora de creación de la reserva)</h3><ul style='font-size:13px'>{tb}</ul>" if tb else "")
             + (f"<h3>Segundo pago anotado como Transbank</h3><ul>{ft}</ul>" if ft else "")
             + "<h3>Abonos en el banco sin pago en la app</h3><p style='font-size:13px;color:#666'>Registra el pago en la app o corrige el método/fecha.</p><ul>" + ub + "</ul>"
             + "<h3>Pagos de la app sin abono en el banco</h3><p style='font-size:13px;color:#666'>Puede llegar la próxima semana (Transbank) o estar mal anotado.</p><ul>" + ua + "</ul>"
@@ -249,12 +377,33 @@ class WeeklyReconciliationMonitor(BaseMonitor):
             (monday - timedelta(days=LOOKBACK), sunday + timedelta(days=LAG_AFTER)))
         app = await self.db.execute_query(
             """SELECT a.id AS booking_id, a.nombre_cliente, a.fecha AS paseo, lower(x.value->>'method') AS method,
-                      (x.value->>'amount')::numeric AS amount, (x.value->>'date')::date AS pdate, x.idx AS idx
+                      (x.value->>'amount')::numeric AS amount, (x.value->>'date')::date AS pdate, x.idx AS idx, x.value->>'authorization_code' AS auth
                FROM all_appointments a, jsonb_array_elements(coalesce(a.pagos, '[]'::jsonb)) WITH ORDINALITY x(value, idx)
                WHERE (x.value->>'date')::date BETWEEN %s AND %s
                  AND coalesce(a.status, '') NOT ILIKE '%%cancel%%' AND (x.value->>'amount')::numeric > 0""",
             (monday - timedelta(days=LOOKBACK + LAG_BEFORE), sunday + timedelta(days=LAG_AFTER)))
-        return reconcile(bank, app, monday, sunday)
+        sales = await self._load_tbk_sales(monday - timedelta(days=LOOKBACK), sunday + timedelta(days=LAG_AFTER))
+        bookings = []
+        if sales:
+            first = min(x["dt"] for x in sales) - TBK_BOOKING_BEFORE
+            last = max(x["dt"] for x in sales) + TBK_BOOKING_AFTER
+            rows = await self.db.execute_query(
+                """SELECT id, nombre_cliente, status, payment_status, fecha, created_at FROM all_appointments
+                   WHERE created_at BETWEEN %s AND %s""",
+                (self.timezone.localize(first).astimezone(pytz.UTC), self.timezone.localize(last).astimezone(pytz.UTC)))
+            bookings = [{**r, "created": r["created_at"].astimezone(self.timezone).replace(tzinfo=None)} for r in rows]
+        return reconcile(bank, app, monday, sunday, tbk_sales=sales, bookings=bookings)
+
+    async def _load_tbk_sales(self, d_from: date, d_to: date) -> List[Dict[str, Any]]:
+        """Ventas del portal Transbank (fecha_hora en hora de Chile, monto bruto, código de autorización).
+        Se leen de la tabla `transbank_ventas` si existe; si no, el cruce usa solo montos aproximados."""
+        try:
+            rows = await self.db.execute_query(
+                """SELECT fecha_hora, monto, codigo, medio FROM transbank_ventas
+                   WHERE fecha_hora::date BETWEEN %s AND %s AND coalesce(tipo, 'venta') = 'venta'""", (d_from, d_to))
+        except Exception:
+            return []
+        return [{"dt": r["fecha_hora"], "amount": float(r["monto"]), "code": str(r["codigo"] or "").strip(), "medio": r.get("medio")} for r in rows]
 
     async def send_report(self, monday: date) -> None:
         logger.info(f"🏦 Generando cuadratura semanal desde {monday}")
