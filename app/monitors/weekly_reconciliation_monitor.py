@@ -5,6 +5,11 @@ Se envía los miércoles (el flujo de caja se actualiza a mano los martes). Empa
 uno o más pagos de la app (mismo método, fecha cercana, monto neto de comisión) en vez de comparar totales,
 porque los totales esconden los desfases (ej. Transbank del fin de semana llega el lunes).
 """
+import asyncio
+import json
+import os
+import urllib.parse
+import urllib.request
 from datetime import date, datetime, time as dt_time, timedelta
 from itertools import combinations
 from typing import Any, Dict, List, Optional
@@ -20,6 +25,7 @@ from app.monitors.base_monitor import BaseMonitor
 BANK_METHOD = {
     "ingreso mercadopago": "mercadopago",
     "ingreso transferencia": "transferencia",
+    "transferencia": "transferencia",
     "transbank": "transbank",
 }
 # Razón banco/app aceptada por método (neto de comisión). Medido en octubre 2026 contra el portal de Transbank:
@@ -45,6 +51,11 @@ MAX_SUBSET = 5
 LAG_BEFORE = 10  # el pago en la app puede estar hasta N días antes del abono
 LAG_AFTER = 3
 LOOKBACK = 28  # se empareja desde N días antes de la semana para no reutilizar un pago en dos semanas
+MP_API = "https://api.mercadopago.com/v1/payments/search"
+MP_DAYS = 2  # el pago en la app puede estar anotado hasta N días antes/después del cobro
+MP_TOL = 1000  # diferencia máxima para tratarlo como error de tipeo
+MP_TIP_MAX = 30000  # cobro de más que se considera propina no registrada
+MP_POINT_AFTER = (timedelta(hours=1.5), timedelta(hours=4))  # el Point cobra 1,5-4 h después de iniciado el paseo
 
 
 def _to_date(v: Any) -> date:
@@ -180,8 +191,65 @@ def _resolve_sale(sale: Dict, app: List[Dict], bookings: List[Dict]) -> Dict:
     return res
 
 
+def _mp_pass(mp: List[Dict], app: List[Dict], rides: List[Dict]) -> List[Dict]:
+    """Cruce directo MercadoPago (API) -> pagos de la app, cobro a cobro (monto exacto, no neto).
+    status: ok | metodo | monto | propina | falta_app. No marca `used` en `app` para no alterar el cruce con el banco."""
+    out, used = [], set()
+    ordered = sorted(mp, key=lambda x: x["dt"])
+    results = {}  # id(cobro) -> (found, status, note)
+
+    def exact_pass(m, cs, by_day, amt):
+        exact = sorted((p for p in cs if abs(p["amount"] - amt) < 1), key=by_day)
+        if exact:
+            return [exact[0]], "ok" if exact[0]["method"] == "mercadopago" else "metodo", ""
+        for p, q in combinations(cs, 2):  # pago + propina de la misma reserva en un solo cobro
+            if p["booking_id"] == q["booking_id"] and abs(p["amount"] + q["amount"] - amt) < 1:
+                found = [p, q]
+                return found, "ok" if all(x["method"] == "mercadopago" for x in found) else "metodo", ""
+        return None, None, ""
+
+    def near_pass(m, cs, by_day, amt):
+        near = sorted((p for p in cs if 0 < abs(p["amount"] - amt) <= MP_TOL), key=by_day)
+        return ([near[0]], "monto", "") if near else (None, None, "")
+
+    def tip_pass(m, cs, by_day, amt):  # cobrado de más: probable propina que nadie anotó
+        tip = sorted((p for p in cs if 0 < amt - p["amount"] <= MP_TIP_MAX and p["method"] == "mercadopago"), key=by_day)
+        if tip:
+            return [tip[0]], "propina", f"{_clp(amt - tip[0]['amount'])} de más: ¿propina sin registrar?"
+        return None, None, ""
+
+    # Primero todos los cobros exactos, luego los de monto cercano y al final los de propina: así un cobro
+    # sin pago (ej. un pasaje de bus) no se lleva el pago de otro cobro que sí le calza exacto.
+    for phase in (exact_pass, near_pass, tip_pass):
+        for m in ordered:
+            if id(m) in results:
+                continue
+            amt, day = m["amount"], m["dt"].date()
+            cs = [p for p in app if id(p) not in used and abs((p["pdate"] - day).days) <= MP_DAYS]
+            by_day = lambda p, day=day: (p["method"] != "mercadopago", abs((p["pdate"] - day).days))  # noqa: E731
+            found, status, note = phase(m, cs, by_day, amt)
+            if found:
+                results[id(m)] = (found, status, note)
+                used.update(id(p) for p in found)
+
+    for m in ordered:
+        amt = m["amount"]
+        found, status, note = results.get(id(m), (None, None, ""))
+        sug = []
+        if not found and m["kind"] == "POINT":  # el Point se cobra 1,5-4 h después del inicio del paseo
+            for rd in rides:
+                start = datetime.combine(_to_date(rd["fecha"]), rd["hora"])
+                if MP_POINT_AFTER[0] <= m["dt"] - start <= MP_POINT_AFTER[1]:
+                    sug.append(rd)
+        if status in ("ok", "metodo") and sum(1 for o in mp if abs(o["amount"] - amt) < 1) > 1:
+            note = "hay varios cobros del mismo monto: la asignación a la reserva puede estar cruzada, revisar por hora"
+        out.append({"mp": m, "status": status or "falta_app", "payments": found or [], "note": note, "rides": sug})
+    return out
+
+
 def reconcile(bank_rows: List[Dict], app_rows: List[Dict], start: date, end: date,
-              tbk_sales: Optional[List[Dict]] = None, bookings: Optional[List[Dict]] = None) -> Dict[str, Any]:
+              tbk_sales: Optional[List[Dict]] = None, bookings: Optional[List[Dict]] = None,
+              mp_payments: Optional[List[Dict]] = None, rides: Optional[List[Dict]] = None) -> Dict[str, Any]:
     """bank_rows: fecha, abonos, descripci_n, categor_a_2. app_rows: booking_id, nombre_cliente, paseo, method, amount, pdate."""
     bank = []
     for r in bank_rows:
@@ -299,7 +367,12 @@ def reconcile(bank_rows: List[Dict], app_rows: List[Dict], start: date, end: dat
                 st = "efectivo"
             days.setdefault(p["pdate"], {"bank": [], "app": []})["app"].append({**p, "status": st})
     final_tbk = [p for p in app if p["final"] and p["method"] == "transbank" and in_week(p["pdate"])]
+    mp_links = [x for x in _mp_pass(mp_payments, app, rides or []) if in_week(x["mp"]["dt"].date())] if mp_payments is not None else None
+    mp_used = {id(p) for x in (mp_links or []) for p in x["payments"]}
+    mp_missing = ([p for p in app if p["method"] == "mercadopago" and in_week(p["pdate"]) and id(p) not in mp_used]
+                  if mp_links is not None else [])
     return {
+        "mp": mp_links, "mp_missing": mp_missing,
         "final_tbk": final_tbk, "tbk": w_tbk,
         "start": start, "end": end, "by_method": by_method, "matches": w_matches, "mismatches": w_mismatches, "days": dict(sorted(days.items())),
         "unmatched_bank": w_unmatched_bank, "unmatched_app": unmatched_app,
@@ -311,7 +384,7 @@ def render_html(r: Dict[str, Any]) -> str:
     # Sin saltos de línea: EmailNotifier._format_html convierte "\n" en <br>.
     td = "padding:6px 10px;border-bottom:1px solid #eee;"
     th = "padding:6px 10px;text-align:left;background:#f4f6f8;"
-    ok = not r["unmatched_bank"] and not r["unmatched_app"] and not r["mismatches"] and not r["final_tbk"] and all(x["status"] == "ok" for l in r.get("tbk", []) for x in l["sales"])
+    ok = not r["mp_missing"] and all(x["status"] == "ok" for x in r["mp"] or []) and not r["unmatched_bank"] and not r["unmatched_app"] and not r["mismatches"] and not r["final_tbk"] and all(x["status"] == "ok" for l in r.get("tbk", []) for x in l["sales"])
     head = (f"<h2>Cuadratura semanal {r['start']:%d-%m} al {r['end']:%d-%m-%Y}</h2>"
             + ("<p style='color:#198754'><b>Todo calza.</b></p>" if ok else
                f"<p style='color:#dc3545'><b>{len(r['unmatched_bank'])} abono(s) del banco sin pago en la app y "
@@ -369,9 +442,30 @@ def render_html(r: Dict[str, Any]) -> str:
                 parts.append(f"❌ {when} (código {sl['code']}): <b>no hay reserva ni pago en la app</b> → buscar al cliente en el portal y registrarlo")
         cw = (f" · <b>el banco lo tiene como {METHOD_LABEL[b['method']]}: es Transbank, cambiar la categoría</b>" if l.get("cat_wrong") else "")
         tb += f"<li>Abono {b['fecha']:%d-%m} · <b>{_clp(b['abonos'])}</b>{cw}{(' · ' + l['note']) if l.get('note') else ''}<ul>" + "".join(f"<li>{x}</li>" for x in parts) + "</ul></li>"
+    mpx = ""
+    for x in r.get("mp") or []:
+        m, ps = x["mp"], x["payments"]
+        when = f"{m['dt']:%d-%m %H:%M} · {'Point' if m['kind'] == 'POINT' else 'link de pago'} · cobrado <b>{_clp(m['amount'])}</b> (recibido {_clp(m['net'])})"
+        pays = " + ".join(f"{p['nombre_cliente']} {p['method']} {_clp(p['amount'])} (reserva {p['booking_id']})" for p in ps)
+        if x["status"] == "ok":
+            mpx += f"<li>✅ {when} ← {pays}" + (f" <i>({x['note']})</i>" if x["note"] else "") + "</li>"
+        elif x["status"] == "metodo":
+            mpx += f"<li>🔁 {when} ← {pays}: <b>cambiar el método a MercadoPago</b>" + (f" <i>({x['note']})</i>" if x["note"] else "") + "</li>"
+        elif x["status"] == "monto":
+            mpx += f"<li>🔁 {when}: el monto más parecido es {pays} → <b>revisar el monto anotado</b></li>"
+        elif x["status"] == "propina":
+            mpx += f"<li>🙌 {when} ← {pays}: {x['note']}</li>"
+        else:
+            sug = ("; probable: " + ", ".join(f"{q['nombre_cliente']} (reserva {q['id']}, paseo {q['hora']:%H:%M})" for q in x["rides"])
+                   if x["rides"] else "; si es link de pago puede ser una reserva futura" if m["kind"] != "POINT" else "")
+            mpx += f"<li>❌ {when}: <b>no hay pago en la app</b>{sug}</li>"
+    for p in r.get("mp_missing") or []:
+        mpx += (f"<li>⏳ App · {p['pdate']:%d-%m} · {_clp(p['amount'])} · {p['nombre_cliente']} (reserva {p['booking_id']}) "
+                "anotado como MercadoPago pero <b>no hay cobro en MercadoPago</b>: ¿es otro método?</li>")
     legend = "<p style='font-size:12px;color:#666'>✅ calza · 🔁 método distinto · ❌ banco sin app · ⏳ app sin banco (aún) · 💵 efectivo/otro · ➖ no se cuadra (ej. GetYourGuide)</p>"
     return (head + summary
             + (f"<h3>Posible método equivocado en la app</h3><ul>{mm}</ul>" if mm else "")
+            + (f"<h3>MercadoPago: cobro a cobro (API)</h3><ul style='font-size:13px'>{mpx}</ul>" if mpx else "")
             + (f"<h3>Transbank: cruce con el portal (hora de la venta ↔ hora de creación de la reserva)</h3><ul style='font-size:13px'>{tb}</ul>" if tb else "")
             + (f"<h3>Segundo pago anotado como Transbank</h3><ul>{ft}</ul>" if ft else "")
             + "<h3>Abonos en el banco sin pago en la app</h3><p style='font-size:13px;color:#666'>Registra el pago en la app o corrige el método/fecha.</p><ul>" + ub + "</ul>"
@@ -412,13 +506,27 @@ class WeeklyReconciliationMonitor(BaseMonitor):
             """SELECT fecha, descripci_n, abonos, categor_a_2 FROM flujo_caja_actual
                WHERE fecha BETWEEN %s AND %s AND abonos > 0 AND categor_a_1 = 'Ingreso Operativo'""",
             (monday - timedelta(days=LOOKBACK), sunday + timedelta(days=LAG_AFTER)))
-        app = await self.db.execute_query(
-            """SELECT a.id AS booking_id, a.nombre_cliente, a.fecha AS paseo, lower(x.value->>'method') AS method,
+        app_params = (monday - timedelta(days=LOOKBACK + LAG_BEFORE), sunday + timedelta(days=LAG_AFTER))
+        app_sql = """SELECT a.id AS booking_id, a.nombre_cliente, a.fecha AS paseo, lower(x.value->>'method') AS method,
                       (x.value->>'amount')::numeric AS amount, (x.value->>'date')::date AS pdate, x.idx AS idx, x.value->>'authorization_code' AS auth
                FROM all_appointments a, jsonb_array_elements(coalesce(a.pagos, '[]'::jsonb)) WITH ORDINALITY x(value, idx)
                WHERE (x.value->>'date')::date BETWEEN %s AND %s
-                 AND coalesce(a.status, '') NOT ILIKE '%%cancel%%' AND (x.value->>'amount')::numeric > 0""",
-            (monday - timedelta(days=LOOKBACK + LAG_BEFORE), sunday + timedelta(days=LAG_AFTER)))
+                 AND coalesce(a.status, '') NOT ILIKE '%%cancel%%' AND (x.value->>'amount')::numeric > 0"""
+        # La propina no es ingreso (no va en `pagos`), pero sí llega al banco por el mismo cobro:
+        # se suma como un pago más, con la fecha del último pago de la reserva.
+        propina_sql = """
+            UNION ALL
+            SELECT a.id, a.nombre_cliente || ' (propina)', a.fecha, lower(a.propina_metodo_pago), a.propina_monto, d.pdate, 99, NULL
+            FROM all_appointments a,
+                 LATERAL (SELECT coalesce(max((p->>'date')::date), a.fecha::date) AS pdate
+                          FROM jsonb_array_elements(coalesce(a.pagos, '[]'::jsonb)) p) d
+            WHERE a.propina_monto > 0 AND coalesce(a.propina_metodo_pago, '') <> ''
+              AND d.pdate BETWEEN %s AND %s AND coalesce(a.status, '') NOT ILIKE '%%cancel%%'"""
+        try:
+            app = await self.db.execute_query(app_sql + propina_sql, app_params * 2)
+        except Exception as e:
+            logger.warning(f"Cuadratura sin propinas (columnas propina_* no disponibles): {e}")
+            app = await self.db.execute_query(app_sql, app_params)
         sales = await self._load_tbk_sales(monday - timedelta(days=400), sunday + timedelta(days=LAG_AFTER))
         bookings = []
         if sales:
@@ -429,7 +537,46 @@ class WeeklyReconciliationMonitor(BaseMonitor):
                    WHERE created_at BETWEEN %s AND %s""",
                 (self.timezone.localize(first).astimezone(pytz.UTC), self.timezone.localize(last).astimezone(pytz.UTC)))
             bookings = [{**r, "created": r["created_at"].astimezone(self.timezone).replace(tzinfo=None)} for r in rows]
-        return reconcile(bank, app, monday, sunday, tbk_sales=sales, bookings=bookings)
+        mp = await self._load_mp_payments(monday - timedelta(days=MP_DAYS), sunday + timedelta(days=MP_DAYS))
+        rides = []
+        if mp:
+            rides = await self.db.execute_query(
+                """SELECT id, nombre_cliente, fecha, hora FROM all_appointments
+                   WHERE fecha BETWEEN %s AND %s AND hora IS NOT NULL AND coalesce(status, '') NOT ILIKE '%%cancel%%'""",
+                (monday - timedelta(days=MP_DAYS + 1), sunday + timedelta(days=MP_DAYS)))
+        return reconcile(bank, app, monday, sunday, tbk_sales=sales, bookings=bookings, mp_payments=mp, rides=rides)
+
+    async def _load_mp_payments(self, d_from: date, d_to: date) -> Optional[List[Dict[str, Any]]]:
+        """Cobros aprobados de MercadoPago por API (solo lectura). None si no hay token o falla: el cruce sigue sin esta parte."""
+        token = os.getenv("MERCADOPAGO_ACCESS_TOKEN")
+        if not token:
+            return None
+        tz = self.timezone
+
+        def fetch() -> List[Dict[str, Any]]:
+            rows, offset = [], 0
+            while True:
+                qs = urllib.parse.urlencode({
+                    "sort": "date_approved", "criteria": "asc", "range": "date_approved", "limit": 100, "offset": offset,
+                    "begin_date": f"{d_from}T00:00:00.000-04:00", "end_date": f"{d_to}T23:59:59.000-03:00"})
+                req = urllib.request.Request(f"{MP_API}?{qs}", headers={"Authorization": f"Bearer {token}"})
+                with urllib.request.urlopen(req, timeout=30) as resp:
+                    data = json.load(resp)
+                rows += data.get("results", [])
+                offset += 100
+                if offset >= data["paging"]["total"]:
+                    return rows
+
+        try:
+            rows = await asyncio.to_thread(fetch)
+        except Exception as e:  # no incluir el token en el log
+            logger.warning(f"Cuadratura sin API de MercadoPago: {type(e).__name__}")
+            return None
+        return [{"id": p["id"], "amount": float(p["transaction_amount"]),
+                 "net": float((p.get("transaction_details") or {}).get("net_received_amount") or 0),
+                 "dt": datetime.fromisoformat(p["date_approved"]).astimezone(tz).replace(tzinfo=None),
+                 "kind": (p.get("point_of_interaction") or {}).get("type") or "CHECKOUT"}
+                for p in rows if p.get("status") == "approved" and p.get("date_approved")]
 
     async def _load_tbk_sales(self, d_from: date, d_to: date) -> List[Dict[str, Any]]:
         """Ventas del portal Transbank (fecha_hora en hora de Chile, monto bruto, código de autorización).
