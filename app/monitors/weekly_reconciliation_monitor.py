@@ -527,6 +527,7 @@ class WeeklyReconciliationMonitor(BaseMonitor):
         except Exception as e:
             logger.warning(f"Cuadratura sin propinas (columnas propina_* no disponibles): {e}")
             app = await self.db.execute_query(app_sql, app_params)
+        app = list(app) + await self._load_gift_card_payments(*app_params)
         sales = await self._load_tbk_sales(monday - timedelta(days=400), sunday + timedelta(days=LAG_AFTER))
         bookings = []
         if sales:
@@ -545,6 +546,27 @@ class WeeklyReconciliationMonitor(BaseMonitor):
                    WHERE fecha BETWEEN %s AND %s AND hora IS NOT NULL AND coalesce(status, '') NOT ILIKE '%%cancel%%'""",
                 (monday - timedelta(days=MP_DAYS + 1), sunday + timedelta(days=MP_DAYS)))
         return reconcile(bank, app, monday, sunday, tbk_sales=sales, bookings=bookings, mp_payments=mp, rides=rides)
+
+    async def _load_gift_card_payments(self, d_from: date, d_to: date) -> List[Dict[str, Any]]:
+        """Gift cards compradas en el rango: su pago NO está en all_appointments.pagos (vive en `gift_cards`;
+        la reserva donde se canjean queda con total 0). Se agregan como un pago más de la app, con el código
+        de autorización de Transbank en `payment_id`. Solo métodos que llegan al banco; las manuales sin
+        método (regalos/cortesías) se omiten. Si la tabla no existe, el cruce sigue sin esta parte."""
+        try:
+            return await self.db.execute_query(
+                """SELECT gc.code AS booking_id, gc.buyer_name || ' (gift card ' || gc.code || ')' AS nombre_cliente,
+                          (COALESCE(gc.paid_at, gc.purchased_at) AT TIME ZONE 'America/Santiago')::date AS paseo,
+                          lower(gc.payment_method) AS method, gc.amount::numeric AS amount,
+                          (COALESCE(gc.paid_at, gc.purchased_at) AT TIME ZONE 'America/Santiago')::date AS pdate,
+                          1 AS idx, gc.payment_id AS auth
+                   FROM gift_cards gc
+                   WHERE gc.status IN ('active', 'redeemed') AND gc.amount > 0
+                     AND lower(coalesce(gc.payment_method, '')) IN ('transbank', 'transferencia', 'mercadopago')
+                     AND (COALESCE(gc.paid_at, gc.purchased_at) AT TIME ZONE 'America/Santiago')::date BETWEEN %s AND %s""",
+                (d_from, d_to))
+        except Exception as e:
+            logger.warning(f"Cuadratura sin gift cards (tabla gift_cards no disponible): {e}")
+            return []
 
     async def _load_mp_payments(self, d_from: date, d_to: date) -> Optional[List[Dict[str, Any]]]:
         """Cobros aprobados de MercadoPago por API (solo lectura). None si no hay token o falla: el cruce sigue sin esta parte."""
