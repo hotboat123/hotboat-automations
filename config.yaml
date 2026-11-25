@@ -56,6 +56,7 @@ monitors:
     report_time: "08:00"  # miércoles (el flujo de caja se actualiza a mano los martes)
     weekday: 2  # 0=lunes ... 2=miércoles
     timezone: "America/Santiago"
+    email_to: "hotboatnotification@gmail.com"  # solo este reporte; los demás monitores siguen usando EMAIL_TO
 
 
 # Notification Channels

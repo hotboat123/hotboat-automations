@@ -95,13 +95,15 @@ class BaseMonitor(ABC):
         message: str,
         priority: str = "medium",
         channel: Optional[str] = None,
-        attachments: Optional[List] = None
+        attachments: Optional[List] = None,
+        recipients: Optional[List[str]] = None
     ) -> bool:
         """Helper para enviar notificaciones"""
         return await self.notification_manager.send(
             message=message,
             priority=priority,
             channel=channel,
-            attachments=attachments
+            attachments=attachments,
+            recipients=recipients
         )
 

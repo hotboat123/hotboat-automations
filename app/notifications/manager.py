@@ -67,7 +67,8 @@ class NotificationManager:
         message: str,
         priority: str = "medium",
         channel: Optional[str] = None,
-        attachments: Optional[List] = None
+        attachments: Optional[List] = None,
+        recipients: Optional[List[str]] = None
     ) -> bool:
         """
         Envía una notificación a través de los canales configurados.
@@ -78,6 +79,7 @@ class NotificationManager:
             priority: Prioridad del mensaje
             channel: Canal específico (si es None, envía por todos los configurados)
             attachments: Lista de adjuntos (solo para email)
+            recipients: Destinatarios de email solo para este envío (si es None, usa EMAIL_TO)
         """
         if not self.notifiers:
             logger.warning(f"⚠️ No hay notificadores disponibles para: {message[:50]}...")
@@ -105,8 +107,8 @@ class NotificationManager:
         for name, notifier in targets:
             try:
                 # Solo pasar attachments al notificador de email
-                if name == "email" and attachments:
-                    await notifier.send(message, priority, attachments)
+                if name == "email" and (attachments or recipients):
+                    await notifier.send(message, priority, attachments, recipients=recipients)
                 else:
                     await notifier.send(message, priority)
                 success = True

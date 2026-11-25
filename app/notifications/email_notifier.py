@@ -61,7 +61,8 @@ class EmailNotifier(BaseNotifier):
         if self.use_resend and not self.resend_from_email:
             raise ValueError("RESEND_FROM_EMAIL o EMAIL_FROM no configurado para Resend")
     
-    async def send(self, message: str, priority: str = "medium", attachments: Optional[List[Dict]] = None):
+    async def send(self, message: str, priority: str = "medium", attachments: Optional[List[Dict]] = None,
+                   recipients: Optional[List[str]] = None):
         """
         Envía un email
         
@@ -69,6 +70,7 @@ class EmailNotifier(BaseNotifier):
             message: Mensaje del email
             priority: Prioridad del mensaje
             attachments: Lista de diccionarios con 'path', 'filename', 'content_type' (opcional)
+            recipients: Destinatarios solo para este envío (si es None, usa EMAIL_TO)
         """
         if not self.should_send(priority):
             return
@@ -76,7 +78,7 @@ class EmailNotifier(BaseNotifier):
         subject = self._get_subject(priority)
         html_body = self._format_html(message, priority)
         
-        senders: List[Tuple[str, Callable[[str, str, Optional[List[Dict]]], Awaitable[None]]]] = []
+        senders: List[Tuple[str, Callable[..., Awaitable[None]]]] = []
         if self.use_smtp:
             senders.append(("SMTP", self._send_smtp))
         if self.use_sendgrid:
@@ -87,7 +89,7 @@ class EmailNotifier(BaseNotifier):
         last_error: Optional[Exception] = None
         for idx, (name, sender) in enumerate(senders, start=1):
             try:
-                await sender(subject, html_body, attachments)
+                await sender(subject, html_body, attachments, recipients)
                 if idx > 1:
                     logger.info(f"✅ Email enviado correctamente vía {name} (fallback)")
                 return
@@ -184,7 +186,7 @@ class EmailNotifier(BaseNotifier):
         
         return html
     
-    async def _send_smtp(self, subject: str, html_body: str, attachments: Optional[List[Dict]] = None):
+    async def _send_smtp(self, subject: str, html_body: str, attachments: Optional[List[Dict]] = None, recipients: Optional[List[str]] = None):
         """Envía email usando SMTP"""
         use_ssl = bool(getattr(self.settings, "smtp_use_ssl", False))
         use_tls = bool(getattr(self.settings, "smtp_use_tls", True))
@@ -193,7 +195,7 @@ class EmailNotifier(BaseNotifier):
         
         msg = MIMEMultipart('mixed')
         msg['From'] = self.settings.email_from or self.settings.smtp_username
-        msg['To'] = ", ".join(self.recipients)
+        msg['To'] = ", ".join(recipients or self.recipients)
         msg['Subject'] = subject
         
         # Adjuntar contenido HTML
@@ -267,7 +269,7 @@ class EmailNotifier(BaseNotifier):
         if last_error:
             raise last_error
     
-    async def _send_sendgrid(self, subject: str, html_body: str, attachments: Optional[List[Dict]] = None):
+    async def _send_sendgrid(self, subject: str, html_body: str, attachments: Optional[List[Dict]] = None, recipients: Optional[List[str]] = None):
         """Envía email usando SendGrid"""
         if attachments:
             logger.warning("⚠️ Adjuntos no soportados en SendGrid, usando solo SMTP")
@@ -277,7 +279,7 @@ class EmailNotifier(BaseNotifier):
         
         message = Mail(
             from_email=Email(self.settings.sendgrid_from_email),
-            to_emails=[To(email) for email in self.recipients],
+            to_emails=[To(email) for email in (recipients or self.recipients)],
             subject=subject,
             html_content=Content("text/html", html_body)
         )
@@ -287,7 +289,7 @@ class EmailNotifier(BaseNotifier):
         
         logger.debug(f"📧 Email enviado vía SendGrid (status: {response.status_code})")
     
-    async def _send_resend(self, subject: str, html_body: str, attachments: Optional[List[Dict]] = None):
+    async def _send_resend(self, subject: str, html_body: str, attachments: Optional[List[Dict]] = None, recipients: Optional[List[str]] = None):
         """Envía email usando Resend"""
         if attachments:
             logger.warning("⚠️ Adjuntos no soportados en Resend, usando solo SMTP")
@@ -297,7 +299,7 @@ class EmailNotifier(BaseNotifier):
         
         payload = {
             "from": self.resend_from_email,
-            "to": self.recipients,
+            "to": recipients or self.recipients,
             "subject": subject,
             "html": html_body,
         }

@@ -614,4 +614,6 @@ class WeeklyReconciliationMonitor(BaseMonitor):
     async def send_report(self, monday: date) -> None:
         logger.info(f"🏦 Generando cuadratura semanal desde {monday}")
         report = await self.build_report(monday)
-        await self.send_notification(message=render_html(report), priority="high", channel="email")
+        to = self.config.get("email_to")  # opcional: destinatarios propios (lista o texto separado por comas); si falta, EMAIL_TO
+        recipients = [x.strip() for x in to.split(",") if x.strip()] if isinstance(to, str) else (list(to) if to else None)
+        await self.send_notification(message=render_html(report), priority="high", channel="email", recipients=recipients)
